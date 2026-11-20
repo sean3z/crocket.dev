@@ -2,7 +2,7 @@
 
 The landing page for [crocket](https://github.com/sean3z/crocket), served by crocket itself.
 
-The HTML, CSS, and script are `#embed`'d into one binary and mounted with `crocket::files`. HTML responses carry a content security policy that allows only this origin: no inline script, no inline style, no third-party host. `GET /healthz` is crocket's built-in liveness route.
+`GET /` is a route. It picks one rival for the benchmark block and sends `Cache-Control: no-cache`, so a refresh can show a different comparison. CSS, script, and the guide are `#embed`'d and mounted with `crocket::files`. HTML responses carry a content security policy that allows only this origin: no inline script, no inline style, no third-party host. `GET /healthz` is crocket's built-in liveness route.
 
 crocket is pinned to commit `9b446f8c2423262ef1cbf3afe370a0ae2f81d181` (static file serving). The latest release is [0.5.1](https://github.com/sean3z/crocket/releases/tag/0.5.1). Static files are unreleased in that tag, which is why the pin is a commit and not `0.5.1`.
 

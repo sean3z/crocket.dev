@@ -1,10 +1,13 @@
-// The crocket.dev site. Pages are #embed'd and served by crocket::files.
+// The crocket.dev site. The homepage is a route so each GET / can name a
+// different rival. Guide pages, CSS, and script are #embed'd files.
 // CROCKET_* variables still belong to the framework (Config::from_env).
 
 #include <crocket/crocket.hpp>
 #include "guide_assets.hpp"
 
+#include <atomic>
 #include <string>
+#include <string_view>
 #include <utility>
 
 using namespace crocket;
@@ -55,10 +58,93 @@ struct HtmlNotFound {
   }
 };
 
+// Figures are the ones printed in "Where the cycles go" for the Heroes CRUD
+// rig: crocket 35.2k req/s and 21 MB peak, against one rival per response.
+// Rocket's peak is 22 MB, so that line is "vs 22 MB" with no extra claim.
+struct Rival {
+  std::string_view id;
+  std::string_view rate;    // already includes "vs "
+  std::string_view memory;  // already includes "vs "
+  std::string_view note;    // empty when the post has no short caveat
+};
+
+constexpr Rival kRivals[] = {
+    {"rocket", "vs Rocket's 17.4k", "vs 22 MB", ""},
+    {"spring", "vs Spring Boot's 8.4k", "vs Spring Boot's 471 MB", "JVM ran untuned."},
+    {"node", "vs Node.js (Fastify)'s 6.6k", "vs Node.js (Fastify)'s 216 MB", "Single Node process."},
+};
+
+const Rival& rival_for(const Request& rq) {
+  if (auto asked = rq.query_param("vs")) {
+    for (const auto& rival : kRivals)
+      if (rival.id == *asked) return rival;
+  }
+  // One process, so a refresh moves to the next rival. No cookie.
+  static std::atomic<unsigned> next{0};
+  auto i = next.fetch_add(1, std::memory_order_relaxed);
+  return kRivals[i % (sizeof kRivals / sizeof kRivals[0])];
+}
+
+std::string numbers_html(const Rival& rival) {
+  std::string html;
+  html.reserve(640);
+  html += R"(<div class="numbers">
+          <article class="stat">
+            <p class="stat-value">35.2k <span>req/s</span></p>
+            <p class="stat-vs">)";
+  html += rival.rate;
+  html += R"(</p>
+            <p class="stat-caption">Heroes CRUD, max throughput.</p>
+          </article>
+          <article class="stat">
+            <p class="stat-value">21 <span>MB</span></p>
+            <p class="stat-vs">)";
+  html += rival.memory;
+  html += R"(</p>
+            <p class="stat-caption">Heroes CRUD, peak memory.</p>
+          </article>
+        </div>)";
+  if (!rival.note.empty()) {
+    html += R"(
+        <p class="stat-note">)";
+    html += rival.note;
+    html += "</p>";
+  }
+  return html;
+}
+
+// The markers bracket the Rocket copy in index.html. A request replaces that
+// span, so the page does not need script to show a different rival.
+std::string render_home(const Rival& rival) {
+  const std::string_view page(reinterpret_cast<const char*>(index_html), sizeof index_html);
+  constexpr std::string_view open = "<!--rival-->";
+  constexpr std::string_view close = "<!--/rival-->";
+  const auto begin = page.find(open);
+  const auto end = page.find(close);
+  const auto block = numbers_html(rival);
+  if (begin == std::string_view::npos || end == std::string_view::npos || end < begin)
+    return std::string(page);
+  std::string out;
+  out.reserve(page.size() + block.size());
+  out.append(page.substr(0, begin));
+  out.append(block);
+  out.append(page.substr(end + close.size()));
+  return out;
+}
+
+Response homepage(const Request& rq) {
+  Response rs;
+  rs.body = render_home(rival_for(rq));
+  rs.set_content_type("text/html; charset=utf-8");
+  rs.headers.set("content-security-policy", kCsp);
+  rs.headers.set("cache-control", "no-cache");
+  return rs;
+}
+
 files site_files() {
   files web;
+  // index.html is served by pages::home, so a refresh can change the rival.
   web.assets = {
-      asset("index.html", index_html),
       asset("style.css", style_css),
       asset("theme.js", theme_js),
       asset("favicon.svg", favicon_svg),
@@ -88,11 +174,20 @@ Config site_config() {
 
 }  // namespace
 
+namespace pages {
+
+[[= http::get("/")]]
+auto home(const Request& rq) -> Response { return homepage(rq); }
+
+}  // namespace pages
+
 int main() {
-  // /healthz and /readyz are built in. Routes match before files.
+  // /healthz and /readyz are built in. Routes match before files, so GET /
+  // is the homepage above and everything else is still a static file.
   return build(site_config())
       .attach(Logger{})
       .attach(HtmlNotFound{})
+      .mount("/", reflect_routes<^^pages>())
       .mount("/", site_files())
       .launch();
 }

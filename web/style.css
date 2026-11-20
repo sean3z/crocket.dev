@@ -680,6 +680,13 @@ code { font-family: inherit; }
 
 .stat p.stat-caption span { white-space: nowrap; }
 
+.stat-note {
+  margin: 1.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 .stat-foot {
   margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
   color: var(--muted);
