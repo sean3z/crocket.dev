@@ -274,44 +274,44 @@ crocket::build()
     <section class="section" id="numbers">
       <div class="wrap">
         <h2>By the numbers</h2>
-        <p class="intro">Published measurements, copied as printed. Two different rigs, so the captions say which one.</p>
+        <p class="intro">Published measurements, copied as printed.</p>
         <div class="numbers">
           <article class="stat">
             <p class="stat-value">35.2k <span>req/s</span></p>
-            <h3>Max throughput, Heroes CRUD</h3>
-            <p>crocket, with JSON request logs, Prometheus, and a 10 s timeout. On the same run: Rocket 17.4k, Spring Boot 8.4k, single-process Fastify 6.6k. Zero errors on the max runs. Fastify was one Node process, about one core of the four. Rocket's pool sends <code>SELECT 1</code> on every checkout by default. A rerun with that check off reached 24.8k on a newer Xeon, so the post says to compare ratios, not that absolute.</p>
-            <p class="stat-caption">DigitalOcean c-4, 4 dedicated vCPUs, Ubuntu 24.04, app in Docker with host networking. Postgres 16 on a second c-4. wrk2 on a third: 4 threads, 128 connections, HTTP/1.1, 80% get-by-id. Median of 3 reps.</p>
+            <h3>Heroes CRUD, max throughput</h3>
+            <p>Rocket 17.4k, Spring 8.4k, Fastify 6.6k.</p>
             <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
           </article>
           <article class="stat">
             <p class="stat-value">94 <span>µs</span></p>
             <h3>App CPU per request</h3>
-            <p>At that same max. Rocket 204 µs, Spring Boot 393 µs, Fastify 157 µs. Fastify spends less CPU per request than Rocket and Spring. Its max is lower because one process used about one core. The post's later pool rerun, scaled back onto this run, puts Rocket near 155 µs with the health check off.</p>
-            <p class="stat-caption">Same three c-4 droplets and the same Heroes mix. App CPU is read from <code>/proc</code> once a second and divided by requests served.</p>
+            <p>Rocket 204 µs, Spring 393 µs, Fastify 157 µs.</p>
             <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
           </article>
           <article class="stat">
             <p class="stat-value">2.55 <span>ms</span></p>
             <h3>p99 at 4,000 req/s</h3>
-            <p>crocket. Rocket 3.03 ms, Spring Boot 3.11 ms, Fastify 8.21 ms. The Postgres round trip dominates here, and three of the four land within about half a millisecond. Fastify's single event loop shows up in the tail.</p>
-            <p class="stat-caption">Same rig, a fixed 4,000 req/s that every stack could hold. Median of 3 reps. wrk2, corrected for coordinated omission.</p>
+            <p>Rocket 3.03 ms, Spring 3.11 ms, Fastify 8.21 ms.</p>
             <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
           </article>
           <article class="stat">
             <p class="stat-value">21 <span>MB</span></p>
             <h3>Peak resident memory</h3>
-            <p>13 MB idle. Rocket 11 MB idle and 22 MB peak, Fastify 87 and 216, Spring Boot 225 and 471. The post says crocket and Rocket are effectively tied, and that Spring ran untuned.</p>
-            <p class="stat-caption">Resident set on the same c-4 app host, idle and at peak under that Heroes load.</p>
+            <p>Rocket peaks at 22 MB. Spring peaks at 471 MB.</p>
             <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
           </article>
           <article class="stat">
             <p class="stat-value">404,401 <span>req/s</span></p>
             <h3>Plaintext, HTTP/1.1</h3>
-            <p>crocket on <code>GET /plaintext</code>. Rocket 0.5 did 204,897 on the same scenario (1.97x in the table). No database. Logger and Metrics were off. Rocket 0.5 serves HTTP/2 only over TLS, so this comparison is HTTP/1.1. One run. The load generator shared the VM, and h2load was the limit on the bare-h2o rows.</p>
-            <p class="stat-caption">One KVM VM, 8 vCPUs, 15 GB RAM, Linux 6.12. h2load 1.64, 64 connections, 4 threads, 30 seconds. crocket <code>main</code> at <code>2ad3f5d</code>, GCC 16.2.</p>
+            <p>Rocket 0.5 did 204,897 req/s (1.97x).</p>
             <p class="src"><a href="https://rambling.hashnode.dev/building-a-rocket-style-web-framework-with-c-26-reflection-0278c8d56eaa">Building a Rocket-style web framework</a></p>
           </article>
         </div>
+        <details class="method">
+          <summary>Methodology</summary>
+          <p>Heroes CRUD used three DigitalOcean c-4 droplets (4 dedicated vCPUs, Ubuntu 24.04): the app in Docker with host networking, Postgres 16 on the second, wrk2 on the third (4 threads, 128 connections, HTTP/1.1, 80% get-by-id). JSON logs, Prometheus, and a 10 s timeout were on. Figures are the median of 3 reps, with zero errors on the max runs. Fastify was one Node process, about one core, and it spends less CPU per request than Rocket and Spring. Rocket's pool runs <code>SELECT 1</code> on checkout. With that off, a rerun on a newer Xeon reached 24.8k req/s, and the post scales Rocket to about 155 µs, so compare ratios rather than that absolute. p99 is at a fixed 4,000 req/s. The Postgres round trip dominates, and Fastify's single event loop shows in the tail. Spring ran untuned. Memory is resident set on that app host: crocket 13 MB idle and 21 MB peak, Rocket 11 and 22, Fastify 87 and 216, Spring 225 and 471.</p>
+          <p>Plaintext is a different rig: one KVM VM, 8 vCPUs, 15 GB RAM, Linux 6.12. h2load 1.64, 64 connections, 4 threads, 30 seconds, sharing the box with the server. crocket <code>main</code> at <code>2ad3f5d</code>, GCC 16.2. No database. Logger and Metrics were off. One run. Rocket 0.5 serves HTTP/2 only over TLS, so that comparison is HTTP/1.1.</p>
+        </details>
       </div>
     </section>
 

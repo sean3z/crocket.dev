@@ -620,47 +620,59 @@ code { font-family: inherit; }
 
 .numbers {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.75rem 1.25rem;
+  margin: 0;
+  padding-top: 0.25rem;
 }
 
 .stat {
-  grid-column: span 2;
   margin: 0;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 0.9rem;
-  padding: 1.05rem 1.05rem 0.95rem;
-  box-shadow: var(--shadow);
+  min-width: 0;
 }
-
-.numbers .stat:nth-child(4),
-.numbers .stat:nth-child(5) { grid-column: span 3; }
 
 .stat-value {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 2.6rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.15rem, 3.5vw, 3.35rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
   font-weight: 700;
 }
 
 .stat-value span {
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0;
+  display: inline-block;
+  font-size: 0.46em;
+  font-weight: 650;
+  letter-spacing: -0.03em;
   color: var(--muted);
 }
 
 .stat h3 {
-  margin: 0.55rem 0 0.35rem;
-  font-size: 1.05rem;
+  margin: 0.7rem 0 0.3rem;
+  font-size: 0.98rem;
   letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
-.stat p { margin: 0 0 0.55rem; color: var(--muted); font-size: 0.92rem; }
+.stat p { margin: 0 0 0.45rem; color: var(--muted); font-size: 0.92rem; }
 
-.stat-caption { font-size: 0.84rem; }
+.method {
+  margin-top: 1.35rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.method summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 650;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.method p { max-width: 46rem; margin: 0.35rem 0 0.7rem; }
 
 .blog-list {
   display: grid;
@@ -693,10 +705,7 @@ code { font-family: inherit; }
 @media (max-width: 980px) {
   .pillars { grid-template-columns: 1fr 1fr; }
   .docs { grid-template-columns: 1fr; }
-  .numbers { grid-template-columns: 1fr; }
-  .stat,
-  .numbers .stat:nth-child(4),
-  .numbers .stat:nth-child(5) { grid-column: auto; }
+  .numbers { grid-template-columns: 1fr 1fr; }
   .guide-shell {
     grid-template-columns: 1fr;
     grid-template-areas:
@@ -724,7 +733,7 @@ code { font-family: inherit; }
 }
 
 @media (max-width: 720px) {
-  .pillars, .features { grid-template-columns: 1fr; }
+  .pillars, .features, .numbers { grid-template-columns: 1fr; }
   pre { font-size: 0.78rem; }
   .card pre { font-size: 0.74rem; }
   h1 { letter-spacing: -0.045em; }
