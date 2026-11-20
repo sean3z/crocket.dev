@@ -259,7 +259,7 @@ crocket::build()
     <section class="section" id="measured">
       <div class="wrap">
         <h2>Small, and only the numbers in the repo</h2>
-        <p class="intro"><code>./dev bench</code> times a build with h2load, in process, against Rocket 0.5, and against h2o alone. Results go to <code>bench/results/</code>, which git ignores, because they only compare on the machine that ran them. This page doesn't invent a requests-per-second figure.</p>
+        <p class="intro"><code>./dev bench</code> times a build with h2load, in process, against Rocket 0.5, and against h2o alone. Those results stay in <code>bench/results/</code>, which git ignores. The notes below are the ones written down in the repo. The headline measurements in the next section come from the published write-ups, and each one names its own machine.</p>
         <ul class="facts">
           <li><strong>Routing.</strong> Candidates are found in the same time with 10 routes or 1,000, and the lookup allocates nothing. The tree is built at ignite.</li>
           <li><strong>Hot path, 0.4.0.</strong> The changelog records roughly 1.6 times the h2c throughput of the previous crocket, with every production feature on.</li>
@@ -268,6 +268,75 @@ crocket::build()
           <li><strong>Idle workers.</strong> They sleep. Each extra thread costs about 8 MB of virtual stack, not resident memory. A 16-connection pool on 4 cores used to cap the Heroes API at about 11k req/s, against 31k once workers followed the pool.</li>
         </ul>
         <p class="caption">Sources: the routing section and the benchmarks section of the README, <code>docs/ENGINE.md</code>, the building section, and the 0.4.0 changelog. You need GCC 16.2 or later. Ubuntu 26.04's packaged <code>g++-16</code> is a pre-release snapshot whose reflection bugs break a translation unit that mounts routes.</p>
+      </div>
+    </section>
+
+    <section class="section" id="numbers">
+      <div class="wrap">
+        <h2>By the numbers</h2>
+        <p class="intro">Published measurements, copied as printed. Two different rigs, so the captions say which one.</p>
+        <div class="numbers">
+          <article class="stat">
+            <p class="stat-value">35.2k <span>req/s</span></p>
+            <h3>Max throughput, Heroes CRUD</h3>
+            <p>crocket, with JSON request logs, Prometheus, and a 10 s timeout. On the same run: Rocket 17.4k, Spring Boot 8.4k, single-process Fastify 6.6k. Zero errors on the max runs. Fastify was one Node process, about one core of the four. Rocket's pool sends <code>SELECT 1</code> on every checkout by default. A rerun with that check off reached 24.8k on a newer Xeon, so the post says to compare ratios, not that absolute.</p>
+            <p class="stat-caption">DigitalOcean c-4, 4 dedicated vCPUs, Ubuntu 24.04, app in Docker with host networking. Postgres 16 on a second c-4. wrk2 on a third: 4 threads, 128 connections, HTTP/1.1, 80% get-by-id. Median of 3 reps.</p>
+            <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
+          </article>
+          <article class="stat">
+            <p class="stat-value">94 <span>µs</span></p>
+            <h3>App CPU per request</h3>
+            <p>At that same max. Rocket 204 µs, Spring Boot 393 µs, Fastify 157 µs. Fastify spends less CPU per request than Rocket and Spring. Its max is lower because one process used about one core. The post's later pool rerun, scaled back onto this run, puts Rocket near 155 µs with the health check off.</p>
+            <p class="stat-caption">Same three c-4 droplets and the same Heroes mix. App CPU is read from <code>/proc</code> once a second and divided by requests served.</p>
+            <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
+          </article>
+          <article class="stat">
+            <p class="stat-value">2.55 <span>ms</span></p>
+            <h3>p99 at 4,000 req/s</h3>
+            <p>crocket. Rocket 3.03 ms, Spring Boot 3.11 ms, Fastify 8.21 ms. The Postgres round trip dominates here, and three of the four land within about half a millisecond. Fastify's single event loop shows up in the tail.</p>
+            <p class="stat-caption">Same rig, a fixed 4,000 req/s that every stack could hold. Median of 3 reps. wrk2, corrected for coordinated omission.</p>
+            <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
+          </article>
+          <article class="stat">
+            <p class="stat-value">21 <span>MB</span></p>
+            <h3>Peak resident memory</h3>
+            <p>13 MB idle. Rocket 11 MB idle and 22 MB peak, Fastify 87 and 216, Spring Boot 225 and 471. The post says crocket and Rocket are effectively tied, and that Spring ran untuned.</p>
+            <p class="stat-caption">Resident set on the same c-4 app host, idle and at peak under that Heroes load.</p>
+            <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
+          </article>
+          <article class="stat">
+            <p class="stat-value">404,401 <span>req/s</span></p>
+            <h3>Plaintext, HTTP/1.1</h3>
+            <p>crocket on <code>GET /plaintext</code>. Rocket 0.5 did 204,897 on the same scenario (1.97x in the table). No database. Logger and Metrics were off. Rocket 0.5 serves HTTP/2 only over TLS, so this comparison is HTTP/1.1. One run. The load generator shared the VM, and h2load was the limit on the bare-h2o rows.</p>
+            <p class="stat-caption">One KVM VM, 8 vCPUs, 15 GB RAM, Linux 6.12. h2load 1.64, 64 connections, 4 threads, 30 seconds. crocket <code>main</code> at <code>2ad3f5d</code>, GCC 16.2.</p>
+            <p class="src"><a href="https://rambling.hashnode.dev/building-a-rocket-style-web-framework-with-c-26-reflection-0278c8d56eaa">Building a Rocket-style web framework</a></p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="blog">
+      <div class="wrap">
+        <h2>From the blog</h2>
+        <p class="intro">Sean's Ramblings, on Hashnode. Titles are the ones on the posts.</p>
+        <div class="blog-list">
+          <article>
+            <p class="blog-date">Oct 12, 2026</p>
+            <h3><a href="https://rambling.hashnode.dev/building-a-rocket-style-web-framework-with-c-26-reflection-0278c8d56eaa">Building a Rocket-style web framework with C++26 reflection</a></h3>
+            <p>Could we build Rocket in C++? Not a port, just the same spirit. Static reflection, annotations, and a first bench against Rocket 0.5.</p>
+          </article>
+          <article>
+            <p class="blog-date">Oct 15, 2026</p>
+            <h3><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go: C++26, Rust, Java and Node on one CRUD API</a></h3>
+            <p>A Heroes CRUD shootout between crocket, Rocket, Spring Boot, and Fastify, with JSON logs, metrics, and timeouts on.</p>
+          </article>
+          <article>
+            <p class="blog-date">Oct 23, 2026</p>
+            <h3><a href="https://rambling.hashnode.dev/efficiency-is-an-error-budget-input-f89938422c09">Efficiency is an error-budget input</a></h3>
+            <p>Takes that Heroes benchmark and prices efficiency as headroom, latency, or a smaller bill. Most of the dollar figures are projections.</p>
+          </article>
+        </div>
+        <p class="caption"><a href="https://rambling.hashnode.dev/">More on the blog</a></p>
       </div>
     </section>
 
