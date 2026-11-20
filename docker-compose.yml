@@ -1,0 +1,16 @@
+# Publishes the site on the host loopback only. nginx terminates TLS and
+# proxies to 127.0.0.1:8100. See deploy/nginx-crocket.dev.conf.
+services:
+  site:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: crocket-site:local
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8100:8100"
+    environment:
+      CROCKET_PORT: "8100"
+      CROCKET_LOG_LEVEL: info
+    stop_grace_period: 15s

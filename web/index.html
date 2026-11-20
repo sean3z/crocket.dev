@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>crocket, a C++ web framework</title>
+  <meta name="description" content="Handlers are functions. C++26 reflection turns them into routes, JSON, protobuf, and OpenAPI. h2o serves HTTP.">
+  <meta name="theme-color" content="#f4f0e6">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="canonical" href="https://crocket.dev/">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/theme.js"></script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap top">
+      <a class="brand" href="/">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path class="arc" d="M6 23c5.5-11 11-12 20-6"/>
+          <circle class="dot" cx="25" cy="16.2" r="2.1"/>
+        </svg>
+        crocket
+      </a>
+      <nav class="nav" aria-label="Site">
+        <a href="#features">Features</a>
+        <a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md">Guide</a>
+        <a href="https://github.com/sean3z/crocket/releases/tag/0.5.1">0.5.1</a>
+        <a href="https://todo.crocket.dev">Demo</a>
+        <a href="https://github.com/sean3z/crocket">GitHub</a>
+        <button type="button" id="theme" aria-pressed="false">Dark mode</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="content">
+    <section class="hero">
+      <div class="wrap">
+        <p class="kicker">C++26 web framework</p>
+        <h1>crocket</h1>
+        <p class="tagline">Handlers are functions. Reflection does the rest.</p>
+        <p class="lede">A C++ web framework in the same spirit as Rocket. It's not a port. You write a function, annotate the route, and <code>reflect_routes</code> mounts it. The same structs become JSON, protobuf, and OpenAPI. h2o serves HTTP/1.1, HTTP/2, and TLS.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#quick-start-hello-world-in-your-own-project">Get started</a>
+          <a class="btn" href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md">Guide</a>
+          <a class="btn" href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/docs/DESIGN.md">Design</a>
+          <a class="btn" href="https://github.com/sean3z/crocket">GitHub</a>
+        </div>
+        <p class="served-line">This page is served by crocket, commit <a href="https://github.com/sean3z/crocket/commit/9b446f8c2423262ef1cbf3afe370a0ae2f81d181">9b446f8</a>. Latest release: <a href="https://github.com/sean3z/crocket/releases/tag/0.5.1">0.5.1</a>. Live demo: <a href="https://todo.crocket.dev">todo.crocket.dev</a>.</p>
+      </div>
+    </section>
+
+    <section class="wrap pillars" aria-label="Why crocket">
+      <article class="pillar">
+        <span class="num">01</span>
+        <h2>Type-safe</h2>
+        <p>A <code>{capture}</code> binds to the parameter with the same name. If the names don't match, the build fails and the error names both. <code>/hello/Ada/400</code> never calls a <code>uint8_t</code> handler. It's 404 <code>path.invalid</code>.</p>
+      </article>
+      <article class="pillar">
+        <span class="num">02</span>
+        <h2>No boilerplate</h2>
+        <p>No macros and no route list. Mount a namespace and every annotated function is a route. Helpers without an annotation stay helpers. Reflection runs in the compiler, so a request pays for a function pointer.</p>
+      </article>
+      <article class="pillar">
+        <span class="num">03</span>
+        <h2>Plain functions</h2>
+        <p>A handler is a function you can call in a test, step into, and jump to in an editor. <code>build().mount(...).launch()</code> starts the server. <code>Config::from_env()</code> reads <code>CROCKET_PORT</code> and the rest.</p>
+      </article>
+      <article class="pillar">
+        <span class="num">04</span>
+        <h2>Extensible</h2>
+        <p>A fairing is a plain struct with <code>on_request</code> or <code>on_response</code>. A custom guard is a <code>FromRequest</code> specialization. A controller is a class whose methods are routes. There's no plugin table.</p>
+      </article>
+    </section>
+
+    <section class="section" id="hello">
+      <div class="wrap">
+        <h2>One route, and it's a function</h2>
+        <p class="intro"><code>/hello/Ada/36</code> runs <code>hello</code>. <code>/hello/Ada/400</code> doesn't, because 400 isn't a <code>uint8_t</code>.</p>
+        <figure class="listing">
+          <header>
+            <span>examples/hello.cpp</span>
+            <a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/examples/hello.cpp">source</a>
+          </header>
+          <pre><code><span class="k">namespace</span> api {
+
+[[= http::get(<span class="s">"/hello/{name}/{age}"</span>)]]
+<span class="k">auto</span> hello(std::string_view name, std::uint8_t age) -&gt; std::string {
+  <span class="k">return</span> std::format(<span class="s">"Hello, {} year old named {}!"</span>, age, name);
+}
+
+[[= http::get(<span class="s">"/"</span>)]]
+<span class="k">auto</span> index() -&gt; std::string { <span class="k">return</span> <span class="s">"Try GET /hello/&lt;name&gt;/&lt;age&gt;\n"</span>; }
+
+}  <span class="c">// namespace api</span>
+
+<span class="k">int</span> main() {
+  <span class="k">return</span> build(Config::from_env())
+      .attach(Logger{})
+      .mount(<span class="s">"/"</span>, reflect_routes&lt;^^api&gt;())
+      .launch();
+}</code></pre>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <h2>What you actually get</h2>
+        <p class="intro">Each snippet is from the crocket tree this site is built with. If Rocket has a feature crocket doesn't, it isn't here.</p>
+        <div class="features">
+
+          <article class="card">
+            <h3>Routes from reflection</h3>
+            <p>Most C++ frameworks register routes at runtime, with a macro, or with a code generator. crocket uses C++26 static reflection. The annotation is an ordinary C++ value, and <code>reflect_routes&lt;^^api&gt;()</code> reads the functions, their annotations, and their parameter names while compiling.</p>
+            <figure class="listing">
+              <pre><code>crocket::build()
+  .attach(Logger{})
+  .mount(<span class="s">"/"</span>, reflect_routes&lt;^^api&gt;())
+  .launch({.listen = <span class="s">"0.0.0.0:8000"</span>});</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#crocket">README</a></p>
+          </article>
+
+          <article class="card">
+            <h3>JSON and protobuf</h3>
+            <p>A plain struct is the schema. <code>Json&lt;T&gt;</code> reads the body straight into <code>T</code>, with no document tree and no derive macro. Protobuf field numbers follow declaration order. <code>proto::field</code> pins one when you retire a number. Unknown protobuf fields are skipped.</p>
+            <figure class="listing">
+              <pre><code><span class="k">struct</span> NewUser {
+  std::string email;                <span class="c">// required</span>
+  std::optional&lt;std::string&gt; name;  <span class="c">// may be absent or null</span>
+  <span class="k">int</span> age = 0;                      <span class="c">// may be absent: keeps its default</span>
+};
+
+[[= http::post(<span class="s">"/users"</span>)]]
+<span class="k">auto</span> create(Json&lt;NewUser&gt; body) -&gt; Json&lt;NewUser&gt; { <span class="k">return</span> body; }
+
+<span class="k">struct</span> HelloRequest {
+  std::string name;                                    <span class="c">// field 1</span>
+  std::optional&lt;std::string&gt; title;                    <span class="c">// field 2</span>
+  [[= proto::field(4)]] std::vector&lt;std::string&gt; tags;  <span class="c">// field 4 (3 was retired)</span>
+};</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#json">JSON</a> · <a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/examples/grpc.cpp">examples/grpc.cpp</a></p>
+          </article>
+
+          <article class="card">
+            <h3>OpenAPI and /docs</h3>
+            <p><code>GET /openapi.json</code> is OpenAPI 3.1, built at ignite from the handlers. Path types, query members, headers, <code>Json&lt;T&gt;</code>, and <code>Auth&lt;&gt;</code> show up as parameters, bodies, and security. With <code>.docs</code>, <code>GET /docs</code> loads Swagger UI from cdn.jsdelivr.net. This site doesn't. Its policy only allows this origin.</p>
+            <figure class="listing">
+              <pre><code>app.attach(OpenApi{{.title = <span class="s">"Orders"</span>, .version = <span class="s">"1.4.0"</span>, .docs = <span class="s">"/docs"</span>}});</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#openapi">README, OpenAPI</a></p>
+          </article>
+
+          <article class="card">
+            <h3>JWT and OIDC</h3>
+            <p>Link <code>crocket::auth</code> and manage <code>auth::Jwt</code>. <code>Auth&lt;&gt;</code> checks a bearer token. Defaults are RS256, ES256, and EdDSA. HS256 stays off unless <code>CROCKET_AUTH_SECRET</code> is set. A missing token is 401. A valid token without the role is 403 <code>auth.forbidden</code>. JWKS refresh goes through <code>crocket::client</code>. This page doesn't link either library.</p>
+            <figure class="listing">
+              <pre><code>[[= http::get(<span class="s">"/admin"</span>), = auth::require(<span class="s">"admin"</span>)]]
+<span class="k">auto</span> admin() -&gt; std::string { <span class="k">return</span> <span class="s">"admin\n"</span>; }
+
+<span class="k">return</span> build(Config::from_env())
+    .manage(auth::Jwt::from_env())
+    .mount(<span class="s">"/"</span>, reflect_routes&lt;^^api&gt;())
+    .launch();</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/examples/auth.cpp">examples/auth.cpp</a></p>
+          </article>
+
+          <article class="card">
+            <h3>Postgres</h3>
+            <p><code>crocket::db</code> is the API. <code>crocket::pg</code> is the backend, Postgres on libpqxx, and it's built when libpqxx is found. The table name comes from the type: <code>Hero</code> is <code>heroes</code>. An empty <code>optional</code> from <code>find</code> is a 404. Core crocket doesn't include it, and this page doesn't link it.</p>
+            <figure class="listing">
+              <pre><code><span class="k">struct</span> Hero {
+  std::int64_t id;
+  std::string name;
+  std::string alias;
+  std::optional&lt;std::string&gt; mentor;
+};
+
+[[= http::get(<span class="s">"/heroes/{id}"</span>)]]
+<span class="k">auto</span> get(Db&amp; db, std::int64_t id) -&gt; std::optional&lt;Hero&gt; {
+  <span class="k">return</span> db.find&lt;Hero&gt;(id);  <span class="c">// nullopt: 404</span>
+}</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/examples/heroes.cpp">examples/heroes.cpp</a></p>
+          </article>
+
+          <article class="card">
+            <h3>Static files</h3>
+            <p><code>crocket::files</code> serves a directory, or bytes embedded with <code>#embed</code>. Routes match first, including <code>/healthz</code>, whether you mount files or routes first. <code>.headers</code> sets response headers by glob, and those replace Shield's value for the same name. This page is embedded that way.</p>
+            <figure class="listing">
+              <pre><code><span class="k">static constexpr</span> <span class="k">unsigned char</span> index_html[] = {
+#embed <span class="s">"web/index.html"</span>
+};
+
+.mount(<span class="s">"/"</span>, files{
+    .assets = {asset(<span class="s">"index.html"</span>, index_html)},
+    .cache = {{<span class="s">"*.html"</span>, <span class="s">"no-cache"</span>}},
+    .headers = {{<span class="s">"*.html"</span>, {{<span class="s">"content-security-policy"</span>,
+                             <span class="s">"default-src 'self'"</span>}}}}})</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/include/crocket/files.hpp">include/crocket/files.hpp</a></p>
+          </article>
+
+          <article class="card">
+            <h3>Fairings and Shield</h3>
+            <p>Shield is on unless you opt out. Defaults: <code>nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>Content-Security-Policy: default-src 'none'; frame-ancestors 'none'</code>, and <code>Referrer-Policy: no-referrer</code>. A header the response already carries is left alone. Fairings are movable types with <code>on_ignite</code>, <code>on_request</code>, <code>on_response</code>, or <code>on_shutdown</code>. No base class.</p>
+            <figure class="listing">
+              <pre><code>app.attach(Shield{}.set(<span class="s">"content-security-policy"</span>, <span class="s">"default-src 'self'"</span>));</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#fairings">README, fairings</a></p>
+          </article>
+
+          <article class="card">
+            <h3>Health and metrics</h3>
+            <p>Every app has <code>GET /healthz</code>, 200 <code>{"status":"ok"}</code> while the process is serving, and <code>GET /readyz</code>, 200 when every readiness check passes and 503 <code>not_ready</code> when one doesn't. <code>Metrics</code> is opt-in. It serves Prometheus text at <code>GET /metrics</code>, including <code>crocket_http_requests_total</code> and <code>crocket_build_info</code>.</p>
+            <figure class="listing">
+              <pre><code>.attach(Metrics{})</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#health-checks">Health</a> · <a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#metrics">Metrics</a></p>
+          </article>
+
+          <article class="card">
+            <h3>gRPC and HTTP/2</h3>
+            <p>Unary gRPC methods are functions. Messages are plain structs, and <code>grpc::proto_file</code> prints the <code>.proto</code>, so there isn't a second schema to drift. HTTP/2 is negotiated with ALPN when TLS is on. <code>h2_prior_knowledge</code> accepts h2c on a plain-text port. HTTP/1.1 stays available. Streaming isn't in crocket yet.</p>
+            <figure class="listing">
+              <pre><code>[[= grpc::rpc]]
+<span class="k">auto</span> say_hello(HelloRequest req, Auth&lt;&gt; auth) -&gt; Result&lt;HelloReply&gt; {
+  <span class="k">if</span> (req.name.empty())
+    <span class="k">return</span> std::unexpected(ApiError::bad_request(<span class="s">"hello.name"</span>, <span class="s">"name is required"</span>));
+  <span class="k">return</span> HelloReply{<span class="s">"Hello, "</span> + req.name};
+}
+
+crocket::build()
+    .mount(<span class="s">"helloworld"</span>, reflect_routes&lt;^^greeter&gt;(), Mode::Grpc)
+    .launch({.port = 50051, .h2_prior_knowledge = <span class="k">true</span>});</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#grpc-and-protobuf">README, gRPC</a></p>
+          </article>
+
+          <article class="card">
+            <h3>Dev and release profiles</h3>
+            <p><code>CROCKET_PROFILE=dev</code> binds <code>127.0.0.1</code>, prints every route, turns on <code>GET /__routes</code>, and puts error detail in the body. Unset, or <code>release</code>, listens on <code>0.0.0.0:8000</code> and keeps that detail out of the response. Any other value throws at startup. The other <code>CROCKET_*</code> variables layer on top.</p>
+            <figure class="listing">
+              <pre><code><span class="k">return</span> build(Config::from_env()) <span class="c">// CROCKET_PROFILE=dev ./my_app</span>
+    .attach(Logger{})
+    .mount(<span class="s">"/"</span>, reflect_routes&lt;^^api&gt;())
+    .launch();</code></pre>
+            </figure>
+            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#dev-profile">README, dev profile</a></p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="measured">
+      <div class="wrap">
+        <h2>Small, and only the numbers in the repo</h2>
+        <p class="intro"><code>./dev bench</code> times a build with h2load, in process, against Rocket 0.5, and against h2o alone. Results go to <code>bench/results/</code>, which git ignores, because they only compare on the machine that ran them. This page doesn't invent a requests-per-second figure.</p>
+        <ul class="facts">
+          <li><strong>Routing.</strong> Candidates are found in the same time with 10 routes or 1,000, and the lookup allocates nothing. The tree is built at ignite.</li>
+          <li><strong>Hot path, 0.4.0.</strong> The changelog records roughly 1.6 times the h2c throughput of the previous crocket, with every production feature on.</li>
+          <li><strong>Event loops.</strong> The default is one per physical core. On a 16-core, 32-thread machine, 16 loops served about 1.6 times the requests of 32. Two loops sharing a core compete for it.</li>
+          <li><strong>Binary.</strong> Link with <code>-Wl,--gc-sections</code> and the parts of h2o a program never calls drop out, about 300 KB. h2o is linked statically. OpenSSL stays dynamic.</li>
+          <li><strong>Idle workers.</strong> They sleep. Each extra thread costs about 8 MB of virtual stack, not resident memory. A 16-connection pool on 4 cores used to cap the Heroes API at about 11k req/s, against 31k once workers followed the pool.</li>
+        </ul>
+        <p class="caption">Sources: the routing section and the benchmarks section of the README, <code>docs/ENGINE.md</code>, the building section, and the 0.4.0 changelog. You need GCC 16.2 or later. Ubuntu 26.04's packaged <code>g++-16</code> is a pre-release snapshot whose reflection bugs break a translation unit that mounts routes.</p>
+      </div>
+    </section>
+
+    <section class="section" id="docs">
+      <div class="wrap docs">
+        <div>
+          <h2>Docs, release, demo</h2>
+          <p class="intro">The guide is the README. Design and the wire engine are the two docs next to it. Static files, which this site depends on, are in the changelog as unreleased, so they aren't in the 0.5.1 tag. This binary is commit 9b446f8.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#quick-start-hello-world-in-your-own-project">Get started</a>
+            <a class="btn" href="https://todo.crocket.dev">Live demo</a>
+            <a class="btn" href="https://github.com/sean3z/crocket/releases/tag/0.5.1">Release 0.5.1</a>
+          </div>
+        </div>
+        <ul class="doc-links">
+          <li><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md">Guide (README)</a></li>
+          <li><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/docs/DESIGN.md">Design and principles</a></li>
+          <li><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/docs/ENGINE.md">The wire engine</a></li>
+          <li><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/CHANGELOG.md">Changelog</a></li>
+          <li><a href="https://godbolt.org/z/Gdes8Kbdq">Annotations on Compiler Explorer</a></li>
+          <li><a href="https://github.com/sean3z/crocket">github.com/sean3z/crocket</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Served by crocket. HTML, CSS, and script are <code>#embed</code>'d into one binary. The HTML content security policy is <code>default-src 'self'</code>, with no inline script or style.</p>
+      <p><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/LICENSE">MIT</a></p>
+    </div>
+  </footer>
+</body>
+</html>
