@@ -371,6 +371,18 @@ pre {
 
 code { font-family: inherit; }
 
+/* Chips for backticks. pre > code is a block, so listings stay plain. */
+:not(pre) > code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 0.3em;
+  overflow-wrap: anywhere;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 .k { color: var(--kw); }
 .s { color: var(--str); }
 .c { color: var(--cmt); }
