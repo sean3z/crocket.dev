@@ -14,7 +14,10 @@ COPY . /src
 
 ARG CROCKET_GIT_COMMIT=9b446f8
 
-RUN cmake -S . -B build -G Ninja \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 \
+ && rm -rf /var/lib/apt/lists/* \
+ && cmake -S . -B build -G Ninja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_C_COMPILER=/opt/gcc-16.2/bin/gcc-16.2 \
       -DCMAKE_CXX_COMPILER=/opt/gcc-16.2/bin/g++-16.2 \

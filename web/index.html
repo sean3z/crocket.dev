@@ -24,7 +24,7 @@
       </a>
       <nav class="nav" aria-label="Site">
         <a href="#features">Features</a>
-        <a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md">Guide</a>
+        <a href="/guide/">Guide</a>
         <a href="https://github.com/sean3z/crocket/releases/tag/0.5.1">0.5.1</a>
         <a href="https://todo.crocket.dev">Demo</a>
         <a href="https://github.com/sean3z/crocket">GitHub</a>
@@ -41,9 +41,9 @@
         <p class="tagline">Handlers are functions. Reflection does the rest.</p>
         <p class="lede">A C++ web framework in the same spirit as Rocket. It's not a port. You write a function, annotate the route, and <code>reflect_routes</code> mounts it. The same structs become JSON, protobuf, and OpenAPI. h2o serves HTTP/1.1, HTTP/2, and TLS.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#quick-start-hello-world-in-your-own-project">Get started</a>
-          <a class="btn" href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md">Guide</a>
-          <a class="btn" href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/docs/DESIGN.md">Design</a>
+          <a class="btn btn-primary" href="/guide/v0.5/quickstart/">Get started</a>
+          <a class="btn" href="/guide/">Guide</a>
+          <a class="btn" href="/guide/v0.5/#goals">Design</a>
           <a class="btn" href="https://github.com/sean3z/crocket">GitHub</a>
         </div>
         <p class="served-line">This page is served by crocket, commit <a href="https://github.com/sean3z/crocket/commit/9b446f8c2423262ef1cbf3afe370a0ae2f81d181">9b446f8</a>. Latest release: <a href="https://github.com/sean3z/crocket/releases/tag/0.5.1">0.5.1</a>. Live demo: <a href="https://todo.crocket.dev">todo.crocket.dev</a>.</p>
@@ -119,7 +119,7 @@
   .mount(<span class="s">"/"</span>, reflect_routes&lt;^^api&gt;())
   .launch({.listen = <span class="s">"0.0.0.0:8000"</span>});</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#crocket">README</a></p>
+            <p class="src"><a href="/guide/v0.5/overview/">Overview</a></p>
           </article>
 
           <article class="card">
@@ -141,7 +141,7 @@
   [[= proto::field(4)]] std::vector&lt;std::string&gt; tags;  <span class="c">// field 4 (3 was retired)</span>
 };</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#json">JSON</a> · <a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/examples/grpc.cpp">examples/grpc.cpp</a></p>
+            <p class="src"><a href="/guide/v0.5/requests/#json">JSON</a> · <a href="/guide/v0.5/grpc/">gRPC</a></p>
           </article>
 
           <article class="card">
@@ -150,7 +150,7 @@
             <figure class="listing">
               <pre><code>app.attach(OpenApi{{.title = <span class="s">"Orders"</span>, .version = <span class="s">"1.4.0"</span>, .docs = <span class="s">"/docs"</span>}});</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#openapi">README, OpenAPI</a></p>
+            <p class="src"><a href="/guide/v0.5/openapi/">OpenAPI</a></p>
           </article>
 
           <article class="card">
@@ -165,7 +165,7 @@
     .mount(<span class="s">"/"</span>, reflect_routes&lt;^^api&gt;())
     .launch();</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/examples/auth.cpp">examples/auth.cpp</a></p>
+            <p class="src"><a href="/guide/v0.5/requests/#authentication">Authentication</a></p>
           </article>
 
           <article class="card">
@@ -184,7 +184,7 @@
   <span class="k">return</span> db.find&lt;Hero&gt;(id);  <span class="c">// nullopt: 404</span>
 }</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/examples/heroes.cpp">examples/heroes.cpp</a></p>
+            <p class="src"><a href="/guide/v0.5/state/#databases">Databases</a></p>
           </article>
 
           <article class="card">
@@ -201,7 +201,7 @@
     .headers = {{<span class="s">"*.html"</span>, {{<span class="s">"content-security-policy"</span>,
                              <span class="s">"default-src 'self'"</span>}}}}})</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/include/crocket/files.hpp">include/crocket/files.hpp</a></p>
+            <p class="src"><a href="/guide/v0.5/responses/#static-files">Static files</a></p>
           </article>
 
           <article class="card">
@@ -210,7 +210,7 @@
             <figure class="listing">
               <pre><code>app.attach(Shield{}.set(<span class="s">"content-security-policy"</span>, <span class="s">"default-src 'self'"</span>));</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#fairings">README, fairings</a></p>
+            <p class="src"><a href="/guide/v0.5/fairings/">Fairings</a></p>
           </article>
 
           <article class="card">
@@ -219,7 +219,7 @@
             <figure class="listing">
               <pre><code>.attach(Metrics{})</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#health-checks">Health</a> · <a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#metrics">Metrics</a></p>
+            <p class="src"><a href="/guide/v0.5/fairings/#health-checks">Health</a> · <a href="/guide/v0.5/fairings/#cors-logs-and-metrics">Metrics</a></p>
           </article>
 
           <article class="card">
@@ -237,7 +237,7 @@ crocket::build()
     .mount(<span class="s">"helloworld"</span>, reflect_routes&lt;^^greeter&gt;(), Mode::Grpc)
     .launch({.port = 50051, .h2_prior_knowledge = <span class="k">true</span>});</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#grpc-and-protobuf">README, gRPC</a></p>
+            <p class="src"><a href="/guide/v0.5/grpc/">gRPC</a></p>
           </article>
 
           <article class="card">
@@ -249,7 +249,7 @@ crocket::build()
     .mount(<span class="s">"/"</span>, reflect_routes&lt;^^api&gt;())
     .launch();</code></pre>
             </figure>
-            <p class="src"><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#dev-profile">README, dev profile</a></p>
+            <p class="src"><a href="/guide/v0.5/configuration/#dev-profile">Dev profile</a></p>
           </article>
 
         </div>
@@ -274,19 +274,19 @@ crocket::build()
     <section class="section" id="docs">
       <div class="wrap docs">
         <div>
-          <h2>Docs, release, demo</h2>
-          <p class="intro">The guide is the README. Design and the wire engine are the two docs next to it. Static files, which this site depends on, are in the changelog as unreleased, so they aren't in the 0.5.1 tag. This binary is commit 9b446f8.</p>
+          <h2>Guide, release, demo</h2>
+          <p class="intro">The guide lives on this site. Static files, which this page depends on, are in commit 9b446f8 and aren't in the 0.5.1 tag yet.</p>
           <div class="actions">
-            <a class="btn btn-primary" href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md#quick-start-hello-world-in-your-own-project">Get started</a>
+            <a class="btn btn-primary" href="/guide/v0.5/quickstart/">Get started</a>
             <a class="btn" href="https://todo.crocket.dev">Live demo</a>
             <a class="btn" href="https://github.com/sean3z/crocket/releases/tag/0.5.1">Release 0.5.1</a>
           </div>
         </div>
         <ul class="doc-links">
-          <li><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/README.md">Guide (README)</a></li>
-          <li><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/docs/DESIGN.md">Design and principles</a></li>
-          <li><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/docs/ENGINE.md">The wire engine</a></li>
-          <li><a href="https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/CHANGELOG.md">Changelog</a></li>
+          <li><a href="/guide/">Guide</a></li>
+          <li><a href="/guide/v0.5/#goals">Design and principles</a></li>
+          <li><a href="/guide/v0.5/deploying/#the-wire-engine">The wire engine</a></li>
+          <li><a href="/guide/v0.5/deploying/#versions">Versions</a></li>
           <li><a href="https://godbolt.org/z/Gdes8Kbdq">Annotations on Compiler Explorer</a></li>
           <li><a href="https://github.com/sean3z/crocket">github.com/sean3z/crocket</a></li>
         </ul>

@@ -2,3 +2,5 @@ build/
 build-*/
 .cache/
 *.o
+src/guide_assets.cpp
+web/guide/

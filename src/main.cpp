@@ -2,6 +2,7 @@
 // CROCKET_* variables still belong to the framework (Config::from_env).
 
 #include <crocket/crocket.hpp>
+#include "guide_assets.hpp"
 
 #include <string>
 #include <utility>
@@ -69,6 +70,8 @@ files site_files() {
       {"*.svg", "public, max-age=86400"},
   };
   web.headers = {{"*.html", {{"content-security-policy", kCsp}}}};
+  // Nested guide pages need their own globs: * does not cross '/'.
+  site_assets::add_guide(web.assets, web.headers, kCsp);
   return web;
 }
 

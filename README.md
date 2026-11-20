@@ -8,6 +8,8 @@ crocket is pinned to commit `9b446f8c2423262ef1cbf3afe370a0ae2f81d181` (static f
 
 The app listens on port **8100** (`CROCKET_PORT` still overrides it; that variable belongs to the framework). There are no application environment variables.
 
+The guide is markdown in `guide/v0.5/`. `tools/build_guide.py` renders it to HTML, highlights code, and writes `src/guide_assets.cpp`, which `#embed`s the pages. CMake runs that script before it compiles. The pages are served by `crocket::files` with the same content security policy as the landing page.
+
 ## Run
 
 Docker 29 with the classic builder. BuildKit and buildx are not required.

@@ -456,9 +456,195 @@ code { font-family: inherit; }
 
 .site-footer p { margin: 0; }
 
+.guide-shell {
+  width: min(76rem, calc(100% - var(--pad) * 2));
+  margin: 0 auto 2rem;
+  display: grid;
+  grid-template-columns: 13.5rem minmax(0, 1fr) 12.5rem;
+  grid-template-areas: "side main toc";
+  gap: 1.5rem 1.75rem;
+  padding-top: 1.4rem;
+  align-items: start;
+}
+
+.guide-side { grid-area: side; }
+.guide-main { grid-area: main; min-width: 0; }
+.guide-toc { grid-area: toc; }
+
+.guide-side,
+.guide-toc {
+  position: sticky;
+  top: 5rem;
+  max-height: calc(100vh - 6rem);
+  overflow: auto;
+}
+
+.guide-version {
+  margin: 0 0 0.6rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.guide-side a,
+.guide-side-mobile a {
+  display: block;
+  padding: 0.28rem 0;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.guide-side a[aria-current="page"],
+.guide-side-mobile a[aria-current="page"] {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.guide-side a:hover,
+.guide-side-mobile a:hover { color: var(--accent); }
+
+.guide-side-mobile {
+    display: none;
+    grid-area: menu;
+}
+
+.guide-toc p {
+  margin: 0 0 0.45rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.guide-toc a {
+  display: block;
+  padding: 0.2rem 0;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.guide-toc a.toc-h3 { padding-left: 0.75rem; }
+.guide-toc a:hover { color: var(--accent); }
+
+.guide-main h1 {
+  font-size: clamp(2.1rem, 4vw, 3.1rem);
+  margin-bottom: 0.8rem;
+}
+
+.guide-main h2 {
+  margin: 1.8rem 0 0.5rem;
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+}
+
+.guide-main h3 {
+  margin: 1.3rem 0 0.4rem;
+  font-size: 1.12rem;
+}
+
+.guide-main p,
+.guide-main li { max-width: 42rem; }
+
+.guide-main ul,
+.guide-main ol { padding-left: 1.2rem; }
+
+.guide-main li { margin: 0.28rem 0; }
+
+.guide-main blockquote {
+  margin: 1rem 0;
+  padding: 0.2rem 0 0.2rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  color: var(--muted);
+}
+
+.guide-main hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 1.5rem 0;
+}
+
+.table-wrap { overflow-x: auto; margin: 1rem 0; max-width: 100%; }
+
+.guide-main table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.92rem;
+}
+
+.guide-main th,
+.guide-main td {
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem 0.65rem;
+}
+
+.guide-main th { color: var(--ink); font-weight: 650; }
+
+.guide-main .listing { margin: 1rem 0; }
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.pager a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-height: 2.75rem;
+  color: var(--ink);
+  text-decoration: none;
+  max-width: 46%;
+}
+
+.pager a span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pager-next { margin-left: auto; text-align: right; align-items: flex-end; }
+.pager a:hover { color: var(--accent); }
+
+.edit { margin: 0.8rem 0 0; font-size: 0.92rem; }
+
 @media (max-width: 980px) {
   .pillars { grid-template-columns: 1fr 1fr; }
   .docs { grid-template-columns: 1fr; }
+  .guide-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "menu"
+      "toc"
+      "main";
+  }
+  .guide-side { display: none; }
+  .guide-side-mobile {
+    display: block;
+    grid-area: menu;
+    border: 1px solid var(--line);
+    border-radius: 0.8rem;
+    background: var(--card);
+    padding: 0.7rem 0.9rem;
+  }
+  .guide-side-mobile summary {
+    cursor: pointer;
+    font-weight: 650;
+    min-height: 2.4rem;
+    display: flex;
+    align-items: center;
+  }
+  .guide-toc { position: static; max-height: none; }
 }
 
 @media (max-width: 720px) {
