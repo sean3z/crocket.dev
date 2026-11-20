@@ -631,19 +631,23 @@ code { font-family: inherit; }
   min-width: 0;
 }
 
-.stat-value {
-  margin: 0;
-  font-size: clamp(2.15rem, 3.5vw, 3.35rem);
+/* .stat p is more specific than .stat-value, so the size has to live here. */
+.stat p.stat-value {
+  margin: 0 0 0.15rem;
+  color: var(--ink);
+  font-size: clamp(2.5rem, 3.4vw, 3rem);
   line-height: 0.95;
   letter-spacing: -0.05em;
   font-weight: 700;
 }
 
-.stat-value span {
-  display: inline-block;
-  font-size: 0.46em;
+.stat p.stat-value span {
+  display: inline;
+  margin-left: 0.15em;
+  font-size: 0.45em;
   font-weight: 650;
   letter-spacing: -0.03em;
+  line-height: 1;
   color: var(--muted);
 }
 
@@ -669,7 +673,25 @@ code { font-family: inherit; }
   min-height: 2.75rem;
   display: flex;
   align-items: center;
+  gap: 0.55rem;
   width: fit-content;
+  list-style: none;
+}
+
+.method summary::-webkit-details-marker { display: none; }
+
+.method summary::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-0.1rem) rotate(-45deg);
+  flex: none;
+}
+
+.method[open] summary::before {
+  transform: translateY(0.12rem) rotate(45deg);
 }
 
 .method p { max-width: 46rem; margin: 0.35rem 0 0.7rem; }
