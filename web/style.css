@@ -69,7 +69,13 @@
 *::before,
 *::after { box-sizing: border-box; }
 
-html { scroll-padding-top: 5rem; }
+html { scroll-padding-top: 6rem; }
+
+section[id],
+h2[id],
+h3[id] {
+  scroll-margin-top: 6rem;
+}
 
 body {
   margin: 0;
@@ -629,16 +635,19 @@ code { font-family: inherit; }
 .stat {
   margin: 0;
   min-width: 0;
+  container-type: inline-size;
 }
 
-/* .stat p is more specific than .stat-value, so the size has to live here. */
+/* .stat p is more specific than .stat-value, so the size has to live here.
+   cqi shrinks a long figure, like 404,401 req/s, until it fits one line. */
 .stat p.stat-value {
   margin: 0 0 0.15rem;
   color: var(--ink);
-  font-size: clamp(2.5rem, 3.4vw, 3rem);
+  font-size: clamp(1.35rem, 19cqi, 3rem);
   line-height: 0.95;
   letter-spacing: -0.05em;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .stat p.stat-value span {
