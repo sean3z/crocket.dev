@@ -274,44 +274,19 @@ crocket::build()
     <section class="section" id="numbers">
       <div class="wrap">
         <h2>By the numbers</h2>
-        <p class="intro">Published measurements, copied as printed.</p>
         <div class="numbers">
           <article class="stat">
             <p class="stat-value">35.2k <span>req/s</span></p>
-            <h3>Heroes CRUD, max throughput</h3>
-            <p>Rocket 17.4k, Spring 8.4k, Fastify 6.6k.</p>
-            <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
-          </article>
-          <article class="stat">
-            <p class="stat-value">94 <span>µs</span></p>
-            <h3>App CPU per request</h3>
-            <p>Rocket 204 µs, Spring 393 µs, Fastify 157 µs.</p>
-            <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
-          </article>
-          <article class="stat">
-            <p class="stat-value">2.55 <span>ms</span></p>
-            <h3>p99 at 4,000 req/s</h3>
-            <p>Rocket 3.03 ms, Spring 3.11 ms, Fastify 8.21 ms.</p>
-            <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
+            <p class="stat-vs">vs Rocket's 17.4k</p>
+            <p class="stat-caption">Heroes CRUD, max throughput.</p>
           </article>
           <article class="stat">
             <p class="stat-value">21 <span>MB</span></p>
-            <h3>Peak resident memory</h3>
-            <p>Rocket peaks at 22 MB. Spring peaks at 471 MB.</p>
-            <p class="src"><a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">Where the cycles go</a></p>
-          </article>
-          <article class="stat">
-            <p class="stat-value">404,401 <span>req/s</span></p>
-            <h3>Plaintext, HTTP/1.1</h3>
-            <p>Rocket 0.5 did 204,897 req/s (1.97x).</p>
-            <p class="src"><a href="https://rambling.hashnode.dev/building-a-rocket-style-web-framework-with-c-26-reflection-0278c8d56eaa">Building a Rocket-style web framework</a></p>
+            <p class="stat-vs">vs Spring Boot's 471 MB</p>
+            <p class="stat-caption">Heroes CRUD, peak memory. <span>Rocket peaks at 22 MB.</span></p>
           </article>
         </div>
-        <details class="method">
-          <summary>Methodology</summary>
-          <p>Heroes CRUD used three DigitalOcean c-4 droplets (4 dedicated vCPUs, Ubuntu 24.04): the app in Docker with host networking, Postgres 16 on the second, wrk2 on the third (4 threads, 128 connections, HTTP/1.1, 80% get-by-id). JSON logs, Prometheus, and a 10 s timeout were on. Figures are the median of 3 reps, with zero errors on the max runs. Fastify was one Node process, about one core, and it spends less CPU per request than Rocket and Spring. Rocket's pool runs <code>SELECT 1</code> on checkout. With that off, a rerun on a newer Xeon reached 24.8k req/s, and the post scales Rocket to about 155 µs, so compare ratios rather than that absolute. p99 is at a fixed 4,000 req/s. The Postgres round trip dominates, and Fastify's single event loop shows in the tail. Spring ran untuned. Memory is resident set on that app host: crocket 13 MB idle and 21 MB peak, Rocket 11 and 22, Fastify 87 and 216, Spring 225 and 471.</p>
-          <p>Plaintext is a different rig: one KVM VM, 8 vCPUs, 15 GB RAM, Linux 6.12. h2load 1.64, 64 connections, 4 threads, 30 seconds, sharing the box with the server. crocket <code>main</code> at <code>2ad3f5d</code>, GCC 16.2. No database. Logger and Metrics were off. One run. Rocket 0.5 serves HTTP/2 only over TLS, so that comparison is HTTP/1.1.</p>
-        </details>
+        <p class="stat-foot">Three DigitalOcean c-4 droplets, Postgres 16, wrk2, median of 3 runs. <a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21">See the full benchmark</a></p>
       </div>
     </section>
 

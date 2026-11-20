@@ -624,12 +624,15 @@ code { font-family: inherit; }
 
 .edit { margin: 0.8rem 0 0; font-size: 0.92rem; }
 
+#numbers { padding-block: clamp(3.5rem, 8vw, 6.5rem); }
+
+#numbers h2 { margin-bottom: clamp(1.75rem, 4vw, 2.75rem); }
+
 .numbers {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 1.75rem 1.25rem;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2.75rem, 7vw, 6rem);
   margin: 0;
-  padding-top: 0.25rem;
 }
 
 .stat {
@@ -638,72 +641,51 @@ code { font-family: inherit; }
   container-type: inline-size;
 }
 
-/* .stat p is more specific than .stat-value, so the size has to live here.
-   cqi shrinks a long figure, like 404,401 req/s, until it fits one line. */
+/* .stat p would beat .stat-value, so each line names the element. */
 .stat p.stat-value {
-  margin: 0 0 0.15rem;
+  margin: 0;
   color: var(--ink);
-  font-size: clamp(1.35rem, 19cqi, 3rem);
-  line-height: 0.95;
-  letter-spacing: -0.05em;
+  font-size: clamp(3.25rem, 18cqi, 6rem);
+  line-height: 0.88;
+  letter-spacing: -0.055em;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .stat p.stat-value span {
   display: inline;
-  margin-left: 0.15em;
-  font-size: 0.45em;
+  margin-left: 0.14em;
+  font-size: 0.4em;
   font-weight: 650;
   letter-spacing: -0.03em;
   line-height: 1;
   color: var(--muted);
 }
 
-.stat h3 {
-  margin: 0.7rem 0 0.3rem;
-  font-size: 0.98rem;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-}
-
-.stat p { margin: 0 0 0.45rem; color: var(--muted); font-size: 0.92rem; }
-
-.method {
-  margin-top: 1.35rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.method summary {
-  cursor: pointer;
+.stat p.stat-vs {
+  margin: 0.9rem 0 0;
   color: var(--ink);
+  font-size: clamp(1.45rem, 5cqi, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
   font-weight: 650;
-  min-height: 2.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  width: fit-content;
-  list-style: none;
 }
 
-.method summary::-webkit-details-marker { display: none; }
-
-.method summary::before {
-  content: "";
-  width: 0.45rem;
-  height: 0.45rem;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: translateY(-0.1rem) rotate(-45deg);
-  flex: none;
+.stat p.stat-caption {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.4;
 }
 
-.method[open] summary::before {
-  transform: translateY(0.12rem) rotate(45deg);
-}
+.stat p.stat-caption span { white-space: nowrap; }
 
-.method p { max-width: 46rem; margin: 0.35rem 0 0.7rem; }
+.stat-foot {
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
 
 .blog-list {
   display: grid;
@@ -736,7 +718,6 @@ code { font-family: inherit; }
 @media (max-width: 980px) {
   .pillars { grid-template-columns: 1fr 1fr; }
   .docs { grid-template-columns: 1fr; }
-  .numbers { grid-template-columns: 1fr 1fr; }
   .guide-shell {
     grid-template-columns: 1fr;
     grid-template-areas:
