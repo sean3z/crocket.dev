@@ -340,6 +340,8 @@ h1 {
   border: 1px solid color-mix(in srgb, var(--code-ink) 8%, transparent);
 }
 
+.hero .listing { margin: 1.75rem 0 0; max-width: 42rem; }
+
 .listing header,
 .card header.srcbar {
   display: flex;

@@ -35,6 +35,9 @@ static constexpr unsigned char index_html[] = {
 static constexpr unsigned char not_found_html[] = {
 #embed "../web/404.html"
 };
+static constexpr unsigned char teapot_html[] = {
+#embed "../web/teapot.html"
+};
 static constexpr unsigned char style_css[] = {
 #embed "../web/style.css"
 };
@@ -178,6 +181,17 @@ namespace pages {
 
 [[= http::get("/")]]
 auto home(const Request& rq) -> Response { return homepage(rq); }
+
+// HEAD falls back to this GET and drops the body. No Teapot alias at this pin.
+[[= http::get("/teapot")]]
+auto teapot() -> WithStatus<418, Response> {
+  Response rs;
+  rs.set_content_type("text/html; charset=utf-8");
+  rs.headers.set("content-security-policy", kCsp);
+  rs.headers.set("cache-control", "no-cache");
+  rs.body.assign(reinterpret_cast<const char*>(teapot_html), sizeof teapot_html);
+  return {std::move(rs)};
+}
 
 }  // namespace pages
 
