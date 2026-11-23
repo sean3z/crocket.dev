@@ -4,7 +4,7 @@ The source for [crocket.dev](https://crocket.dev). It is the landing page, the g
 
 `GET /` is a route. It picks one rival for the benchmark block and sends `Cache-Control: no-cache`, so a refresh can show a different comparison. CSS and script URLs carry a content hash. HTML stays `no-cache`. The content security policy is `default-src 'self'`: no inline script, no inline style, no third-party host. `GET /healthz` is crocket's built-in liveness route.
 
-crocket is pinned to commit `9b446f8c2423262ef1cbf3afe370a0ae2f81d181` (static file serving). The latest release is [0.5.1](https://github.com/sean3z/crocket/releases/tag/0.5.1). Static files are not in that tag, which is why the pin is a commit.
+crocket is pinned to the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release, which includes static file serving.
 
 The app listens on port **8100**. `CROCKET_PORT` still overrides it. That variable belongs to the framework. This site adds none of its own.
 

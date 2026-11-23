@@ -1,13 +1,13 @@
 # crocket guide v0.5
 
-Generated from `guide/v0.5`, in the same order as the guide. The samples match commit `9b446f8`.
+Generated from `guide/v0.5`, in the same order as the guide. The samples match the `0.5.2` release.
 
 
 # Introduction
 
 crocket is a C++ web framework in the same spirit as [Rocket](https://rocket.rs). It's not a port. Handlers are functions. Path captures and extractors are arguments. The return value is the response. You declare a route with a C++26 annotation, and `reflect_routes` discovers it. The wire layer is [h2o](https://github.com/h2o/h2o): HTTP/1.1, HTTP/2, and TLS.
 
-This guide describes that model. The code samples match crocket as of commit `9b446f8`, which is the tree this site was checked against. The current stable release is [0.5.1](https://github.com/sean3z/crocket/releases/tag/0.5.1). Static files, which this site uses, are in that commit and are listed as unreleased relative to the 0.5.1 tag.
+This guide describes that model. The code samples match the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release, which is the tree this site was checked against.
 
 ## What you write
 
@@ -69,7 +69,7 @@ A small program you can build once GCC 16.2 is on your `PATH`. The [getting star
 
 ## CMake
 
-`0.5.1` is the current stable release. Pin a commit instead when you need a change that is not in that tag yet, such as static files.
+`0.5.2` is the current stable release.
 
 ```cmake
 cmake_minimum_required(VERSION 3.28)
@@ -78,7 +78,7 @@ project(hello_app CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 0.5.1)
+  GIT_TAG 0.5.2)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(hello_app main.cpp)
@@ -158,7 +158,7 @@ docker run --rm -p 8000:8000 ghcr.io/sean3z/crocket-hello:stable
 curl localhost:8000/hello/Rocketeer/42
 ```
 
-That prints `Hello, 42 year old named Rocketeer!`. Pin `:0.5.1` when you deploy it. `:stable` tracks the stable release. `:latest` tracks `main`.
+That prints `Hello, 42 year old named Rocketeer!`. Pin `:0.5.2` when you deploy it. `:stable` tracks the stable release. `:latest` tracks `main`.
 
 The same route, compiled in the browser, is on [Compiler Explorer](https://godbolt.org/z/Gdes8Kbdq) (GCC 16.2, `-std=c++26 -freflection`). That sketch is `examples/godbolt.cpp`. It has no h2o.
 
@@ -487,7 +487,6 @@ auto report(std::uint64_t id, State<Store> store) -> Cacheable<std::string> {
 
 `.mount(prefix, files{...})` serves a directory, or bytes embedded with `#embed`, under that URL prefix. Routes match before files, whichever you mount first, so a handler never waits on the filesystem. A miss is the ordinary 404. That is how `/` can serve a frontend next to an API without swallowing `/healthz`.
 
-This is in the tree this guide was checked against (commit `9b446f8`). It is listed as unreleased relative to tag 0.5.1, so a project pinned to `0.5.1` does not have it yet.
 
 A directory on disk is the shortest version. `root` is opened once at ignite, and every request reads relative to it:
 
@@ -723,7 +722,7 @@ You don't need these to test an application. They're how crocket itself is check
 
 - `json` covers round trips, limits, duplicate keys, and validation.
 - `router` checks the route tree against a linear scan, including HEAD falling back to GET.
-- `static` covers directories, `#embed`, index files, dotfiles, and symlink misses. It needs the static-files commit. Tag 0.5.1 does not have that test.
+- `static` covers directories, `#embed`, index files, dotfiles, and symlink misses.
 - `tls_h2` drives real sockets with ALPN h2 and HTTP/1.1.
 - `openapi` checks the generated document piece by piece.
 - `grpc` checks protobuf encoding and the generated `.proto`.
@@ -947,7 +946,7 @@ On SIGINT or SIGTERM, crocket stops accepting, drains in-flight requests for `ti
 
 Published images:
 
-- `ghcr.io/sean3z/crocket-hello`, tagged `:0.5.1`, `:0.5`, and `:stable` for the stable release, and `:latest` for `main`. Pin `:0.5.1` in anything you deploy. The tags are signed with Sigstore.
+- `ghcr.io/sean3z/crocket-hello`, tagged `:0.5.2`, `:0.5`, and `:stable` for the stable release, and `:latest` for `main`. Pin `:0.5.2` in anything you deploy. The tags are signed with Sigstore.
 - `ghcr.io/sean3z/crocket-toolchain:gcc-16.2`, Ubuntu 26.04 with GCC 16.2. `:gcc-16.2-pg` adds libpqxx built with that GCC.
 
 A Dockerfile for the [quickstart](/guide/v0.5/quickstart/) app, in the toolchain image so GCC 16.2's `libstdc++` is there at run time:
@@ -995,13 +994,13 @@ crocket uses semantic versioning. While it is on 0.x, a minor bump may break the
 
 | Channel | Git ref | For |
 |---|---|---|
-| stable | the latest `X.Y.Z` tag, now `0.5.1` | Everyone |
+| stable | the latest `X.Y.Z` tag, now `0.5.2` | Everyone |
 | latest | `main` | Trying what's next |
 | experimental | `X.Y.Z-rc.N` | Testing risky changes |
 
-`0.5.0` was tagged by mistake and then removed. There is no `0.5.0` to use. The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.1"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
+`0.5.0` was tagged by mistake and then removed. There is no `0.5.0` to use. The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.2"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
 
-The release notes are the [changelog](https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).
+The release notes are the [changelog](https://github.com/sean3z/crocket/blob/0.5.2/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).
 
 
 # Migrating from Express
@@ -1010,7 +1009,7 @@ You already know the shape: a function per route, a bit of middleware, `listen` 
 
 The Express examples here are Express 5.
 
-The crocket column on this page is written against commit `9b446f8`, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
+The crocket column on this page is written against the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
 
 Every success response below is the same JSON. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}`.
 
@@ -1047,7 +1046,7 @@ project(users CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
+  GIT_TAG 0.5.2)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)
@@ -1062,7 +1061,7 @@ cmake --build build
 
 :::
 
-`npm start` runs `node server.js`, the listen example below. The binary is `build/users`. Tag `0.5.1` has no static files, so this page pins commit `9b446f8`, which does. The [quickstart](/guide/v0.5/quickstart/) pins the tag.
+`npm start` runs `node server.js`, the listen example below. The binary is `build/users`.
 
 ## Listen
 
@@ -1339,7 +1338,7 @@ app.use("/assets",
 
 :::
 
-Static files are in commit `9b446f8` and they're not in the `0.5.1` tag. Pin the commit if the app serves a directory or an embedded page. The [responses](/guide/v0.5/responses/) chapter has the cache and header rules.
+The [responses](/guide/v0.5/responses/) chapter has the cache and header rules.
 
 ## Logs and metrics
 
@@ -1481,7 +1480,7 @@ A `@RestController` method and a crocket handler are doing the same job. The met
 
 The Spring examples here are Spring Boot 3.
 
-The crocket column is written against commit `9b446f8`. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
+The crocket column is written against the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
 
 ## Project and build
 
@@ -1544,7 +1543,7 @@ project(users CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
+  GIT_TAG 0.5.2)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)
@@ -1559,7 +1558,7 @@ cmake --build build
 
 :::
 
-The jar name follows the artifact id and version. The crocket binary is `build/users`. Tag `0.5.1` has no static files. Pin `9b446f8` when you need them. The [quickstart](/guide/v0.5/quickstart/) pins the tag.
+The jar name follows the artifact id and version. The crocket binary is `build/users`.
 
 ## Listen
 
@@ -1861,7 +1860,7 @@ class Assets implements WebMvcConfigurer {
 
 :::
 
-Routes win over files, so `/healthz` still hits the built-in handler. Static files need commit `9b446f8`. They aren't in tag `0.5.1`. Cache rules and a content security policy for HTML are in [responses](/guide/v0.5/responses/).
+Routes win over files, so `/healthz` still hits the built-in handler. Cache rules and a content security policy for HTML are in [responses](/guide/v0.5/responses/).
 
 ## Logs and metrics
 

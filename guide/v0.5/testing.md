@@ -41,7 +41,7 @@ You don't need these to test an application. They're how crocket itself is check
 
 - `json` covers round trips, limits, duplicate keys, and validation.
 - `router` checks the route tree against a linear scan, including HEAD falling back to GET.
-- `static` covers directories, `#embed`, index files, dotfiles, and symlink misses. It needs the static-files commit. Tag 0.5.1 does not have that test.
+- `static` covers directories, `#embed`, index files, dotfiles, and symlink misses.
 - `tls_h2` drives real sockets with ALPN h2 and HTTP/1.1.
 - `openapi` checks the generated document piece by piece.
 - `grpc` checks protobuf encoding and the generated `.proto`.

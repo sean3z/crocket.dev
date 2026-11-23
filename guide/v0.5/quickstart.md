@@ -4,7 +4,7 @@ A small program you can build once GCC 16.2 is on your `PATH`. The [getting star
 
 ## CMake
 
-`0.5.1` is the current stable release. Pin a commit instead when you need a change that is not in that tag yet, such as static files.
+`0.5.2` is the current stable release.
 
 ```cmake
 cmake_minimum_required(VERSION 3.28)
@@ -13,7 +13,7 @@ project(hello_app CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 0.5.1)
+  GIT_TAG 0.5.2)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(hello_app main.cpp)

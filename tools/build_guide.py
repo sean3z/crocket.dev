@@ -26,8 +26,9 @@ FINGERPRINTS = {
 
 # This site's repository. Edit links point at these files, not at sean3z/crocket.
 EDIT_BASE = "https://github.com/sean3z/crocket.dev/edit/main"
-COMMIT = "9b446f8c2423262ef1cbf3afe370a0ae2f81d181"
-COMMIT_SHORT = "9b446f8"
+RELEASE = "0.5.2"
+COMMIT = "14db8705f1472520fc09c0e0a74938752e75a31e"  # the 0.5.2 tag
+COMMIT_SHORT = "14db870"
 
 
 def asset_versions():
@@ -603,7 +604,7 @@ def render_parity(which):
     note = (
         f"<p class=\"parity-total\">{esc(label)} "
         f"The crocket program on this page is a "
-        f"{mb(binary['stripped_bytes'])} MB stripped Release binary, commit {COMMIT_SHORT}. "
+        f"{mb(binary['stripped_bytes'])} MB stripped Release binary, release {RELEASE}. "
         f"It still loads libstdc++ ({mb(binary['libstdcxx_bytes'])} MB in the GCC 16.2 toolchain).</p>"
     )
     return (
@@ -833,7 +834,7 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical):
         <a href="/#features">Features</a>
         <a href="/guide/" aria-current="page">Guide</a>
         <a href="/ai/">AI</a>
-        <a href="https://github.com/sean3z/crocket/releases/tag/0.5.1">0.5.1</a>
+        <a href="https://github.com/sean3z/crocket/releases/tag/{RELEASE}">{RELEASE}</a>
         <a href="https://todo.crocket.dev">Demo</a>
         <a href="https://github.com/sean3z/crocket">GitHub</a>
         <button type="button" id="theme" aria-pressed="false">Dark mode</button>
@@ -862,8 +863,8 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical):
   </div>
   <footer class="site-footer">
     <div class="wrap">
-      <p>Served by crocket. This guide was checked against commit <a href="https://github.com/sean3z/crocket/commit/{COMMIT}">{COMMIT_SHORT}</a>. <a href="/llms.txt">llms.txt</a> for assistants.</p>
-      <p><a href="https://github.com/sean3z/crocket/blob/{COMMIT}/LICENSE">MIT</a></p>
+      <p>Served by crocket. This guide was checked against the <a href="https://github.com/sean3z/crocket/releases/tag/{RELEASE}">{RELEASE}</a> release. <a href="/llms.txt">llms.txt</a> for assistants.</p>
+      <p><a href="https://github.com/sean3z/crocket/blob/{RELEASE}/LICENSE">MIT</a></p>
     </div>
   </footer>
 </body>
@@ -993,7 +994,7 @@ def write_llms_full():
     parts = [
         "# crocket guide v0.5\n\n",
         "Generated from `guide/v0.5`, in the same order as the guide. ",
-        f"The samples match commit `{COMMIT_SHORT}`.\n",
+        f"The samples match the `{RELEASE}` release.\n",
     ]
     for _slug, _nav, filename in CHAPTERS:
         body = (GUIDE / filename).read_text(encoding="utf-8").rstrip()

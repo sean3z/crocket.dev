@@ -4,7 +4,7 @@ You already know the shape: a function per route, a bit of middleware, `listen` 
 
 The Express examples here are Express 5.
 
-The crocket column on this page is written against commit `9b446f8`, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
+The crocket column on this page is written against the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
 
 Every success response below is the same JSON. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}`.
 
@@ -41,7 +41,7 @@ project(users CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
+  GIT_TAG 0.5.2)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)
@@ -56,7 +56,7 @@ cmake --build build
 
 :::
 
-`npm start` runs `node server.js`, the listen example below. The binary is `build/users`. Tag `0.5.1` has no static files, so this page pins commit `9b446f8`, which does. The [quickstart](/guide/v0.5/quickstart/) pins the tag.
+`npm start` runs `node server.js`, the listen example below. The binary is `build/users`.
 
 ## Listen
 
@@ -333,7 +333,7 @@ app.use("/assets",
 
 :::
 
-Static files are in commit `9b446f8` and they're not in the `0.5.1` tag. Pin the commit if the app serves a directory or an embedded page. The [responses](/guide/v0.5/responses/) chapter has the cache and header rules.
+The [responses](/guide/v0.5/responses/) chapter has the cache and header rules.
 
 ## Logs and metrics
 

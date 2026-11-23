@@ -60,7 +60,6 @@ auto report(std::uint64_t id, State<Store> store) -> Cacheable<std::string> {
 
 `.mount(prefix, files{...})` serves a directory, or bytes embedded with `#embed`, under that URL prefix. Routes match before files, whichever you mount first, so a handler never waits on the filesystem. A miss is the ordinary 404. That is how `/` can serve a frontend next to an API without swallowing `/healthz`.
 
-This is in the tree this guide was checked against (commit `9b446f8`). It is listed as unreleased relative to tag 0.5.1, so a project pinned to `0.5.1` does not have it yet.
 
 A directory on disk is the shortest version. `root` is opened once at ignite, and every request reads relative to it:
 

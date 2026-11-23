@@ -26,7 +26,7 @@ docker run --rm -p 8000:8000 ghcr.io/sean3z/crocket-hello:stable
 curl localhost:8000/hello/Rocketeer/42
 ```
 
-That prints `Hello, 42 year old named Rocketeer!`. Pin `:0.5.1` when you deploy it. `:stable` tracks the stable release. `:latest` tracks `main`.
+That prints `Hello, 42 year old named Rocketeer!`. Pin `:0.5.2` when you deploy it. `:stable` tracks the stable release. `:latest` tracks `main`.
 
 The same route, compiled in the browser, is on [Compiler Explorer](https://godbolt.org/z/Gdes8Kbdq) (GCC 16.2, `-std=c++26 -freflection`). That sketch is `examples/godbolt.cpp`. It has no h2o.
 

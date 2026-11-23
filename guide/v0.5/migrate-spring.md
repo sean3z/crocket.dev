@@ -4,7 +4,7 @@ A `@RestController` method and a crocket handler are doing the same job. The met
 
 The Spring examples here are Spring Boot 3.
 
-The crocket column is written against commit `9b446f8`. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
+The crocket column is written against the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
 
 ## Project and build
 
@@ -67,7 +67,7 @@ project(users CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
+  GIT_TAG 0.5.2)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)
@@ -82,7 +82,7 @@ cmake --build build
 
 :::
 
-The jar name follows the artifact id and version. The crocket binary is `build/users`. Tag `0.5.1` has no static files. Pin `9b446f8` when you need them. The [quickstart](/guide/v0.5/quickstart/) pins the tag.
+The jar name follows the artifact id and version. The crocket binary is `build/users`.
 
 ## Listen
 
@@ -384,7 +384,7 @@ class Assets implements WebMvcConfigurer {
 
 :::
 
-Routes win over files, so `/healthz` still hits the built-in handler. Static files need commit `9b446f8`. They aren't in tag `0.5.1`. Cache rules and a content security policy for HTML are in [responses](/guide/v0.5/responses/).
+Routes win over files, so `/healthz` still hits the built-in handler. Cache rules and a content security policy for HTML are in [responses](/guide/v0.5/responses/).
 
 ## Logs and metrics
 

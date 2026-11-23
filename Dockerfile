@@ -12,7 +12,7 @@ ENV PATH=/opt/gcc-16.2/bin:$PATH
 WORKDIR /src
 COPY . /src
 
-ARG CROCKET_GIT_COMMIT=9b446f8
+ARG CROCKET_GIT_COMMIT=14db870
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 \
