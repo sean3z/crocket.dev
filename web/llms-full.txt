@@ -1,0 +1,1933 @@
+# crocket guide v0.5
+
+Generated from `guide/v0.5`, in the same order as the guide. The samples match commit `9b446f8`.
+
+
+# Introduction
+
+crocket is a C++ web framework in the same spirit as [Rocket](https://rocket.rs). It's not a port. Handlers are functions. Path captures and extractors are arguments. The return value is the response. You declare a route with a C++26 annotation, and `reflect_routes` discovers it. The wire layer is [h2o](https://github.com/h2o/h2o): HTTP/1.1, HTTP/2, and TLS.
+
+This guide describes that model. The code samples match crocket as of commit `9b446f8`, which is the tree this site was checked against. The current stable release is [0.5.1](https://github.com/sean3z/crocket/releases/tag/0.5.1). Static files, which this site uses, are in that commit and are listed as unreleased relative to the 0.5.1 tag.
+
+## What you write
+
+A route is an ordinary function with one route annotation. Mounting a namespace picks up every annotated function in it. Helpers with no annotation stay helpers.
+
+```cpp
+namespace api {
+
+[[= http::get("/hello/{name}/{age}")]]
+auto hello(std::string_view name, std::uint8_t age) -> std::string {
+  return std::format("Hello, {} year old named {}!", age, name);
+}
+
+}  // namespace api
+
+crocket::build()
+    .attach(Logger{})
+    .mount("/", reflect_routes<^^api>())
+    .launch({.listen = "0.0.0.0:8000"});
+```
+
+`/hello/Ada/36` calls `hello`. `/hello/Ada/400` does not, because 400 is not a `uint8_t`. The response is 404 `path.invalid`, and the handler never runs.
+
+## Why reflection
+
+Most C++ web frameworks bind routes with a runtime registration call, a macro, or a code generator. crocket uses C++26 static reflection instead. `reflect_routes<^^api>()` reads the functions, their annotations, and their parameter names at compile time.
+
+- Nothing to register. You can't forget to add a route to a list, because there isn't a list.
+- A mismatch is a compile error that names both identifiers. Reflection can see parameter names, which templates alone cannot.
+- Reflection runs only in the compiler. Each route becomes a function pointer. A request does not pay for a string lookup, RTTI, or type erasure per argument.
+- The same signatures and structs produce the JSON mapping, the OpenAPI document, and, for gRPC, the `.proto`.
+
+The trade-off is the toolchain. You need a compiler with C++26 reflection. crocket is developed on GCC 16.2 with `-freflection`. See [Getting started](/guide/v0.5/getting-started/).
+
+## Goals
+
+These are the rules the framework is built around.
+
+1. A handler is a function. `{id}` in the path is a parameter named `id`. `Json<T>`, `Auth`, and `State<T>` are more parameters. The return type is the response.
+2. Route metadata lives on the function. You mount a namespace or a controller class, not a handwritten list.
+3. Cross-cutting behavior belongs to the application. `attach` adds fairings. `manage` adds typed singletons.
+4. Production behavior is built in: request ids, structured errors, deadlines, readiness, limits, ignite checks, and a drain on shutdown. Logging and metrics are there when you attach them.
+5. One wire engine, h2o. Handlers never include h2o headers.
+
+## Non-goals
+
+crocket is not an ORM and not a plugin ABI. It does not reload application code without a restart. Reloading a TLS certificate is supported, because that is configuration. It does not discover routes by scanning a whole translation unit. It does not do reflection, string lookups, or type erasure per argument on the request path.
+
+WebSockets, server-sent events, and streamed bodies are not built. What's planned on the way to 1.0 is tracked in [issue 37](https://github.com/sean3z/crocket/issues/37).
+
+## Where to go next
+
+If you want a running process as fast as possible, start with the [quickstart](/guide/v0.5/quickstart/). The [overview](/guide/v0.5/overview/) is the map of the rest of the guide. If you're coming from Node, read [Migrating from Express](/guide/v0.5/migrate-express/). If you're coming from Java, read [Migrating from Spring Boot](/guide/v0.5/migrate-spring/).
+
+
+# Quickstart
+
+A small program you can build once GCC 16.2 is on your `PATH`. The [getting started](/guide/v0.5/getting-started/) page covers the toolchain, Docker, and why the distro `g++-16` package is not enough.
+
+## CMake
+
+`0.5.1` is the current stable release. Pin a commit instead when you need a change that is not in that tag yet, such as static files.
+
+```cmake
+cmake_minimum_required(VERSION 3.28)
+project(hello_app CXX)
+
+include(FetchContent)
+FetchContent_Declare(crocket
+  GIT_REPOSITORY https://github.com/sean3z/crocket.git
+  GIT_TAG 0.5.1)
+FetchContent_MakeAvailable(crocket)
+
+add_executable(hello_app main.cpp)
+target_link_libraries(hello_app PRIVATE crocket::crocket)
+```
+
+Linking `crocket::crocket` adds `-std=c++26` and `-freflection`. You don't set the standard yourself. crocket's examples and tests are not built, and h2o stays out of your headers.
+
+## The program
+
+```cpp
+#include <crocket/crocket.hpp>
+
+#include <string>
+#include <string_view>
+
+using namespace crocket;
+
+namespace api {
+
+[[= http::get("/hello/{name}")]]
+auto hello(std::string_view name) -> std::string {
+  return "Hello, " + std::string(name) + "!\n";
+}
+
+}  // namespace api
+
+int main() {
+  return build(Config::from_env())
+      .attach(Logger{})
+      .mount("/", reflect_routes<^^api>())
+      .launch();
+}
+```
+
+## Build and run
+
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-16.2
+cmake --build build
+./build/hello_app
+curl localhost:8000/hello/Ada
+```
+
+The release profile listens on `0.0.0.0:8000`. `CROCKET_PORT` changes the port. The first configure downloads h2o (about a 7 MB tarball) unless you point `FETCHCONTENT_SOURCE_DIR_H2O` at a checkout.
+
+The binary needs GCC 16.2's `libstdc++`. If the loader says `GLIBCXX_3.4.35 not found`, point `LD_LIBRARY_PATH` at that GCC's `lib64`, or pass `-Wl,-rpath` to it.
+
+`GET /healthz` is already there. It answers 200 `{"status":"ok"}` while the process is serving.
+
+
+# Getting started
+
+The quickstart assumes the compiler is already installed. This page is the part that usually takes the time.
+
+## What you need
+
+- GCC 16.2 or later, with `-freflection`. Clang is not tested.
+- CMake 3.28 or later, and Ninja or Make.
+- OpenSSL and zlib development headers (`libssl-dev`, `zlib1g-dev`), and `perl`, which h2o's build runs.
+- Network access on the first configure, to fetch h2o. Set `FETCHCONTENT_SOURCE_DIR_H2O` to a local checkout to build offline.
+
+There are no `install()` rules yet, so `find_package(crocket)` does not work. Use FetchContent, as the [quickstart](/guide/v0.5/quickstart/) does.
+
+## GCC 16.2
+
+Ubuntu 26.04's `g++-16` package is a pre-release snapshot (`16-20260322`). Its reflection bugs break a translation unit that mounts routes. The errors start with `accessing uninitialized member 'crocket::detail::Binding::kind'`.
+
+The toolchain crocket is developed with is GCC 16.2 on Ubuntu 26.04. `./dev gcc` builds that compiler into `~/.local/gcc-16.2`. CI uses the image `ghcr.io/sean3z/crocket-toolchain:gcc-16.2`, which already has it.
+
+## Try it without a toolchain
+
+The hello image listens on port 8000:
+
+```sh
+docker run --rm -p 8000:8000 ghcr.io/sean3z/crocket-hello:stable
+curl localhost:8000/hello/Rocketeer/42
+```
+
+That prints `Hello, 42 year old named Rocketeer!`. Pin `:0.5.1` when you deploy it. `:stable` tracks the stable release. `:latest` tracks `main`.
+
+The same route, compiled in the browser, is on [Compiler Explorer](https://godbolt.org/z/Gdes8Kbdq) (GCC 16.2, `-std=c++26 -freflection`). That sketch is `examples/godbolt.cpp`. It has no h2o.
+
+To work on an app inside the toolchain image:
+
+```sh
+docker run --rm -it -v "$PWD:/src" -p 8000:8000 ghcr.io/sean3z/crocket-toolchain:gcc-16.2
+```
+
+`./dev run` uses the dev profile, which listens on `127.0.0.1`. Inside a container, build the release tree and run the binary if you need `0.0.0.0`.
+
+## Dev profile
+
+`CROCKET_PROFILE=dev` is for your own machine. Compared with the release defaults it:
+
+- Puts `ApiError::detail` in error bodies, including an uncaught exception's `what()`. Release never sends that.
+- Writes readable log lines, colored on a terminal unless `NO_COLOR` is set.
+- Prints every route at launch, and turns on `GET /__routes`.
+- Uses a one-hour request deadline and a one-second drain.
+- Binds `127.0.0.1` when `server.host` is empty, instead of `0.0.0.0`.
+
+Anything other than `dev` or `release` (or unset, which means release) throws `std::invalid_argument` at startup.
+
+The next page is the [overview](/guide/v0.5/overview/) of the handler model.
+
+
+# Overview
+
+A crocket program is a set of functions, a few calls that mount them, and whatever state and fairings you attach. This page is the map. The later chapters are the detail.
+
+## A handler is a function
+
+```cpp
+namespace api {
+
+[[= http::get("/hello/{name}/{age}")]]
+auto hello(std::string_view name, std::uint8_t age) -> std::string {
+  return std::format("Hello, {} year old named {}!", age, name);
+}
+
+auto helper(int) -> int;  // no annotation: not a route
+
+}  // namespace api
+```
+
+`{name}` binds to the parameter named `name`. A name or type mismatch is a compile error that names both identifiers. Parameters that are not in the path are extractors. An unknown parameter type does not compile. The return type has to be a responder, or an awaitable of one (`Task<T>`).
+
+One route annotation per function. Two verbs are two functions. Handlers are not templates, because reflection needs concrete parameter types.
+
+## Mounting
+
+```cpp
+return crocket::build(Config::from_env())
+    .attach(Logger{})
+    .mount("/", reflect_routes<^^api>())
+    .launch();
+```
+
+`reflect_routes<^^api>()` reads every annotated function in that namespace or class. The string you pass to `mount` is the URL prefix for HTTP routes. Routes are compiled at ignite into a tree keyed by path segment, so finding candidates takes the same time with 10 routes or 1,000, and the lookup allocates nothing. A route may have up to 64 segments and 16 captures.
+
+A class can be a route scope too. Static members are ordinary handlers. Non-static members run on the instance you `manage`, and ignite checks that you did.
+
+```cpp
+class Info {
+ public:
+  explicit Info(std::string version) : version_(std::move(version)) {}
+
+  [[= http::get("/version")]]
+  auto version() const -> std::string { return version_; }
+
+ private:
+  std::string version_;
+};
+
+app.manage(Info{"1.4.2"}).mount("/", reflect_routes<^^Info>());
+```
+
+## If you know Rocket
+
+| Rocket | crocket |
+|---|---|
+| `#[get("/hello/<name>/<age>")]` | `[[= http::get("/hello/{name}/{age}")]]` |
+| `routes![a, b, c]` | `reflect_routes<^^api>()` |
+| `rocket::build().mount("/", ...)` | `crocket::build().mount("/", ...)` |
+| `FromParam` | `crocket::FromParam<T>` |
+| Request guards | Extractors, `crocket::FromRequest<T>` |
+| `Json<T>` | `Json<T>` |
+| Query / `FromForm` for queries | `Query<T>` |
+| `Responder` | `crocket::Responder<T>` |
+| `Option`, `Result`, `status::Created` | `std::optional`, `std::expected`, `Created<T>` |
+| `.manage(x)` and `&State<T>` | `.manage(x)` and `State<T>` |
+| Fairings | Fairings, same hook names, as plain structs |
+| `async fn` | Handlers that return `Task<T>` |
+| `rocket::local::blocking::Client` | `LocalClient` |
+
+Four things crocket adds that Rocket has no direct equivalent for: controllers, OpenAPI generated from the handlers, unary gRPC whose messages are plain structs, and a production kit (request ids, structured logs, Prometheus metrics, `/healthz` and `/readyz`, deadlines, resource pools).
+
+HTML form bodies and multipart uploads are not a separate `FromForm` type. Query strings are `Query<T>`.
+
+## Where a handler runs
+
+Network I/O runs on one event loop per physical core. Hyperthreads of a core don't get a loop each. A plain function starts on a worker thread, so it may block. A handler that returns `Task<T>` runs on the event loop and must not block.
+
+Adaptive placement is on by default. A plain route moves onto the event loops after 1,000 runs in a row under 100 microseconds, and back to workers when it turns out to block there (one run over 50 ms, or 8 over 1 ms within a second). `CROCKET_ADAPTIVE_PLACEMENT=false` keeps plain functions on workers.
+
+## When things fail
+
+- At compile time, when the types say so: a capture with no matching parameter, an unknown extractor, a return type that is not a responder.
+- At ignite, before the server accepts a connection: unmanaged state, two routes with the same method, shape, and rank, a fairing that calls `ig.fail`, a bad proxy list.
+- At `launch`, TLS certificate and key files must exist and be readable.
+- On the request, when a value doesn't fit: 404 `path.invalid`, 422 from JSON or query, 401 from auth. The handler does not run.
+
+Every problem ignite can see is reported at once, not just the first.
+
+
+# Requests
+
+A route runs only when the method, the path, and every extractor succeed. This chapter is that matching.
+
+## Routes and captures
+
+```cpp
+[[= http::get("/hello/{name}/{age}")]]
+auto hello(std::string_view name, std::uint8_t age) -> std::string {
+  return std::format("Hello, {} year old named {}!", age, name);
+}
+```
+
+Each `{capture}` binds to the parameter with the same name. The parameter's type decides whether the segment is acceptable. Built-in path types are `std::string_view`, `std::string`, `bool`, the integer types (range-checked), and the floating-point types. A floating-point capture has to be finite: `nan` and `inf` don't match.
+
+Paths are split on `/` before they are decoded, so a capture can hold any character. `/hello/a%2Fb/36` calls `hello` with `name` equal to `a/b`. Dot segments are removed first and never climb above `/`. A path that decodes to a NUL byte is 400.
+
+A capture that doesn't match a parameter is a compile error:
+
+```text
+error: static assertion failed: crocket: handler bad::hello [GET /hello/{name}/{age}]:
+  path capture '{age}' has no parameter named 'age'; did you mean parameter 'years'?
+```
+
+Add your own path type by specializing `FromParam`. `parse` returns `std::nullopt` when the segment doesn't match, and the route is forwarded.
+
+```cpp
+struct Hex { std::uint32_t value; };
+
+template <>
+struct crocket::FromParam<Hex> {
+  static std::optional<Hex> parse(std::string_view s) {
+    std::uint32_t v{};
+    auto [p, ec] = std::from_chars(s.data(), s.data() + s.size(), v, 16);
+    if (s.empty() || ec != std::errc{} || p != s.data() + s.size()) return std::nullopt;
+    return Hex{v};
+  }
+};
+```
+
+## Forwarding and ranks
+
+A path that fails to parse doesn't stop routing. The request is forwarded to the next candidate. Candidates are tried in this order: lower `rank` first, then literal segments before captures, then mount order. If every candidate forwards, the response is 404 `path.invalid`.
+
+```cpp
+[[= http::get("/user/{id}", {.rank = 1})]]
+auto user_by_id(std::uint64_t id) -> std::string;
+
+[[= http::get("/user/{name}", {.rank = 2})]]
+auto user_by_name(std::string_view name) -> std::string;
+```
+
+`/user/42` hits the first. `/user/ada` doesn't parse as an integer, so it hits the second. Two routes with the same method, path shape, and rank fail at ignite, with both handlers named.
+
+## Methods
+
+The annotations are `http::get`, `head`, `post`, `put`, `patch`, `del`, and `options`.
+
+HEAD falls back to the GET route and drops the body. A method that doesn't match a path that does exist gets 405 with an `Allow` header.
+
+## Extractors
+
+Every parameter that isn't a path capture is an extractor. Extractors run before the handler. If one fails, its `ApiError` is the response.
+
+| Extractor | Gives you | Fails with |
+|---|---|---|
+| `Json<T>` | Body decoded into `T` | 415, or 422 `json.invalid` and the other `json.*` codes |
+| `Query<T>` | Query string mapped onto `T` | 422 `query.invalid` |
+| `Header<"name", T>` | That header, parsed as `T` | 400 `header.missing` or `header.invalid` |
+| `Auth<>` / `Auth<T>` | A verified bearer token | 401, or 403 `auth.forbidden` |
+| `State<T>` | The managed `T` | Checked at ignite, not per request |
+| `Deadline` | A deadline and a `std::stop_token` | Never |
+| `RequestId` | The request's id | Never |
+| `Client` | Address and scheme | Never |
+| `const Request&` / `Response&` | The raw objects | Never |
+
+A custom guard is a `FromRequest` specialization. A parameter type that is neither a path type nor an extractor is a compile error. So is a handler with two body-consuming extractors.
+
+Failures are counted per route and extractor kind in `crocket_extractor_failures_total{route,kind}` when metrics are attached.
+
+## JSON
+
+Any plain aggregate works as JSON. No annotations are required.
+
+```cpp
+struct NewUser {
+  std::string email;                // required
+  std::optional<std::string> name;  // may be absent or null
+  int age = 0;                      // may be absent: keeps its default
+};
+
+[[= http::post("/users")]]
+auto create(Json<NewUser> body) -> Json<NewUser> { return body; }
+```
+
+By default, JSON names are the member names. A member is required unless it is `optional` or has a default. Unknown fields are ignored. Empty optionals are written as `null`. `Json<T>` reads the body straight into `T`, with no document tree in between.
+
+Reading is strict. UTF-8 is checked. Duplicate keys are 422 `json.duplicate_key`, including keys a struct ignores. Nesting is limited to 64, strings to 1 MiB, object members to 1024, and array elements to 100,000. An integer that doesn't fit the member's type is an error, not a rounded number. `std::uint64_t` keeps all 64 bits.
+
+Annotations change the defaults when you need them: `json::rename`, `json::rename_all`, `json::deny_unknown_fields`, `json::omit_null`, `json::as_string`, `json::unix_seconds`, `json::unix_millis`, and `json::tag` for a variant. Validation annotations (`json::email`, `json::min`, `json::max`, `json::min_len`, `json::max_len`, `json::pattern`) collect every failure into one 422 `json.validation`. `json::pattern` is compiled with the program, matches in linear time, and has no backreferences or lookaround.
+
+`[[= json::from_path]]` on a member fills it from the URL instead of the body, so one struct can serve create and update. The id is `readOnly` in OpenAPI.
+
+Outside a handler, `json::read`, `json::from_string<T>`, `json::to_string`, and `json::parse` do the same mapping.
+
+## Queries and headers
+
+```cpp
+struct Page { int page = 1; std::optional<std::string> q; };
+
+[[= http::get("/search")]]
+auto search(Query<Page> p) -> std::string {
+  return std::format("page {} of results for {}", p->page, p->q.value_or("*"));
+}
+
+[[= http::get("/reports")]]
+auto reports(Header<"x-tenant"> tenant,
+             Header<"x-page-size", std::optional<int>> size) -> std::string {
+  return std::format("{} {}", *tenant, size->value_or(50));
+}
+```
+
+`/search?page=2&q=rust` maps onto `Page`. A required header that is missing is 400 `header.missing`. Every request header reaches the handler, over HTTP/1.1 and HTTP/2.
+
+## Authentication
+
+JWT and OIDC are optional. Link `crocket::auth` (it also links `crocket::client`, which fetches JWKS) and manage one `auth::Jwt`. `#include <crocket/auth.hpp>` is not pulled in by `crocket.hpp`.
+
+```cpp
+[[= http::get("/admin"), = auth::require("admin")]]
+auto admin() -> std::string { return "admin\n"; }
+
+return build(Config::from_env())
+    .manage(auth::Jwt::from_env())
+    .mount("/", reflect_routes<^^api>())
+    .launch();
+```
+
+`Auth<>` is the untyped principal: `subject` and `scopes`. `Auth<T>` also fills `T` from the payload the way `Json<T>` reads a body. A missing or invalid token is 401. A valid token without the required role is 403 `auth.forbidden`. `auth::require` means every role. `auth::any_of` means one of them.
+
+The default algorithms are RS256, ES256, and EdDSA. `none` is rejected. HS256, HS384, and HS512 stay off unless you set `CROCKET_AUTH_SECRET` and include the algorithm. `Jwt::from_env` adds HS256 when the secret is set. An HMAC key is only that secret. A JWK is never used as an HMAC key.
+
+`/readyz` stays not ready until the first JWKS document has loaded. A later failed refresh keeps the keys already in memory. There is no introspection, so a token revoked at the issuer stays accepted until it expires. Verified tokens are cached on each worker until `exp` (1,024 entries).
+
+`CROCKET_AUTH=ON` fails configure when the client is off. With both options left on `AUTO`, turning the client off turns auth off.
+
+
+# Responses
+
+The return type is the response. crocket maps a fixed set of types. Anything else is a compile error unless you specialize `Responder`.
+
+## Return types
+
+| You return | The client gets |
+|---|---|
+| `std::string`, `std::string_view`, `const char*` | 200, `text/plain; charset=utf-8` |
+| A plain struct, `Json<T>`, `std::vector<T>` | 200, `application/json` |
+| `std::optional<T>` | 200, or 404 when it is empty |
+| `std::expected<T, ApiError>` (`Result<T>`) | The value, or that error |
+| `Created<T>` | 201, with `Location` when you set one |
+| `NoContent` | 204, empty body |
+| `Cacheable<T>` | The payload, plus validators and optional ranges |
+| `Task<T>` | Whatever `T` is, after the task finishes |
+| `Response` | Exactly what you built |
+
+```cpp
+[[= http::post("/heroes")]]
+auto create(Db& db, Json<Hero> body) -> Created<Hero> {
+  auto hero = db.insert(*body);
+  return {hero, "/heroes/" + std::to_string(hero.id)};
+}
+```
+
+An empty `optional` is a 404. You don't write the status yourself. `Status<T>` sets a status code on a successful payload when none of the wrappers fit.
+
+## Errors
+
+Error bodies are RFC 9457 problem details (`application/problem+json`): `title`, `status`, `detail`, `code`, `request_id`, and `errors` when a validation failure has per-field notes.
+
+```json
+{"title":"Unprocessable Content","status":422,
+ "detail":"field '/email': must be an email address",
+ "code":"json.validation","request_id":"5f0c"}
+```
+
+Codes are stable and dotted: `path.invalid`, `query.invalid`, `json.invalid`, `auth.expired`, `body.too_large`. An uncaught exception is 500 `internal`. Its `what()` never reaches the client, except in the dev profile, where `ApiError::detail` is included.
+
+Return `std::unexpected(ApiError::bad_request("hello.name", "name is required"))` when the handler wants a specific code. The status, the message, and the code are the whole error.
+
+## Caching and ranges
+
+Every 200 answer to GET or HEAD carries an ETag, a hash of the body, unless the handler set its own. Bodies longer than `limits.etag_max_bytes` (1 MiB) get no automatic ETag. Hashing is about a microsecond per 10 KiB. A client that sends the tag back in `If-None-Match` gets 304 with no body.
+
+Wrap the payload in `Cacheable` for the rest:
+
+```cpp
+[[= http::get("/reports/{id}")]]
+auto report(std::uint64_t id, State<Store> store) -> Cacheable<std::string> {
+  auto r = store->find(id);
+  return {r.contents, {.last_modified = r.updated_at, .ranges = true}};
+}
+```
+
+`last_modified` is sent as `Last-Modified` and answers `If-Modified-Since`. When the client sends `If-None-Match`, that decides instead. `ranges = true` serves one byte range as 206. A range past the end is 416 `range.unsatisfiable`. Several ranges in one request get the whole body.
+
+## Static files
+
+`.mount(prefix, files{...})` serves a directory, or bytes embedded with `#embed`, under that URL prefix. Routes match before files, whichever you mount first, so a handler never waits on the filesystem. A miss is the ordinary 404. That is how `/` can serve a frontend next to an API without swallowing `/healthz`.
+
+This is in the tree this guide was checked against (commit `9b446f8`). It is listed as unreleased relative to tag 0.5.1, so a project pinned to `0.5.1` does not have it yet.
+
+```cpp
+static constexpr unsigned char index_html[] = {
+#embed "web/index.html"
+};
+
+.mount("/", files{
+    .assets = {asset("index.html", index_html)},
+    .cache = {{"*.html", "no-cache"}},
+    .headers = {{"*.html", {{"content-security-policy",
+                             "default-src 'self'"}}}}})
+```
+
+`asset()` points at the array. A string literal's trailing NUL would be part of the file, so embed the file rather than quoting it. Only GET and HEAD read files.
+
+A few fields you'll use immediately:
+
+- `index` defaults to `index.html`. A directory URL that ends in `/` serves it. Without the slash the response is 308 to the path with a slash.
+- `*` in a cache or header glob matches any run of characters except `/`. `*.html` matches `index.html` and not `dir/index.html`. The first matching rule wins.
+- `.headers` replaces a header Shield would have set, for files that match the glob. Shield's default content security policy is `default-src 'none'`, which blocks a page from loading its own scripts and styles. Set a policy the page can live with.
+- Dotfiles are hidden unless `.dotfiles` is set. A symlink is followed only when the target stays inside the root. `%2e%2e%2f` is a miss.
+- `max_bytes` defaults to 32 MiB. A larger file on disk is 500 `static.too_large`. A larger embedded asset fails ignite.
+- `.spa` serves the index for a GET or HEAD that missed and whose last segment has no dot. A missing `app.js` stays a 404. Routes, including `/healthz`, still win.
+
+Embedded files send a strong ETag and no `Last-Modified`. Disk files send an ETag of size and mtime, and `Last-Modified`. `If-None-Match` and `If-Modified-Since` answer 304. One `Range` is 206. `HEAD` never sends a body.
+
+h2o's own file handler is not used. It can't serve embedded bytes, and that code stays out of the binary.
+
+
+# State
+
+`manage` a value once. Ask for it with `State<T>` on any route. The same mechanism holds a database pool and an outbound HTTP client.
+
+## Managed state
+
+A route that needs state nobody manages fails at ignite, before the server accepts a connection:
+
+```text
+ignite failed:
+  - GET /items/{id} (api::item) requires State<Store>, but Store is not managed
+```
+
+Ignite also rejects conflicting routes and anything a fairing's `on_ignite` flags. Every problem is reported at once.
+
+Managed state is destroyed in reverse `manage` order at shutdown, after requests have drained. A type with `bool ready() const` is part of `/readyz`. While it returns false, `/readyz` is 503 `not_ready`.
+
+`State<T>` is never a request-time failure. If the program is serving, the value is there.
+
+## Databases
+
+`crocket::db` is the API (`Db&`, `find`, `insert`, `where`, and the rest). Each database is a backend you link. Today there is one, `crocket::pg`, Postgres on libpqxx. Another backend is not in this tree. Core crocket never includes it. You link `crocket::pg` when you want it, which needs libpqxx built with the same GCC and C++26. `CROCKET_PG=OFF` skips it. `ON` makes a missing libpqxx an error. libpqxx 7.10 and 8.x both work.
+
+Handlers name `Db&`, never the backend. Your structs stay plain: no annotations and no base class.
+
+```cpp
+struct Hero {
+  std::int64_t id;
+  std::string name;
+  std::string alias;
+  std::optional<std::string> mentor;
+};
+
+[[= http::get("/heroes/{id}")]]
+auto get(Db& db, std::int64_t id) -> std::optional<Hero> {
+  return db.find<Hero>(id);  // nullopt: 404
+}
+```
+
+Reflection reads the struct while compiling.
+
+- The table is the type's name in plural snake_case. `Hero` is `heroes`. Specialize `crocket::db::table_name<Hero>` to use another name.
+- The columns are the data members, by name and in declaration order. The member named `id` is the key. The database fills it in on insert.
+- `std::optional<T>` reads and writes `NULL`.
+- An `id` may be left out of a JSON body. `insert` never sends it. An id a client does send is ignored on insert.
+
+`db.find`, `insert`, `update`, and `erase` build their SQL at compile time. Filters name columns with member pointers (`db.where(&Hero::mentor, "Bruce Wayne")`), so a typo does not compile. `db.sql` and `db.exec` are the escape hatches. A unique violation on insert is 409 `db.conflict`.
+
+`db::Pool` opens `pool_size` connections (default 8) when it is constructed and throws if it cannot, so a database that is down at startup stops the process. After that, `GET /readyz` runs `select 1` and returns 503 while the check fails or while the server is draining. A handler that cannot check out a connection gets 503 `db.busy`.
+
+A query blocks the worker running its handler. Unless you set the worker count yourself, crocket raises it to the pool size. With `CROCKET_DATABASE_POOL_SIZE=16` on a 4-core machine you get 16 workers, not 4. Idle workers sleep. Each extra thread costs about 8 MB of virtual stack, not resident memory, and no CPU while idle. The worker count is capped at 1,024. A count you set yourself is used as is, even when it is smaller than the pool.
+
+Routes that never take `Db&` pay nothing for this. With metrics attached you get `crocket_db_seconds`, pool gauges, and `db_ms` on the log line.
+
+`CROCKET_DATABASE_URL` is the connection string. Empty leaves libpq's `PG*` variables.
+
+## Outbound HTTP
+
+`crocket::client` is optional outbound HTTP on h2o's client, on one of the server's event loops. There is no second network stack and no blocking call. Every method returns `Task`. Link `crocket::client` and include `<crocket/client.hpp>`. A program that does not link it does not get the client. `CROCKET_CLIENT` is `AUTO` (build it when OpenSSL 3 is present), `ON`, or `OFF`.
+
+```cpp
+return build(Config::from_env())
+    .manage(http::Client{{
+        .base = base,
+        .timeout = 2s,
+        .pool = 64,
+        .retry = retry::idempotent(3),
+        .breaker = breaker::consecutive(5, 30s),
+    }})
+    .mount("/", reflect_routes<^^api>())
+    .launch();
+```
+
+A route takes `State<http::Client>` and `co_await`s `get` or `post`. Retries and the breaker are on unless a call opts out (`{.retry = retry::none}`). Only idempotent methods are retried, plus any call that sets `Idempotency-Key`. A retry budget caps retries at 20% of recent calls, at least 3. Failures are `upstream.timeout` (504), `upstream.unavailable` (503), and `upstream.circuit_open` (503).
+
+Two services are two clients: `.with_state<Tag>()` and `State<http::Client::For<Tag>>`. An inbound `x-request-id` is forwarded. `traceparent` is not.
+
+`examples/client.cpp` is `crocket_client_example`. It reads `UPSTREAM_BASE` and defaults to `http://127.0.0.1:9`, which refuses connections so the routes answer 503 until you point it somewhere.
+
+
+# Fairings
+
+Fairings are structured middleware. A fairing is any movable type with one or more of the hooks below. There is no base class and no `info()` function.
+
+## Hooks
+
+| Hook | When | Can |
+|---|---|---|
+| `on_ignite(Ignite&)` | During ignite, in attach order | Inspect state, config, and routes. `ig.fail` aborts launch. |
+| `on_request(Request&)` | Before routing, in attach order | Rewrite the request, or return a `Response` and stop the chain. |
+| `on_response(const Request&, Response&)` | After the response exists, in reverse attach order | Rewrite the response. |
+| `on_shutdown()` | After the drain, in reverse attach order | Flush and close. |
+
+`on_request` can answer the request. Returning a `Response` stops the chain, which is how maintenance mode and CORS preflights work. `on_response` runs on every response, including the engine's 413, 503, and 504, so logs and metrics don't miss a request. The first fairing you attach sees the request first and the response last.
+
+Fairings run concurrently on worker threads. Keep shared state thread-safe. They are short and synchronous. They don't parse request bodies.
+
+A response timer:
+
+```cpp
+struct Timer {
+  void on_response(const Request& rq, Response& rs) {
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(
+                  Clock::now() - rq.received)
+                  .count();
+    rs.headers.set("x-response-time", std::format("{} us", us));
+  }
+};
+```
+
+## Shield
+
+Shield is attached by default, last, so its `on_response` runs first. It sets:
+
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`
+- `Referrer-Policy: no-referrer`
+- `Strict-Transport-Security: max-age=31536000` on HTTPS, never for localhost
+
+A header the response already carries is left alone. That is how a handler, or a static-file `.headers` rule, replaces the content security policy for HTML and leaves every other response on the default. `Shield::none()` sends nothing. Attach your own to change one field:
+
+```cpp
+app.attach(Shield{}.set("content-security-policy", "default-src 'self'")
+               .remove("x-frame-options"));
+```
+
+The default policy blocks a browser page from loading its own scripts and styles. A page you serve has to set a policy it can live under. This site's HTML uses `default-src 'self'` with no inline script or style.
+
+## CORS, logs, and metrics
+
+`Cors` is deny-by-default. `Cors::allow_origins({...})` takes methods, headers, exposed headers, credentials, and a max age. It answers preflights itself, or 403 `cors.denied` for an origin that is not on the list. It refuses at ignite to combine credentials with `*`. Without `Cors`, no cross-origin headers are sent.
+
+`Logger` writes one line per request: request and trace ids, method, route template (never the raw path), handler, status, error code, duration, bytes, protocol, client, user agent, and the authenticated subject. `Authorization`, `Proxy-Authorization`, and `Cookie` are removed from log lines. Field names that look like credentials are redacted, and `-` and `_` count as the same character, so `X-Api-Key` matches `api_key`.
+
+`Metrics` serves Prometheus text at `GET /metrics`, labeled by route template. The series include `crocket_http_requests_total`, a duration histogram, in-flight requests, extractor failures, connections, worker gauges, and `crocket_build_info{version,commit,compiler,hostname}`. `crocket_saturation` (0 to 1) combines the capacity signals for an HPA or KEDA target. Scrape each pod from one Prometheus. Two scrapers would each see half of a counter that is not shared.
+
+`CROCKET_METRICS_LABELS` adds labels. A Kubernetes Service named `crocket` injects `CROCKET_PORT=tcp://...`, which crocket refuses to start with. Set `enableServiceLinks: false`, or name the Service something else.
+
+## Health checks
+
+Every app gets two built-in routes.
+
+- `GET /healthz` answers 200 `{"status":"ok"}` while the process is serving. Use it for liveness.
+- `GET /readyz` answers 200 `{"status":"ready","checks":{...}}` when every readiness check passes, and 503 `not_ready` when one fails. The checks are each managed type with `bool ready() const`, and the database pool's `select 1`. During the drain on shutdown it answers 503 `server.draining`.
+
+Static files mounted at `/` do not swallow these. Routes match first.
+
+
+# Testing
+
+Handlers are plain functions, so you can call them directly. `LocalClient` is how you test the pipeline around them without opening a socket.
+
+## LocalClient
+
+`LocalClient` dispatches through fairings, routing, extractors, responders, and error mapping. It plays the role of Rocket's `local::blocking::Client`. It normalizes and routes paths the same way the server does, so an in-process test cannot pass on an input the server treats differently.
+
+```cpp
+Crocket app = make_app();
+LocalClient client(app);
+
+auto res = client.post("/users").bearer("alice").json(R"({"email":"a@example.com"})").dispatch();
+assert(res.status == 201);
+assert(*res.headers.get("location") == "/users/1");
+
+auto bad = client.get("/hello/Ada/400").dispatch();
+assert(bad.status == 404 && bad.error_code == "path.invalid");
+```
+
+Construction ignites the app and throws if ignite fails. `.remote("10.0.0.5")` sets the peer, which is how you test trusted proxies:
+
+```cpp
+auto r = client.get("/whoami")
+             .remote("10.0.0.5")
+             .header("x-forwarded-for", "203.0.113.9")
+             .dispatch();
+```
+
+Only a peer in `proxy.trusted` is believed. A request from any other address keeps its own address and scheme, whatever headers it sends.
+
+`tests/acceptance.cpp` is the larger example: routing, responders, request ids, logs, metrics, health checks, CORS, pools, the dev profile, Shield, ETags, 304s, and ranges.
+
+## Compile failures
+
+`tests/compile_fail/` holds programs that must not compile. Each one is checked for the expected diagnostic. That includes the `{age}` versus `years` error, which has to name both identifiers, plus unknown extractors, bad JSON annotations, and return types that are not responders. A control file in the same directory must compile.
+
+## What else the suite covers
+
+You don't need these to test an application. They're how crocket itself is checked, and they're the contract behind the chapters in this guide.
+
+- `json` covers round trips, limits, duplicate keys, and validation.
+- `router` checks the route tree against a linear scan, including HEAD falling back to GET.
+- `static` covers directories, `#embed`, index files, dotfiles, and symlink misses. It needs the static-files commit. Tag 0.5.1 does not have that test.
+- `tls_h2` drives real sockets with ALPN h2 and HTTP/1.1.
+- `openapi` checks the generated document piece by piece.
+- `grpc` checks protobuf encoding and the generated `.proto`.
+- `db` runs against Postgres when `CROCKET_TEST_DATABASE_URL` is set, and is skipped otherwise.
+
+`ctest` also runs each fuzz target's corpus and two seconds of mutations. The fuzzers cover JSON, protobuf, query strings, routes, whole requests, and HTTP/2 frames.
+
+
+# Configuration
+
+One `Config` holds the server, the limits, the timeouts, the proxy, and the profile. Optional pieces read their own groups: `auth` for `crocket::auth`, `database` for `crocket::db`. Core crocket never opens a database or fetches a JWKS on its own.
+
+## Precedence
+
+Settings stack, and each layer beats the one before it:
+
+1. The built-in defaults, or the `Config` you pass to `from_env` when your program wants different ones.
+2. The dev profile, when `CROCKET_PROFILE=dev`.
+3. The other `CROCKET_*` environment variables.
+4. Whatever you assign in code after `from_env` returns.
+5. The fields you pass to `launch({...})`.
+
+```cpp
+Config cfg = Config::from_env({.server = {.port = 50051}});
+cfg.timeouts.request = 10s;
+return crocket::build(cfg)
+    .mount("/", reflect_routes<^^api>())
+    .launch({.listen = "0.0.0.0:50051"});
+```
+
+`from_env`'s argument replaces the built-in defaults, and the environment can still override it. That is how a gRPC server defaults to port 50051 without ignoring `CROCKET_PORT`. `launch()` with no argument serves on `cfg.server`. `.listen` takes `"8080"`, `":8080"`, `"0.0.0.0:8080"`, or `"[::1]:8080"`.
+
+A value that does not parse throws `std::invalid_argument` naming the variable, so a typo stops the program at startup. Sizes take `K`, `M`, or `G` (powers of 1024). Durations take `ms`, `s`, `m`, or `h`, and a bare number is seconds. Booleans are `true`/`false`, `1`/`0`, `yes`/`no`, or `on`/`off`. Lists are comma-separated. Unset or empty leaves the setting alone.
+
+## Limits
+
+Every resource a client can make the server hold has a bound. Past it, the request fails or the connection waits, as the table says. The defaults follow h2o for connections and HTTP/2, and Rocket for a JSON body.
+
+| Limit | Default | Past it |
+|---|---|---|
+| `max_connections` | 1024 | New connections wait in the accept queue |
+| `max_connections_per_ip` | 0 (none) | A new connection from that address is closed |
+| `http2_max_streams` | 100 | Advertised in the HTTP/2 SETTINGS |
+| `max_header_bytes`, `max_header_count` | 8 KiB, 100 | 431 `headers.too_large` |
+| `max_body_bytes` | 1 MiB | 413 `body.too_large` |
+| `max_body_memory` | 256 MiB | 503 `server.busy` |
+| `etag_max_bytes` | 1 MiB | No automatic ETag |
+| `max_in_flight` | 1024 | 503 `server.busy` |
+| `timeouts.request` | 30 s | 504 `deadline.exceeded` |
+| `timeouts.drain` | 10 s | In-flight requests are dropped after this |
+
+`max_connections_per_ip` is off by default because, behind a load balancer, every connection comes from the balancer. Set it when clients connect directly. h2o also closes a connection that takes more than 10 seconds to send its headers, or that sits idle on HTTP/2 for 10 seconds (GOAWAY).
+
+## Dev profile
+
+`CROCKET_PROFILE=dev` selects `Config::dev()`. Unset or `release` uses the release defaults. The dev profile binds `127.0.0.1` when the host is empty, prints every route, turns on `GET /__routes`, puts error detail in the body, uses a one-hour deadline, and drains in one second. Its logs are readable lines. Release logs are structured. `allowed_hosts` in the dev profile also accepts `localhost`, `127.0.0.1`, and `::1`.
+
+## Behind a proxy
+
+`Client` reports the peer address and whether the connection was `https` or `http`. Behind a proxy, list the proxies you run. crocket then takes both from the header they add.
+
+```cpp
+Config cfg;
+cfg.proxy.trusted = {"10.0.0.0/8"};
+cfg.proxy.header = ProxyHeader::XForwardedFor;  // the default
+cfg.proxy.allowed_hosts = {"api.example.com", "*.example.com"};
+```
+
+Only trusted proxies are believed. Behind a chain, the client is the first address that no trusted proxy is behind, so a value the client wrote into `X-Forwarded-For` itself is never picked. Only the configured header is read. The other is ignored.
+
+`allowed_hosts` is the host names the server answers. Any other `Host` (`:authority` on HTTP/2) is 400 `host.invalid` before routing. Ports are not compared. `*.example.com` matches subdomains and not `example.com` itself. An empty list allows every host. A malformed entry fails ignite.
+
+`CROCKET_TRUSTED_PROXIES`, `CROCKET_PROXY_HEADER` (`x-forwarded-for` or `forwarded`), and `CROCKET_ALLOWED_HOSTS` set the same fields.
+
+## Environment variables
+
+The names you set most often:
+
+| Variable | Default |
+|---|---|
+| `CROCKET_PROFILE` | `release` |
+| `CROCKET_PORT` | `8000` |
+| `CROCKET_HOST` | `0.0.0.0` (`127.0.0.1` in dev) |
+| `CROCKET_LISTEN` | unset. Replaces host and port |
+| `CROCKET_TLS_CERT`, `CROCKET_TLS_KEY` | unset. TLS needs both |
+| `CROCKET_HTTP2` | `true` |
+| `CROCKET_H2_PRIOR_KNOWLEDGE` | `false` |
+| `CROCKET_WORKERS` | at least 4, one per core, raised to the largest blocking pool |
+| `CROCKET_EVENT_LOOPS` | one per physical core |
+| `CROCKET_LOG_LEVEL` | `info` (`debug` in dev) |
+| `CROCKET_LOG_SAMPLE` | `1` (every successful request) |
+| `CROCKET_LOG_SLOW` | `500ms` |
+| `CROCKET_REQUEST_TIMEOUT` | `30s` (an hour in dev) |
+| `CROCKET_DRAIN_TIMEOUT` | `10s` (`1s` in dev) |
+| `CROCKET_DATABASE_URL` | unset (libpq's `PG*` variables) |
+| `CROCKET_DATABASE_POOL_SIZE` | `8` |
+| `CROCKET_AUTH_ISSUER`, `CROCKET_AUTH_AUDIENCE`, `CROCKET_AUTH_JWKS` | unset |
+| `CROCKET_AUTH_SECRET` | unset (HMAC off) |
+
+`CROCKET_AUTH_*` and `CROCKET_DATABASE_*` do nothing until you link `crocket::auth` or `crocket::pg` and construct the verifier or the pool from `cfg`. The limit variables (`CROCKET_MAX_BODY_BYTES` and the rest) map onto the table above, one name per field.
+
+
+# OpenAPI
+
+The handlers already say what the API is. `OpenApi` writes that down as an OpenAPI 3.1 document so you don't keep a second copy.
+
+```cpp
+app.attach(OpenApi{{.title = "Orders", .version = "1.4.0", .docs = "/docs"}});
+```
+
+`GET /openapi.json` serves the document for every HTTP route, built at ignite from the handlers. `GET /docs` is an interactive page. That page loads Swagger UI from `cdn.jsdelivr.net`. If your content security policy only allows your own origin, leave `.docs` unset and serve the JSON yourself. gRPC methods are left out. Their contract is the `.proto`. `/__routes` is left out too.
+
+## What lands in the document
+
+| In the handler | In the document |
+|---|---|
+| `{id}` and its parameter's type | A required path parameter, with the integer's range when it has one |
+| `Query<T>` | One query parameter per member, required unless optional or defaulted |
+| `Header<"x-tenant">` | A header parameter, required unless optional |
+| `Json<T>` | A required `application/json` body, plus 415 and 422 responses |
+| `Auth<>` | A bearer security requirement, and a 401 |
+| `T`, `Json<T>`, `std::string`, `NoContent`, `Created<T>`, `std::optional<T>`, `Result<T>`, `Cacheable<T>`, `Task<T>` | The success response. 404 for an optional, 304 for a cacheable |
+| Any failure | `default`: `application/problem+json` with the shared `Problem` schema |
+
+Structs become schemas in `components/schemas`, following exactly what `Json<T>` reads and writes: renames, `as_string`, time formats, enums as their names, maps, recursion, untagged variants (`anyOf`), and `json::tag` variants (`oneOf` with a discriminator). Validation annotations become JSON Schema keywords (`minimum`, `maxLength`, `minItems`, `pattern`, `format: email`). `json::from_path` members are `readOnly`. A member is `required` when a request must send it. Two structs with the same name get qualified names (`billing.Order`).
+
+Each operation uses the handler's name as `operationId` (`shop.create_order`), its scope as the tag, and a summary from the function name. `Auth` records the bearer scheme. `auth::require` and `auth::any_of` add `x-required-roles` and `x-required-roles-match` (`all` or `any`), plus a 403.
+
+## Writing it at build time
+
+To print the document instead of serving it:
+
+```cpp
+if (argc > 1 && argv[1] == "--openapi"sv) {
+  std::cout << crocket::openapi_document(app, {.title = "Orders", .version = "1.4.0"});
+  return 0;
+}
+```
+
+The same function is what the fairing serves. Nothing is written twice, so the document can't drift from the signatures.
+
+
+# gRPC
+
+Unary gRPC methods are functions. Messages are plain structs, encoded as proto3 by reflection. There is no `.proto` to keep in sync and no generated code. Streaming is not supported.
+
+## A method
+
+```cpp
+struct HelloRequest {
+  std::string name;                                     // field 1
+  std::optional<std::string> title;                     // field 2
+  [[= proto::field(4)]] std::vector<std::string> tags;  // field 4 (3 was retired)
+};
+struct HelloReply { std::string message; };
+
+namespace greeter {
+
+[[= grpc::rpc]]
+auto say_hello(HelloRequest req, Auth<> auth) -> Result<HelloReply> {
+  if (req.name.empty())
+    return std::unexpected(ApiError::bad_request("hello.name", "name is required"));
+  return HelloReply{"Hello, " + req.name};
+}
+
+}  // namespace greeter
+
+crocket::build()
+    .mount("helloworld", reflect_routes<^^greeter>(), Mode::Grpc)
+    .mount("/api", reflect_routes<^^api>())
+    .launch({.port = 50051, .h2_prior_knowledge = true});
+```
+
+`Mode::Grpc` makes the first argument of `mount` a protobuf package (`"helloworld"`, `"acme.v1"`, or `""`) instead of a URL prefix. The service is the namespace or class and the method is the function, both in PascalCase. `greeter::say_hello` is `POST /helloworld.Greeter/SayHello`. Mounting gRPC methods without `Mode::Grpc`, or HTTP routes with it, fails ignite.
+
+Field numbers follow declaration order from 1. `[[= proto::field(n)]]` pins a member, and the members after it continue from `n + 1`. Duplicate or reserved numbers are compile errors. Pin numbers before you reorder or remove members, because renumbering breaks existing clients.
+
+The types are `bool`, `intN_t`, `uintN_t`, `float`, `double`, `std::string`, `proto::Bytes`, enums, nested structs, and `std::optional`, `std::vector`, and `std::map` of those. Unknown fields are skipped when decoding.
+
+A method takes at most one request message. None means `google.protobuf.Empty`. It can also take any extractor that does not read the body: `Auth<>`, `State<T>`, `Deadline`, `Header<...>`. Custom metadata arrives as request headers, so `Header<"x-tenant">` reads it.
+
+You can return a message, `Result<T>`, `std::optional<T>` (empty is `NOT_FOUND`), `void` (`Empty`), or a `Task` of one of those.
+
+## Errors and deadlines
+
+An `ApiError` becomes a gRPC status derived from its HTTP status: 401 `UNAUTHENTICATED`, 404 `NOT_FOUND`, 422 `INVALID_ARGUMENT`, 504 `DEADLINE_EXCEEDED`, and so on. `message` goes in `grpc-message`. The dotted code goes in a `crocket-error-code` trailer. `grpc::error(grpc::Code::AlreadyExists, "user.exists", "...")` picks the code exactly. An unknown method is `UNIMPLEMENTED`.
+
+A `grpc-timeout` header can shorten `timeouts.request`. It cannot extend it.
+
+## HTTP/2
+
+gRPC needs HTTP/2. Over TLS it is negotiated with ALPN. A gRPC client on an insecure channel speaks h2 without TLS, which `h2_prior_knowledge` serves. The same port keeps serving HTTP/1.1. `CROCKET_H2_PRIOR_KNOWLEDGE=true` sets the flag without a code change. `examples/grpc.cpp` turns it on when no TLS certificate is configured, and defaults the port to 50051 through `Config::from_env`.
+
+## The .proto
+
+Other languages still want a schema. It comes from the same declarations:
+
+```cpp
+std::fputs(grpc::proto_file<^^greeter>("helloworld").c_str(), stdout);
+```
+
+That prints a `service Greeter` block and every message and enum the methods use. Enum values get their enum's prefix, as proto3 requires (`Mood::grumpy` is `MOOD_GRUMPY`). A missing zero value is added as `<ENUM>_UNSPECIFIED`. `crocket_grpc --proto` prints the schema for `examples/grpc.cpp`.
+
+To test without sockets, `LocalClient::grpc` sends one framed message and `grpc::read_reply<T>` decodes the answer.
+
+```cpp
+auto res = client.grpc("/helloworld.Greeter/SayHello",
+                       proto::encode(HelloRequest{.name = "Ada"}))
+               .dispatch();
+assert(grpc::read_reply<HelloReply>(res)->message == "Hello, Ada");
+```
+
+
+# Deploying
+
+The release profile listens on `0.0.0.0:8000`. Put a proxy in front of it for TLS if you don't want crocket to terminate TLS itself. `launch({.tls_cert = ..., .tls_key = ...})` or `CROCKET_TLS_CERT` and `CROCKET_TLS_KEY` turn on HTTPS, and HTTP/2 is negotiated with ALPN when `server.http2` is true (the default).
+
+On SIGINT or SIGTERM, crocket stops accepting, drains in-flight requests for `timeouts.drain` (10 seconds unless you change it), runs `on_shutdown`, and then destroys managed state. With TLS on, it reloads the certificate and key on SIGHUP and when either file changes and then stays the same for a second. A certificate that does not load, or does not match its key, is logged and the previous one stays in use.
+
+## Docker
+
+Published images:
+
+- `ghcr.io/sean3z/crocket-hello`, tagged `:0.5.1`, `:0.5`, and `:stable` for the stable release, and `:latest` for `main`. Pin `:0.5.1` in anything you deploy. The tags are signed with Sigstore.
+- `ghcr.io/sean3z/crocket-toolchain:gcc-16.2`, Ubuntu 26.04 with GCC 16.2. `:gcc-16.2-pg` adds libpqxx built with that GCC.
+
+A Dockerfile for the [quickstart](/guide/v0.5/quickstart/) app, in the toolchain image so GCC 16.2's `libstdc++` is there at run time:
+
+```dockerfile
+FROM ghcr.io/sean3z/crocket-toolchain:gcc-16.2
+COPY . /src
+WORKDIR /src
+RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_C_COMPILER=/opt/gcc-16.2/bin/gcc-16.2 \
+      -DCMAKE_CXX_COMPILER=/opt/gcc-16.2/bin/g++-16.2 \
+      -DCMAKE_EXE_LINKER_FLAGS="-Wl,-rpath,$(dirname $(/opt/gcc-16.2/bin/g++-16.2 -print-file-name=libstdc++.so))" \
+ && cmake --build build \
+ && install -m755 build/hello_app /usr/local/bin/ \
+ && rm -rf /src/build
+EXPOSE 8000
+CMD ["hello_app"]
+```
+
+Linking with `-Wl,--gc-sections` drops the parts of h2o a program never calls, about 300 KB. h2o is linked statically. OpenSSL stays dynamic, under the Apache License 2.0. A binary you distribute has to include h2o's notices and the notices of the libraries it bundles (picotls, quicly, picohttpparser, hiredis, libyrmcds, libgkc, and cloexec).
+
+## Kubernetes
+
+Use `/healthz` for liveness and `/readyz` for readiness. `/readyz` turns 503 as soon as the drain starts, and while a managed pool or the database is down.
+
+Set `CROCKET_EVENT_LOOPS` to the CPU limit. crocket counts the CPUs in its affinity mask, which a CPU quota doesn't change. A `preStop` sleep keeps the pod serving until the Service has stopped sending it new connections. Keep `terminationGracePeriodSeconds` above that sleep, plus the drain, plus your slowest request.
+
+A Service named `crocket` makes Kubernetes inject `CROCKET_PORT=tcp://...`, which crocket refuses to start with. Set `enableServiceLinks: false`, or name the Service something else.
+
+The hello image does not attach `Metrics`. Your app does, if you want `/metrics`. Scrape each pod directly. Two scrapers would each see half of the counters.
+
+## The wire engine
+
+The framework layer knows nothing about sockets. `Crocket::handle` is the whole contract, and `LocalClient` drives that function. `src/engine_h2o.cpp` is the only translation unit that includes `<h2o.h>`. h2o is linked `PRIVATE`, built as `libh2o-evloop` with mruby, brotli, zstd, io_uring, and the shared library off.
+
+Network I/O runs on one event loop per physical core in the process's affinity mask. On a 16-core, 32-thread machine, 16 loops served about 1.6 times the requests of 32, because two loops sharing a core compete for it. Each loop has its own listening socket. The sockets share the port through `SO_REUSEPORT`. A connection stays on one loop for its whole life.
+
+Plain handlers run on a worker pool (`max(4, cores)` unless you set it, or unless a blocking pool is larger). Workers never touch an `h2o_req_t`. A `Task` runs on the loop. A completion whose request is already gone, because the client disconnected or the deadline already produced a 504, is dropped.
+
+h2o is pinned to a master commit in `cmake/h2o.cmake`, because it has had no release tag since 2.2.6 (2019). The pin this guide was checked against is `8c95f068` (2026-10-24).
+
+## Versions
+
+crocket uses semantic versioning. While it is on 0.x, a minor bump may break the API, and patch releases are fixes and additions only. 1.0 is not released. There is no compatibility shim. For each minor you cross, read that version's changelog and rebuild.
+
+| Channel | Git ref | For |
+|---|---|---|
+| stable | the latest `X.Y.Z` tag, now `0.5.1` | Everyone |
+| latest | `main` | Trying what's next |
+| experimental | `X.Y.Z-rc.N` | Testing risky changes |
+
+`0.5.0` was tagged by mistake and then removed. There is no `0.5.0` to use. The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.1"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
+
+The release notes are the [changelog](https://github.com/sean3z/crocket/blob/9b446f8c2423262ef1cbf3afe370a0ae2f81d181/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).
+
+
+# Migrating from Express
+
+You already know the shape: a function per route, a bit of middleware, `listen` at the bottom. crocket is that shape in C++. The handler is still a function. The arguments are the path, the query, and the JSON body. The return value is the response.
+
+The Express examples here are Express 5.
+
+The crocket column on this page is `checks/snippets/users.cpp`. That file is compiled against commit `9b446f8`, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
+
+Every success response below is the same JSON. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}`.
+
+## Project and build
+
+Express is a package. crocket is a library you compile into the binary. You need GCC 16.2 with `-freflection`. Linking `crocket::crocket` turns that on, so the target doesn't set the C++ standard itself.
+
+`crocket::auth` is only there because this program checks a JWT. Drop it if you don't.
+
+:::pair Express | crocket
+
+```json
+{
+  "name": "users",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
+```
+
+```cmake
+cmake_minimum_required(VERSION 3.28)
+project(users CXX)
+
+include(FetchContent)
+set(crocket_pin
+9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
+FetchContent_Declare(crocket
+  GIT_REPOSITORY
+    https://github.com/sean3z/crocket.git
+  GIT_TAG ${crocket_pin})
+FetchContent_MakeAvailable(crocket)
+
+add_executable(users users.cpp)
+target_link_libraries(users PRIVATE
+  crocket::crocket crocket::auth)
+```
+
+:::
+
+```sh
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=g++-16.2
+cmake --build build
+./build/users
+```
+
+Tag `0.5.1` doesn't have static files yet. This page pins the commit that does. The [quickstart](/guide/v0.5/quickstart/) is the shorter version of the same setup.
+
+## Listen
+
+Express binds a port when you call `listen`. crocket binds the port you put on `Config` when you call `launch`. This program uses 8080 so it matches the Express and Spring examples.
+
+:::pair Express | crocket
+
+```js
+import express from "express";
+
+export const app = express();
+app.use(express.json());
+
+const port = Number(
+  process.env.PORT ?? 8080);
+app.listen(port);
+```
+
+```cpp
+Config cfg;
+cfg.server.port = 8080;
+```
+
+:::
+
+`make_app()` builds that config into the app, and `main` ends with `return app.launch();`. There's no callback after listen. `GET /healthz` is already registered and answers `{"status":"ok"}`.
+
+## Path parameters
+
+`req.params.id` is a string. In crocket the `{id}` capture has to be a parameter named `id`, and the type is checked before your function runs. `GET /users/nope` matches the route, the capture doesn't parse, and `user_by_id` doesn't run. The body is 404 `path.invalid` with detail `not found`.
+
+:::pair Express | crocket
+
+```js
+app.get("/users/:id", (req, res) => {
+  const id = Number(req.params.id);
+  if (id !== 1) {
+    return res.status(404).json({
+      error: "no such user",
+    });
+  }
+  res.json({
+    id: 1,
+    email: "ada@example.com",
+    name: "Ada",
+  });
+});
+```
+
+```cpp
+[[= http::get("/users/{id}")]]
+auto user_by_id(int id) -> Result<User> {
+  if (id != 1) {
+    return std::unexpected(
+        ApiError::not_found(
+            "no such user"));
+  }
+  return User{
+      1, "ada@example.com", "Ada"};
+}
+```
+
+:::
+
+A missing user is 404 in both. Express picks the JSON. crocket writes a problem-details body (`application/problem+json`). `GET /users/9` comes back with `code` `not_found` and detail `no such user`. The status matches. The body doesn't.
+
+Express still runs the handler for `GET /users/nope`. `Number("nope")` is `NaN`, and `!== 1` sends the same 404 JSON.
+
+## Query parameters
+
+:::pair Express | crocket
+
+```js
+app.get("/search", (req, res) => {
+  const page = Number(
+    req.query.page ?? 1);
+  const q = req.query.q ?? null;
+  res.json({ page, q });
+});
+```
+
+```cpp
+struct Search {
+  int page = 1;
+  std::optional<std::string> q;
+};
+
+[[= http::get("/search")]]
+auto search(Query<Search> query)
+    -> Search {
+  return *query;
+}
+```
+
+:::
+
+`/search?page=2&q=ada` returns `{"page":2,"q":"ada"}`. A missing query string returns `{"page":1,"q":null}`. `?page=nope` is 422 `query.invalid`, detail `query parameter 'page' is not valid`, and `search` doesn't return that struct. There's no `req.query` object to poke at.
+
+Query values are strings. `??` only replaces `null` or `undefined`, so a missing `page` becomes `1`, and `page=nope` becomes `NaN`. `res.json` writes that as `null` with status 200. Express does not answer 422 for it.
+
+## JSON body and validation
+
+Express won't check the body. You do, or you add a library. crocket decodes JSON straight into the struct. `json::email` and `json::max_len` run as it decodes. A failure is 422 `json.validation`, with one problem body that lists every field.
+
+:::pair Express | crocket
+
+```js
+app.post("/users", (req, res) => {
+  const email = req.body?.email;
+  const name = req.body?.name ?? null;
+  if (typeof email !== "string"
+      || email.length > 254
+      || !email.includes("@")) {
+    return res.status(422).json({
+      error: "email is not valid",
+    });
+  }
+  res.status(201)
+    .location("/users/1")
+    .json({ id: 1, email, name });
+});
+```
+
+```cpp
+struct NewUser {
+  [[= json::email,
+      = json::max_len(254)]]
+  std::string email;
+  std::optional<std::string> name;
+};
+
+[[= http::post("/users")]]
+auto create(Json<NewUser> body)
+    -> Created<User> {
+  User user{1, body->email, body->name};
+  return {user, "/users/1"};
+}
+```
+
+:::
+
+Unknown JSON fields are ignored. Duplicate keys are an error. An empty `name` is written back as `null`. There's no schema library to keep in sync, because the struct is the schema.
+
+crocket doesn't parse `multipart/form-data` or an HTML form body. `Query<T>` is the query string. A file upload isn't a feature you can reach for yet.
+
+## Status codes
+
+`Created<User>` is 201 plus a `Location` header. `Status<User>` is for the cases that don't have their own wrapper. Returning a struct with no wrapper is 200 and JSON.
+
+:::pair Express | crocket
+
+```js
+app.post("/users/:id/archive",
+  (req, res) => {
+  const id = Number(req.params.id);
+  res.json({
+    id,
+    email: "ada@example.com",
+    name: "Ada",
+  });
+});
+```
+
+```cpp
+[[= http::post("/users/{id}/archive")]]
+auto archive(int id) -> Status<User> {
+  return Status<User>{200, User{
+      id, "ada@example.com", "Ada"}};
+}
+```
+
+:::
+
+`res.status(204).end()` is `NoContent` in crocket. You don't get a free-form status by returning a number from the handler. If none of the wrappers fit, build a `Response` yourself. The [responses](/guide/v0.5/responses/) chapter is the list.
+
+## Middleware
+
+`app.use` is a chain, and each layer calls `next()`. A crocket fairing is a type with a hook. There's no `next`. `on_request` runs before routing, so it doesn't know which handler matched, and it doesn't read the body. `on_response` runs after the response exists, including errors the framework produced.
+
+:::pair Express | crocket
+
+```js
+app.use((req, res, next) => {
+  res.set("x-app", "users");
+  next();
+});
+```
+
+```cpp
+struct AppHeader {
+  void on_response(
+      const Request&, Response& rs) {
+    rs.headers.set("x-app", "users");
+  }
+};
+```
+
+:::
+
+Attach it with `.attach(AppHeader{})`. It runs for every request, not for one router. Route-specific logic belongs in the handler. The [fairings](/guide/v0.5/fairings/) chapter covers `on_ignite` and `on_shutdown` too.
+
+CORS is the same idea. `.attach(Cors::allow_origins({"https://app.example.com"}))` answers the preflight or rejects the origin. There's no `cors` package to configure.
+
+## Errors
+
+Express error middleware is `(err, req, res, next)`, and it has to take all four arguments. A rejected promise from an async handler is passed to that middleware. crocket doesn't have that chain. Return `std::unexpected(ApiError::...)` from a `Result<T>`, or let the extractor fail. A throw the handler didn't catch is 500 `internal`, and `what()` stays out of the body unless you're on the dev profile.
+
+The 404 in `user_by_id` is the pattern. `ApiError::not_found`, `bad_request`, and `unprocessable` are the helpers. Codes are stable strings like `not_found` and `json.validation`, not whatever message you happened to send.
+
+## Auth
+
+Passport sessions, cookie logins, and `express-session` don't have a crocket twin. What you get is a bearer JWT. Link `crocket::auth`, manage one verifier, and mark the route. A missing or bad token is 401. A good token without the role is 403 `auth.forbidden`. Roles come from the token's `roles` claim.
+
+:::pair Express | crocket
+
+```js
+app.get("/admin", async (req, res) => {
+  const header =
+    req.get("authorization") ?? "";
+  const token =
+    header.startsWith("Bearer ")
+      ? header.slice(7) : "";
+  try {
+    const { payload } = await jwtVerify(
+      token, jwks, {
+        issuer:
+          "https://login.example.com/",
+        audience: "users",
+      });
+    if (!payload.roles?.includes(
+        "admin")) {
+      return res.sendStatus(403);
+    }
+    res.type("text")
+      .send(`hello ${payload.sub}\n`);
+  } catch {
+    res.sendStatus(401);
+  }
+});
+```
+
+```cpp
+[[= http::get("/admin"),
+    = auth::require("admin")]]
+auto admin(Auth<> who) -> std::string {
+  return std::format(
+      "hello {}\n", who.subject);
+}
+```
+
+:::
+
+`jwtVerify` is the `jose` package, not an Express function. The handler catches a bad token and calls `res.sendStatus(401)`. `req.get`, `res.type`, and `res.sendStatus` are Express.
+
+The verifier is managed next to the other app state. It isn't an env-var dance in this example:
+
+```cpp
+      .manage(auth::Jwt{
+          .issuer =
+              "https://login.example.com/",
+          .audience = "users",
+          .jwks =
+              "https://login.example.com/"
+              ".well-known/jwks.json",
+      })
+```
+
+A revoked token stays valid until `exp`. There's no introspection endpoint. `#include <crocket/auth.hpp>` isn't pulled in by `crocket.hpp`.
+
+## Config
+
+Express reads `process.env` wherever you like. crocket keeps one `Config`. Set the fields in code. This program only changes the port:
+
+```cpp
+Config cfg;
+cfg.server.port = 8080;
+```
+
+The [configuration](/guide/v0.5/configuration/) chapter is the rest: limits, timeouts, trusted proxies, TLS. I'm not pasting environment variable names here. If you need them, they're on that page, and anything you set in code after reading the environment wins.
+
+## Static files
+
+`express.static` serves a directory. crocket does too, or it serves bytes you embedded with `#embed`. Routes are matched first, so a file named `healthz` can't hide `GET /healthz`.
+
+:::pair Express | crocket
+
+```js
+app.use("/assets",
+  express.static("public"));
+```
+
+```cpp
+      .mount("/assets",
+          files{.root = "public"});
+```
+
+:::
+
+Static files are in commit `9b446f8` and they're not in the `0.5.1` tag. Pin the commit if the app serves a directory or an embedded page. The [responses](/guide/v0.5/responses/) chapter has the cache and header rules.
+
+## Logs and metrics
+
+You'd add `pino-http` or `morgan`, and `prom-client` if you want Prometheus. Both are built in. Attach them.
+
+```cpp
+      .attach(Logger{})
+      .attach(Metrics{})
+```
+
+`Logger` writes one structured line per request. The route template is in the line, not the raw path, so `/users/1` doesn't blow up the cardinality. `Authorization` and `Cookie` are dropped. `Metrics` serves Prometheus text at `GET /metrics`. It isn't StatsD and it isn't OpenTelemetry. One scraper per process. Two scrapers would each see half of a counter.
+
+## OpenAPI
+
+Express won't write the spec from the route table. You maintain a document, or a library reads comments. crocket writes OpenAPI 3.1 from the handlers at startup.
+
+```cpp
+      .attach(OpenApi{{
+          .title = "Users",
+          .version = "1.0.0"}})
+```
+
+`GET /openapi.json` is that document. `.docs = "/docs"` also serves a Swagger UI page, and that page loads its script from `cdn.jsdelivr.net`. If your content security policy only allows your own origin, leave `.docs` unset and serve the JSON yourself. This site does it that way.
+
+## Tests
+
+Supertest drives the Express app without a port. `LocalClient` drives crocket's real pipeline, fairings included, without a socket.
+
+:::pair Express | crocket
+
+```js
+import request from "supertest";
+import { app } from "./server.js";
+
+const created = await request(app)
+  .post("/users")
+  .send({
+    email: "ada@example.com",
+    name: "Ada",
+  });
+assert.equal(created.status, 201);
+
+const missing = await request(app)
+  .get("/users/9");
+assert.equal(missing.status, 404);
+```
+
+```cpp
+LocalClient client(app);
+auto created = client.post("/users")
+    .json("{\"email\":"
+          "\"ada@example.com\","
+          "\"name\":\"Ada\"}")
+    .dispatch();
+assert(created.status == 201);
+auto missing = client.get("/users/9")
+    .dispatch();
+assert(missing.status == 404);
+```
+
+:::
+
+Constructing `LocalClient` ignites the app and throws if ignite fails. Handlers are still plain functions, so you can call `user_by_id(1)` with no client at all. The [testing](/guide/v0.5/testing/) chapter has the rest.
+
+## Docker
+
+The image has to provide GCC 16.2's `libstdc++`, because that's what the binary was built with. The toolchain image does. The port is 8080 because `users.cpp` sets it.
+
+:::pair Express | crocket
+
+```dockerfile
+FROM node:22-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY server.js .
+EXPOSE 8080
+CMD ["node", "server.js"]
+```
+
+```dockerfile
+FROM ghcr.io/sean3z/crocket-toolchain:gcc-16.2
+COPY . /src
+WORKDIR /src
+ENV CC=/opt/gcc-16.2/bin/gcc-16.2 \
+    CXX=/opt/gcc-16.2/bin/g++-16.2
+RUN cmake -S . -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_C_COMPILER=$CC \
+      -DCMAKE_CXX_COMPILER=$CXX \
+ && cmake --build build \
+ && install -m755 build/users \
+      /usr/local/bin/users
+EXPOSE 8080
+CMD ["users"]
+```
+
+:::
+
+The [deploying](/guide/v0.5/deploying/) chapter covers TLS, the drain on SIGTERM, and `/healthz` versus `/readyz`. Use `/healthz` for liveness and `/readyz` for readiness.
+
+## What's different
+
+You compile. There's no reload-on-save. A wrong capture name is a compiler error, not a 404 you find in staging.
+
+Annotations are the route table. You don't call `app.get` and hope you remembered every path. `reflect_routes<^^api>()` reads the functions while compiling.
+
+Fairings aren't middleware. They don't call `next`, they don't see the parsed body, and `on_request` runs before the route is chosen.
+
+There's no session store, no template engine, and no multipart parser. WebSockets, server-sent events, and streamed bodies aren't built. What's planned is [issue 37](https://github.com/sean3z/crocket/issues/37).
+
+The memory and the throughput are measured, not guessed. On the Heroes CRUD rig, crocket did 35.2k req/s at 21 MB peak, against a single Node process at 6.6k req/s and 216 MB. The numbers, the hardware, and the caveats are in [By the numbers](/#numbers) and in [Where the cycles go](https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21). [todo.crocket.dev](https://todo.crocket.dev) is a real app on this stack, not a sample pasted into a README.
+
+
+# Migrating from Spring Boot
+
+A `@RestController` method and a crocket handler are doing the same job. The method is the route. The arguments are the path, the query, and the body. What you return is the response. crocket just refuses to discover any of that by scanning the classpath at startup. It reads the functions while it compiles.
+
+The Spring examples here are Spring Boot 3.
+
+The crocket column is `checks/snippets/users.cpp`, compiled against commit `9b446f8`. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
+
+## Project and build
+
+Spring Boot is a starter and a plugin. crocket is a library fetched at configure time. You need GCC 16.2. `crocket::auth` is here only for the JWT route.
+
+:::pair Spring Boot | crocket
+
+```java
+plugins {
+  id("org.springframework.boot")
+      version "3.5.0"
+  id("io.spring.dependency-management")
+      version "1.1.7"
+}
+dependencies {
+  implementation(
+      "org.springframework.boot:"
+      + "spring-boot-starter-web")
+  implementation(
+      "org.springframework.boot:"
+      + "spring-boot-starter-validation")
+  implementation(
+      "org.springframework.boot:"
+      + "spring-boot-starter-oauth2-"
+      + "resource-server")
+}
+```
+
+```cmake
+cmake_minimum_required(VERSION 3.28)
+project(users CXX)
+
+include(FetchContent)
+set(crocket_pin
+9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
+FetchContent_Declare(crocket
+  GIT_REPOSITORY
+    https://github.com/sean3z/crocket.git
+  GIT_TAG ${crocket_pin})
+FetchContent_MakeAvailable(crocket)
+
+add_executable(users users.cpp)
+target_link_libraries(users PRIVATE
+  crocket::crocket crocket::auth)
+```
+
+:::
+
+```sh
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=g++-16.2
+cmake --build build
+./build/users
+```
+
+There's no annotation processor and no `target/classes`. The binary is the server. Tag `0.5.1` doesn't include static files. Pin `9b446f8` when you need them. The [quickstart](/guide/v0.5/quickstart/) is the short form.
+
+## Listen
+
+`server.port` is a property. crocket's port is a field. This program uses 8080, same as a Spring app that sets `server.port=8080`.
+
+:::pair Spring Boot | crocket
+
+```java
+@SpringBootApplication
+public class UsersApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(
+        UsersApplication.class, args);
+  }
+}
+```
+
+```cpp
+Config cfg;
+cfg.server.port = 8080;
+```
+
+:::
+
+`main` builds the app from that config and returns `app.launch()`. Tomcat isn't a separate choice. h2o is the wire engine, and your handlers never include its headers. `GET /healthz` is already there.
+
+## Path parameters
+
+`@PathVariable` and `{id}` are the same idea. The difference is when the check happens. crocket won't call the function if `id` isn't an `int`.
+
+:::pair Spring Boot | crocket
+
+```java
+@GetMapping("/users/{id}")
+ResponseEntity<User> userById(
+    @PathVariable int id) {
+  if (id != 1) {
+    return ResponseEntity
+        .notFound().build();
+  }
+  return ResponseEntity.ok(new User(
+      1, "ada@example.com", "Ada"));
+}
+```
+
+```cpp
+[[= http::get("/users/{id}")]]
+auto user_by_id(int id) -> Result<User> {
+  if (id != 1) {
+    return std::unexpected(
+        ApiError::not_found(
+            "no such user"));
+  }
+  return User{
+      1, "ada@example.com", "Ada"};
+}
+```
+
+:::
+
+Spring's 404 from `notFound().build()` has an empty body. crocket's `GET /users/9` is problem details, `application/problem+json`, with `code` `not_found` and detail `no such user`. Same status, different body. `GET /users/nope` matches the route, the capture doesn't parse, and the function doesn't run. That body is 404 `path.invalid` with detail `not found`. Spring raises `TypeMismatchException` before `userById` runs, so that case is not the method's empty body.
+
+## Query parameters
+
+:::pair Spring Boot | crocket
+
+```java
+public record Search(
+    int page, String q) {}
+
+@GetMapping("/search")
+Search search(
+    @RequestParam(defaultValue = "1")
+    int page,
+    @RequestParam(required = false)
+    String q) {
+  return new Search(page, q);
+}
+```
+
+```cpp
+struct Search {
+  int page = 1;
+  std::optional<std::string> q;
+};
+
+[[= http::get("/search")]]
+auto search(Query<Search> query)
+    -> Search {
+  return *query;
+}
+```
+
+:::
+
+One struct is the whole query string. You don't repeat the names as `@RequestParam`s. `/search?page=2&q=ada` returns `{"page":2,"q":"ada"}`. A missing query string returns `{"page":1,"q":null}`. `?page=nope` is 422 `query.invalid`, detail `query parameter 'page' is not valid`, and `search` doesn't return the struct.
+
+`defaultValue` and `required = false` are the documented `@RequestParam` attributes. A value that isn't an int raises `TypeMismatchException` before `search` runs. That is not crocket's 422.
+
+## JSON body and validation
+
+`@Valid` on a record is Jakarta Bean Validation. crocket's annotations sit on the members and run while the JSON is decoded. You don't register a `MappingJackson2HttpMessageConverter`. The struct is the schema.
+
+:::pair Spring Boot | crocket
+
+```java
+public record NewUser(
+    @Email @NotBlank @Size(max = 254)
+    String email,
+    @Size(max = 80) String name) {}
+
+@PostMapping("/users")
+ResponseEntity<User> create(
+    @Valid @RequestBody NewUser body) {
+  var user = new User(
+      1, body.email(), body.name());
+  return ResponseEntity
+      .created(URI.create("/users/1"))
+      .body(user);
+}
+```
+
+```cpp
+struct NewUser {
+  [[= json::email,
+      = json::max_len(254)]]
+  std::string email;
+  std::optional<std::string> name;
+};
+
+[[= http::post("/users")]]
+auto create(Json<NewUser> body)
+    -> Created<User> {
+  User user{1, body->email, body->name};
+  return {user, "/users/1"};
+}
+```
+
+:::
+
+`@Valid` on `@RequestBody` runs Jakarta Bean Validation. Spring's reference says a failure raises `MethodArgumentNotValidException`, which is a 400. crocket's is 422 `json.validation`, and every failing field is in that one body. If you need Spring to answer 422 too, map that exception yourself. I'm not going to pretend the defaults match. `@Email`, `@NotBlank`, and `@Size` are `jakarta.validation.constraints`. `@Size` on a nullable `name` doesn't reject null.
+
+`name` is optional in the crocket struct. Leave it out and the response writes `null`. There's no `@Size` on that optional in this example. Length checks apply to the string itself.
+
+crocket doesn't read `multipart/form-data` or an HTML form. A file upload isn't hiding under another annotation.
+
+## Status codes
+
+`ResponseEntity.created` is `Created<T>`. `ResponseEntity.ok` is a plain return, or `Status<T>` when you want the code written down. `ResponseEntity.noContent()` is `NoContent`.
+
+:::pair Spring Boot | crocket
+
+```java
+@PostMapping("/users/{id}/archive")
+User archive(@PathVariable int id) {
+  return new User(
+      id, "ada@example.com", "Ada");
+}
+```
+
+```cpp
+[[= http::post("/users/{id}/archive")]]
+auto archive(int id) -> Status<User> {
+  return Status<User>{200, User{
+      id, "ada@example.com", "Ada"}};
+}
+```
+
+:::
+
+Returning a record from a `@RestController` method is 200 and JSON. Returning a crocket struct is the same. `@ResponseStatus` doesn't have a twin. Use `Status<T>`, `Created<T>`, or a `Response` you fill in. The wrappers are listed in [responses](/guide/v0.5/responses/).
+
+## Filters and interceptors
+
+A `OncePerRequestFilter` calls `chain.doFilter`. A `HandlerInterceptor` has `preHandle` and `postHandle` around a controller it already chose. A crocket fairing has neither. `on_request` runs before routing, so the handler isn't chosen yet and the body isn't parsed. `on_response` runs after, for errors too.
+
+:::pair Spring Boot | crocket
+
+```java
+@Component
+class AppHeader
+    extends OncePerRequestFilter {
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest req,
+      HttpServletResponse res,
+      FilterChain chain)
+      throws ServletException,
+          IOException {
+    res.setHeader("x-app", "users");
+    chain.doFilter(req, res);
+  }
+}
+```
+
+```cpp
+struct AppHeader {
+  void on_response(
+      const Request&, Response& rs) {
+    rs.headers.set("x-app", "users");
+  }
+};
+```
+
+:::
+
+`.attach(AppHeader{})` is the registration. There's no component scan. A filter that should only wrap `/users/**` doesn't have a matcher here. Put that logic in the handler, or look at `rq.path` yourself and accept that you're early.
+
+CORS is `.attach(Cors::allow_origins({"https://app.example.com"}))`. That's the whole allow-list. It answers the preflight.
+
+## Errors
+
+`@ControllerAdvice` and `@ExceptionHandler` are how Spring turns an exception into a body. crocket handlers return the error instead of throwing it. `std::unexpected(ApiError::not_found("no such user"))` is the 404 above.
+
+An exception you didn't catch is 500 `internal`. The client doesn't get `what()`, except on the dev profile, where the detail is included. There's no `@ResponseStatus(HttpStatus.CONFLICT)` on an exception type. Build the `ApiError` with the status you want: `not_found`, `bad_request`, `unprocessable`.
+
+## Auth
+
+`spring-boot-starter-oauth2-resource-server` plus `hasRole("admin")` is the Spring shape. crocket's is a managed verifier and an annotation. No security filter chain, no `SecurityFilterChain` bean.
+
+:::pair Spring Boot | crocket
+
+```java
+@GetMapping("/admin")
+public String admin(
+    @AuthenticationPrincipal Jwt jwt) {
+  return "hello "
+      + jwt.getSubject() + "\n";
+}
+```
+
+```cpp
+[[= http::get("/admin"),
+    = auth::require("admin")]]
+auto admin(Auth<> who) -> std::string {
+  return std::format(
+      "hello {}\n", who.subject);
+}
+```
+
+:::
+
+Spring still needs the resource-server config that demands the role. crocket puts that on the function. The verifier is this value:
+
+```cpp
+      .manage(auth::Jwt{
+          .issuer =
+              "https://login.example.com/",
+          .audience = "users",
+          .jwks =
+              "https://login.example.com/"
+              ".well-known/jwks.json",
+      })
+```
+
+A missing token is 401. A token without `admin` in its `roles` claim is 403 `auth.forbidden`. There's no session and no remember-me. A token you revoke at the issuer keeps working until `exp`, because nothing calls an introspection endpoint. Include `<crocket/auth.hpp>` yourself. `crocket.hpp` doesn't.
+
+## Config
+
+`application.properties` and `@Value` scatter configuration through the app. crocket keeps one `Config` and you set the fields.
+
+```cpp
+Config cfg;
+cfg.server.port = 8080;
+```
+
+That's the whole port setup for this program. Limits, timeouts, proxies, and TLS are the same object. They're documented in [configuration](/guide/v0.5/configuration/), including the environment variables that can override a field. This page doesn't repeat those names. Values you assign after the environment is read are the ones that stick.
+
+`@ConfigurationProperties` doesn't have an equivalent generator. It's a struct you write.
+
+## Static files
+
+Spring serves `classpath:/static/` because the starter says so. crocket serves a directory, or bytes embedded with `#embed`, only where you mount them.
+
+:::pair Spring Boot | crocket
+
+```java
+@Configuration
+class Assets implements WebMvcConfigurer {
+  @Override
+  public void addResourceHandlers(
+      ResourceHandlerRegistry registry) {
+    registry
+        .addResourceHandler("/assets/**")
+        .addResourceLocations(
+            "file:public/");
+  }
+}
+```
+
+```cpp
+      .mount("/assets",
+          files{.root = "public"});
+```
+
+:::
+
+Routes win over files, so `/healthz` still hits the built-in handler. Static files need commit `9b446f8`. They aren't in tag `0.5.1`. Cache rules and a content security policy for HTML are in [responses](/guide/v0.5/responses/).
+
+## Logs and metrics
+
+Actuator plus Micrometer is a starter and a registry. crocket's log and metrics are two fairings.
+
+```cpp
+      .attach(Logger{})
+      .attach(Metrics{})
+```
+
+`Logger` writes one line per request, with the route template rather than the raw path. `Cookie` and `Authorization` don't get logged. `Metrics` is Prometheus text at `GET /metrics`. It isn't Micrometer, and it doesn't speak the other backends. Scrape each process once.
+
+## OpenAPI
+
+springdoc scans the controllers and serves `/v3/api-docs` plus a Swagger UI. crocket builds the document from the same reflection that built the routes. There's no extra dependency.
+
+```cpp
+      .attach(OpenApi{{
+          .title = "Users",
+          .version = "1.0.0"}})
+```
+
+The JSON is `GET /openapi.json`. Set `.docs = "/docs"` if you also want the Swagger UI page. That page loads its script from `cdn.jsdelivr.net`. A content security policy of `default-src 'self'` won't allow it, so leave `.docs` unset and ship the JSON. That's what this site does.
+
+## Tests
+
+`@WebMvcTest` and `MockMvc` boot a slice of Spring. `LocalClient` boots the crocket pipeline in-process. No socket, same fairings the server uses.
+
+:::pair Spring Boot | crocket
+
+```java
+@WebMvcTest(UsersController.class)
+class UsersTest {
+  @Autowired MockMvc mvc;
+
+  @Test
+  void createsAndMisses()
+      throws Exception {
+    mvc.perform(post("/users")
+            .contentType(APPLICATION_JSON)
+            .content("{\"email\":"
+                + "\"ada@example.com\","
+                + "\"name\":\"Ada\"}"))
+        .andExpect(status().isCreated());
+    mvc.perform(get("/users/9"))
+        .andExpect(status().isNotFound());
+  }
+}
+```
+
+```cpp
+LocalClient client(app);
+auto created = client.post("/users")
+    .json("{\"email\":"
+          "\"ada@example.com\","
+          "\"name\":\"Ada\"}")
+    .dispatch();
+assert(created.status == 201);
+auto missing = client.get("/users/9")
+    .dispatch();
+assert(missing.status == 404);
+```
+
+:::
+
+You can also call `user_by_id(1)` directly. It's a function. `LocalClient` is what you want when the test cares about status codes, headers, and fairings. More of the client is in [testing](/guide/v0.5/testing/).
+
+## Docker
+
+A JRE image runs a jar. The crocket image has to be the GCC 16.2 toolchain, or another image that can load that `libstdc++`. The process listens on 8080 because the code says so.
+
+:::pair Spring Boot | crocket
+
+```dockerfile
+FROM eclipse-temurin:21-jre
+COPY build/libs/users.jar /app/users.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar",
+  "/app/users.jar"]
+```
+
+```dockerfile
+FROM ghcr.io/sean3z/crocket-toolchain:gcc-16.2
+COPY . /src
+WORKDIR /src
+ENV CC=/opt/gcc-16.2/bin/gcc-16.2 \
+    CXX=/opt/gcc-16.2/bin/g++-16.2
+RUN cmake -S . -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_C_COMPILER=$CC \
+      -DCMAKE_CXX_COMPILER=$CXX \
+ && cmake --build build \
+ && install -m755 build/users \
+      /usr/local/bin/users
+EXPOSE 8080
+CMD ["users"]
+```
+
+:::
+
+`/healthz` is liveness. `/readyz` is readiness, and it goes 503 as soon as the process starts draining. The [deploying](/guide/v0.5/deploying/) chapter has TLS and the signal handling.
+
+## What's different
+
+There's a compile step. Spring rebuilds a jar and restarts the JVM. crocket rebuilds a binary. A capture whose name doesn't match the parameter fails the build, and the error names both.
+
+You don't scan for controllers. `reflect_routes<^^api>()` is the scan, and it happens in the compiler. The annotations on the function are the request mapping.
+
+Filters aren't fairings. Nothing calls `doFilter`, `on_request` is before the route is chosen, and a fairing doesn't get the decoded body.
+
+There's no Spring Data, no session, and no Thymeleaf. An optional Postgres library exists (`crocket::pg`). It isn't JPA, and this page doesn't invent a repository API for it. Multipart uploads aren't implemented. WebSockets, server-sent events, and streamed bodies aren't either. The list of what's planned is [issue 37](https://github.com/sean3z/crocket/issues/37).
+
+On the Heroes CRUD rig, crocket's peak was 21 MB and 35.2k req/s. Spring Boot's peak on that same run was 471 MB and 8.4k req/s, with the JVM left untuned. Read the hardware and the caveats in [By the numbers](/#numbers) and in [Where the cycles go](https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21) before you quote either number. [todo.crocket.dev](https://todo.crocket.dev) is a running app, if you want to see the framework do more than answer `/users/1`.

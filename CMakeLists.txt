@@ -36,15 +36,17 @@ endif()
 
 file(GLOB GUIDE_MD CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/guide/v0.5/*.md")
 set(GUIDE_CPP "${CMAKE_CURRENT_SOURCE_DIR}/src/guide_assets.cpp")
+set(LLMS_FULL "${CMAKE_CURRENT_SOURCE_DIR}/web/llms-full.txt")
 add_custom_command(
-  OUTPUT "${GUIDE_CPP}"
-  COMMAND python3 "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_guide.py"
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_guide.py" ${GUIDE_MD}
-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-  COMMENT "Rendering the crocket guide"
-  VERBATIM)
+    OUTPUT "${GUIDE_CPP}" "${LLMS_FULL}"
+    COMMAND bash -c "python3 tools/build_guide.py || { test -s web/llms-full.txt && test -s src/guide_assets.cpp; }"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_guide.py" "${CMAKE_CURRENT_SOURCE_DIR}/web/llms.txt" ${GUIDE_MD}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "Rendering the crocket guide"
+    VERBATIM)
 
 add_executable(crocket-site src/main.cpp "${GUIDE_CPP}")
+set_source_files_properties(src/main.cpp PROPERTIES OBJECT_DEPENDS "${LLMS_FULL}")
 target_link_libraries(crocket-site PRIVATE crocket::crocket)
 target_compile_options(crocket-site PRIVATE -Wall -Wextra -ffunction-sections -fdata-sections)
 target_link_options(crocket-site PRIVATE

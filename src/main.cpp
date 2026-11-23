@@ -53,6 +53,12 @@ static constexpr unsigned char ai_html[] = {
 static constexpr unsigned char ai_js[] = {
 #embed "../web/ai/exchange.js"
 };
+static constexpr unsigned char llms_txt[] = {
+#embed "../web/llms.txt"
+};
+static constexpr unsigned char llms_full_txt[] = {
+#embed "../web/llms-full.txt"
+};
 
 // A browser navigation asks for HTML. Other 404s (a missing favicon, curl with
 // no Accept) keep crocket's problem+json body.
@@ -159,6 +165,8 @@ files site_files() {
       asset("favicon.svg", favicon_svg),
       asset("ai/index.html", ai_html),
       asset("ai/exchange.js", ai_js),
+      asset("llms.txt", llms_txt),
+      asset("llms-full.txt", llms_full_txt),
   };
   web.cache = {
       {"*.html", "no-cache"},

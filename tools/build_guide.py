@@ -549,6 +549,7 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical):
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="canonical" href="{esc(canonical)}">
   <link rel="stylesheet" href="/style.css">
+  <link rel="alternate" type="text/plain" href="/llms.txt">
   <script src="/theme.js"></script>
 </head>
 <body>
@@ -595,7 +596,7 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical):
   </div>
   <footer class="site-footer">
     <div class="wrap">
-      <p>Served by crocket. This guide was checked against commit <a href="https://github.com/sean3z/crocket/commit/{COMMIT}">{COMMIT_SHORT}</a>.</p>
+      <p>Served by crocket. This guide was checked against commit <a href="https://github.com/sean3z/crocket/commit/{COMMIT}">{COMMIT_SHORT}</a>. <a href="/llms.txt">llms.txt</a> for assistants.</p>
       <p><a href="https://github.com/sean3z/crocket/blob/{COMMIT}/LICENSE">MIT</a></p>
     </div>
   </footer>
@@ -702,6 +703,61 @@ def url_to_file(url):
     return candidate
 
 
+def write_llms_full():
+    """One markdown file of every chapter, in guide order, from the same sources."""
+    parts = [
+        "# crocket guide v0.5\n\n",
+        "Generated from `guide/v0.5`, in the same order as the guide. ",
+        f"The samples match commit `{COMMIT_SHORT}`.\n",
+    ]
+    for _slug, _nav, filename in CHAPTERS:
+        body = (GUIDE / filename).read_text(encoding="utf-8").rstrip()
+        parts.append("\n\n")
+        parts.append(body)
+        parts.append("\n")
+    out = ROOT / "web" / "llms-full.txt"
+    out.write_text("".join(parts), encoding="utf-8")
+    return out
+
+
+def site_file(path):
+    """A built page for a site path, or None."""
+    path = path.split("#", 1)[0]
+    if path in ("/teapot", "/teapot/"):
+        return ROOT / "web" / "teapot.html"
+    if path in ("/llms.txt", "/llms-full.txt"):
+        return ROOT / "web" / path.lstrip("/")
+    attempts = [path]
+    if path != "/" and not path.endswith("/"):
+        attempts.append(path + "/")
+    for attempt in attempts:
+        found = url_to_file(attempt)
+        if found is not None and found.is_file():
+            return found
+        index = ROOT / "web" / attempt.strip("/") / "index.html"
+        if index.is_file():
+            return index
+    return None
+
+
+def check_llms_links():
+    """Every on-site link in the llms files must be a built page."""
+    broken = []
+    for name in ("llms.txt", "llms-full.txt"):
+        text = (ROOT / "web" / name).read_text(encoding="utf-8")
+        hrefs = re.findall(r"\]\(([^)\s]+)\)", text)
+        hrefs += re.findall(r"https://crocket\.dev(/[^\s)\"]*)", text)
+        for href in hrefs:
+            if href.startswith(("http://", "https://")) and not href.startswith("https://crocket.dev"):
+                continue
+            path = href.removeprefix("https://crocket.dev") if href.startswith("https://") else href
+            if not path.startswith("/"):
+                continue
+            if site_file(path) is None:
+                broken.append(f"{name}: missing {href}")
+    return broken
+
+
 def main():
     missing = [name for _s, _n, name in CHAPTERS if not (GUIDE / name).exists()]
     if missing:
@@ -732,7 +788,9 @@ def main():
             pages[home] = page
             assets.append(("guide/index.html", "../web/guide/index.html"))
     write_cpp(assets)
+    write_llms_full()
     broken = check_links(pages)
+    broken.extend(check_llms_links())
     if broken:
         print("\n".join(broken), file=sys.stderr)
         sys.exit(f"{len(broken)} broken internal link(s)")

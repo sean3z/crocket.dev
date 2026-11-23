@@ -17,9 +17,8 @@
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var thoughts = [
-    "Express is the familiar shape. This site has no Heroes-rig number for it, and the production pieces are packages you wire yourself.",
-    "Spring Boot on that rig was 8.4k req/s and 471 MB, with the JVM left untuned. You'd review a container, not one chain.",
-    "crocket on that same rig was 35.2k req/s and 21 MB. You review the function, the struct, and the attach lines."
+    "35.2k req/s and 21 MB on the Heroes rig.",
+    "The handler is the review."
   ];
 
   function showFinal() {
@@ -80,8 +79,8 @@
     mark.setAttribute("aria-hidden", "true");
     promptEl.appendChild(mark);
 
-    if (!(await stream(promptEl, promptText, 4200, id))) return;
-    if (!(await wait(280, id))) return;
+    if (!(await stream(promptEl, promptText, 1600, id))) return;
+    if (!(await wait(200, id))) return;
 
     var think = document.createElement("ol");
     think.className = "exchange-think";
@@ -93,16 +92,16 @@
       requestAnimationFrame(function (item) {
         return function () { item.classList.add("is-in"); };
       }(li));
-      if (!(await wait(1200, id))) return;
+      if (!(await wait(700, id))) return;
     }
     think.classList.add("is-collapsed");
     if (!(await wait(420, id))) return;
     if (id !== runId) return;
     think.remove();
 
-    if (!(await stream(answerEl, answerText, 3600, id))) return;
-    if (!(await wait(180, id))) return;
-    if (!(await stream(codeEl, codeText, 7200, id))) return;
+    if (!(await stream(answerEl, answerText, 1800, id))) return;
+    if (!(await wait(160, id))) return;
+    if (!(await stream(codeEl, codeText, 2200, id))) return;
     if (id !== runId) return;
     var leftover = codeEl.querySelector(".caret");
     if (leftover) leftover.remove();
