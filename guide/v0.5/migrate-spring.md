@@ -2,6 +2,8 @@
 
 A `@RestController` method and a crocket handler are doing the same job. The method is the route. The arguments are the path, the query, and the body. What you return is the response. crocket just refuses to discover any of that by scanning the classpath at startup. It reads the functions while it compiles.
 
+The Spring examples here are Spring Boot 3.
+
 The crocket column is `checks/snippets/users.cpp`, compiled against commit `9b446f8`. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
 
 ## Project and build

@@ -2,6 +2,8 @@
 
 You already know the shape: a function per route, a bit of middleware, `listen` at the bottom. crocket is that shape in C++. The handler is still a function. The arguments are the path, the query, and the JSON body. The return value is the response.
 
+The Express examples here are Express 5.
+
 The crocket column on this page is `checks/snippets/users.cpp`. That file is compiled against commit `9b446f8`, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
 
 Every success response below is the same JSON. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}`.
@@ -119,7 +121,7 @@ auto user_by_id(int id) -> Result<User> {
 
 A missing user is 404 in both. Express picks the JSON. crocket writes a problem-details body (`application/problem+json`). `GET /users/9` comes back with `code` `not_found` and detail `no such user`. The status matches. The body doesn't.
 
-Express still runs the handler for `GET /users/nope`. `Number("nope")` is `NaN`, and `!== 1` sends the same 404 JSON. `res.status(404).json(...)` is the Express 5 shape. The old `res.json(body, status)` form was removed.
+Express still runs the handler for `GET /users/nope`. `Number("nope")` is `NaN`, and `!== 1` sends the same 404 JSON.
 
 ## Query parameters
 
@@ -151,7 +153,7 @@ auto search(Query<Search> query)
 
 `/search?page=2&q=ada` returns `{"page":2,"q":"ada"}`. A missing query string returns `{"page":1,"q":null}`. `?page=nope` is 422 `query.invalid`, detail `query parameter 'page' is not valid`, and `search` doesn't return that struct. There's no `req.query` object to poke at.
 
-Express 5's default query parser is `simple`, and `req.query` is a getter you don't assign to. Values are strings. `??` only replaces `null` or `undefined`, so a missing `page` becomes `1`, and `page=nope` becomes `NaN`. `res.json` writes that as `null` with status 200. Express does not answer 422 for it.
+Query values are strings. `??` only replaces `null` or `undefined`, so a missing `page` becomes `1`, and `page=nope` becomes `NaN`. `res.json` writes that as `null` with status 200. Express does not answer 422 for it.
 
 ## JSON body and validation
 
@@ -258,7 +260,7 @@ CORS is the same idea. `.attach(Cors::allow_origins({"https://app.example.com"})
 
 ## Errors
 
-Express error middleware is `(err, req, res, next)`, and it has to take all four arguments. In Express 5 a rejected promise from an async handler is passed to that middleware for you. crocket doesn't have that chain. Return `std::unexpected(ApiError::...)` from a `Result<T>`, or let the extractor fail. A throw the handler didn't catch is 500 `internal`, and `what()` stays out of the body unless you're on the dev profile.
+Express error middleware is `(err, req, res, next)`, and it has to take all four arguments. A rejected promise from an async handler is passed to that middleware. crocket doesn't have that chain. Return `std::unexpected(ApiError::...)` from a `Result<T>`, or let the extractor fail. A throw the handler didn't catch is 500 `internal`, and `what()` stays out of the body unless you're on the dev profile.
 
 The 404 in `user_by_id` is the pattern. `ApiError::not_found`, `bad_request`, and `unprocessable` are the helpers. Codes are stable strings like `not_found` and `json.validation`, not whatever message you happened to send.
 
@@ -305,7 +307,7 @@ auto admin(Auth<> who) -> std::string {
 
 :::
 
-`jwtVerify` is the `jose` package, not an Express function. The handler catches a bad token and calls `res.sendStatus(401)`. If it didn't, Express 5 would forward the rejected promise to error middleware. `req.get`, `res.type`, and `res.sendStatus` are Express.
+`jwtVerify` is the `jose` package, not an Express function. The handler catches a bad token and calls `res.sendStatus(401)`. `req.get`, `res.type`, and `res.sendStatus` are Express.
 
 The verifier is managed next to the other app state. It isn't an env-var dance in this example:
 
