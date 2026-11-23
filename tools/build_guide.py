@@ -34,6 +34,8 @@ CHAPTERS = [
     ("openapi", "OpenAPI", "openapi.md"),
     ("grpc", "gRPC", "grpc.md"),
     ("deploying", "Deploying", "deploying.md"),
+    ("migrate-express", "From Express", "migrate-express.md"),
+    ("migrate-spring", "From Spring Boot", "migrate-spring.md"),
 ]
 
 CPP_KEYWORDS = {
@@ -54,6 +56,19 @@ CPP_KEYWORDS = {
 SH_KEYWORDS = {
     "if", "then", "else", "elif", "fi", "for", "in", "do", "done", "case", "esac",
     "while", "until", "function", "export", "set", "return", "local",
+}
+
+JS_KEYWORDS = {
+    "import", "from", "export", "const", "let", "var", "function", "return", "if",
+    "else", "new", "await", "async", "class", "this", "typeof", "throw", "try",
+    "catch", "of",
+}
+
+JAVA_KEYWORDS = {
+    "package", "import", "public", "private", "protected", "class", "record",
+    "interface", "extends", "implements", "return", "new", "if", "else", "static",
+    "final", "void", "long", "int", "var", "throws", "try", "catch", "true", "false",
+    "null",
 }
 
 
@@ -77,6 +92,53 @@ def span(kind, text):
     return f'<span class="{kind}">{esc(text)}</span>'
 
 
+def highlight_words(code, keywords):
+    """Comments, strings, and a keyword set. Used for the migration pages."""
+    out = []
+    i = 0
+    n = len(code)
+    while i < n:
+        if code.startswith("//", i):
+            j = code.find("\n", i)
+            j = n if j < 0 else j
+            out.append(span("c", code[i:j]))
+            i = j
+            continue
+        if code.startswith("/*", i):
+            j = code.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            out.append(span("c", code[i:j]))
+            i = j
+            continue
+        ch = code[i]
+        if ch in "\"'`":
+            j = i + 1
+            while j < n:
+                if code[j] == "\\":
+                    j += 2
+                    continue
+                if code[j] == ch:
+                    j += 1
+                    break
+                if code[j] == "\n":
+                    break
+                j += 1
+            out.append(span("s", code[i:j]))
+            i = j
+            continue
+        if ch.isalpha() or ch == "_":
+            j = i + 1
+            while j < n and (code[j].isalnum() or code[j] == "_"):
+                j += 1
+            word = code[i:j]
+            out.append(span("k", word) if word in keywords else esc(word))
+            i = j
+            continue
+        out.append(esc(ch))
+        i += 1
+    return "".join(out)
+
+
 def highlight(code, lang):
     lang = (lang or "").lower()
     if lang in {"cpp", "c++", "cxx", "h", "hpp"}:
@@ -85,6 +147,10 @@ def highlight(code, lang):
         return highlight_shell(code)
     if lang == "json":
         return highlight_json(code)
+    if lang in {"js", "javascript", "mjs"}:
+        return highlight_words(code, JS_KEYWORDS)
+    if lang in {"java"}:
+        return highlight_words(code, JAVA_KEYWORDS)
     if lang in {"cmake", "text", "txt", "yaml", "yml", "dockerfile", ""}:
         return esc(code)
     return esc(code)
@@ -259,6 +325,21 @@ def inline_rich(text):
     return "".join(out)
 
 
+def _read_fence(lines, i):
+    if i >= len(lines) or not lines[i].startswith("```"):
+        sys.exit("expected a code fence")
+    lang = lines[i][3:].strip()
+    i += 1
+    buf = []
+    while i < len(lines) and not lines[i].startswith("```"):
+        buf.append(lines[i])
+        i += 1
+    if i >= len(lines):
+        sys.exit(f"unclosed code fence ({lang or 'plain'})")
+    i += 1
+    return i, lang, "\n".join(buf)
+
+
 def parse(md):
     lines = md.replace("\r\n", "\n").split("\n")
     blocks = []
@@ -268,16 +349,30 @@ def parse(md):
         if not line.strip():
             i += 1
             continue
-        if line.startswith("```"):
-            lang = line[3:].strip()
+        if line.startswith(":::pair"):
+            label = re.match(r"^:::pair\s+(\S.*?)\s+\|\s+(\S.*?)\s*$", line)
+            if not label:
+                sys.exit(f"bad :::pair line: {line}")
+            left_label, right_label = label.group(1), label.group(2)
             i += 1
-            buf = []
-            while i < len(lines) and not lines[i].startswith("```"):
-                buf.append(lines[i])
+            while i < len(lines) and not lines[i].strip():
                 i += 1
-            if i < len(lines):
+            left = _read_fence(lines, i)
+            i = left[0]
+            while i < len(lines) and not lines[i].strip():
                 i += 1
-            blocks.append(("code", lang, "\n".join(buf)))
+            right = _read_fence(lines, i)
+            i = right[0]
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            if i >= len(lines) or lines[i].strip() != ":::":
+                sys.exit(f":::pair {left_label} | {right_label} is missing its closing :::")
+            i += 1
+            blocks.append(("pair", left_label, left[1], left[2], right_label, right[1], right[2]))
+            continue
+        if line.startswith("```"):
+            i, lang, code = _read_fence(lines, i)
+            blocks.append(("code", lang, code))
             continue
         m = re.match(r"^(#{1,4})\s+(.*)$", line)
         if m:
@@ -322,6 +417,7 @@ def parse(md):
 def _block_start(line):
     return (
         line.startswith("```")
+        or line.startswith(":::")
         or line.startswith(">")
         or line.lstrip().startswith("|")
         or bool(re.match(r"^#{1,4}\s+", line))
@@ -329,6 +425,11 @@ def _block_start(line):
         or bool(re.match(r"^[-*]\s+", line))
         or bool(re.match(r"^\d+\.\s+", line))
     )
+
+
+def render_listing(label, lang, code):
+    head = f"<header><span>{esc(label)}</span></header>" if label else ""
+    return f'<figure class="listing">{head}<pre><code>{highlight(code, lang)}</code></pre></figure>'
 
 
 def render_blocks(blocks):
@@ -358,11 +459,14 @@ def render_blocks(blocks):
         elif kind == "p":
             body.append(f"<p>{inline(block[1])}</p>")
         elif kind == "code":
-            lang, code = block[1], block[2]
-            label = esc(lang) if lang else ""
-            head = f"<header><span>{label}</span></header>" if label else ""
+            body.append(render_listing(block[1], block[1], block[2]))
+        elif kind == "pair":
+            _, left_label, left_lang, left_code, right_label, right_lang, right_code = block
             body.append(
-                f'<figure class="listing">{head}<pre><code>{highlight(code, lang)}</code></pre></figure>'
+                '<div class="compare">'
+                + render_listing(left_label, left_lang, left_code)
+                + render_listing(right_label, right_lang, right_code)
+                + "</div>"
             )
         elif kind == "list":
             ordered, items = block[1], block[2]
