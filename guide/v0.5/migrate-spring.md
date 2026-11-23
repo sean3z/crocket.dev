@@ -12,13 +12,22 @@ Spring Boot is a starter and a plugin. crocket is a library fetched at configure
 
 ```java
 plugins {
-  id("org.springframework.boot") version "3.5.0"
-  id("io.spring.dependency-management") version "1.1.7"
+  id("org.springframework.boot")
+      version "3.5.0"
+  id("io.spring.dependency-management")
+      version "1.1.7"
 }
 dependencies {
-  implementation("org.springframework.boot:spring-boot-starter-web")
-  implementation("org.springframework.boot:spring-boot-starter-validation")
-  implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+  implementation(
+      "org.springframework.boot:"
+      + "spring-boot-starter-web")
+  implementation(
+      "org.springframework.boot:"
+      + "spring-boot-starter-validation")
+  implementation(
+      "org.springframework.boot:"
+      + "spring-boot-starter-oauth2-"
+      + "resource-server")
 }
 ```
 
@@ -27,19 +36,25 @@ cmake_minimum_required(VERSION 3.28)
 project(users CXX)
 
 include(FetchContent)
+set(crocket_pin
+9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
 FetchContent_Declare(crocket
-  GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
+  GIT_REPOSITORY
+    https://github.com/sean3z/crocket.git
+  GIT_TAG ${crocket_pin})
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)
-target_link_libraries(users PRIVATE crocket::crocket crocket::auth)
+target_link_libraries(users PRIVATE
+  crocket::crocket crocket::auth)
 ```
 
 :::
 
 ```sh
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-16.2
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=g++-16.2
 cmake --build build
 ./build/users
 ```
@@ -56,7 +71,8 @@ There's no annotation processor and no `target/classes`. The binary is the serve
 @SpringBootApplication
 public class UsersApplication {
   public static void main(String[] args) {
-    SpringApplication.run(UsersApplication.class, args);
+    SpringApplication.run(
+        UsersApplication.class, args);
   }
 }
 ```
@@ -78,34 +94,48 @@ cfg.server.port = 8080;
 
 ```java
 @GetMapping("/users/{id}")
-ResponseEntity<User> userById(@PathVariable int id) {
-  if (id != 1) return ResponseEntity.notFound().build();
-  return ResponseEntity.ok(new User(1, "ada@example.com", "Ada"));
+ResponseEntity<User> userById(
+    @PathVariable int id) {
+  if (id != 1) {
+    return ResponseEntity
+        .notFound().build();
+  }
+  return ResponseEntity.ok(new User(
+      1, "ada@example.com", "Ada"));
 }
 ```
 
 ```cpp
 [[= http::get("/users/{id}")]]
 auto user_by_id(int id) -> Result<User> {
-  if (id != 1) return std::unexpected(ApiError::not_found("no such user"));
-  return User{1, "ada@example.com", "Ada"};
+  if (id != 1) {
+    return std::unexpected(
+        ApiError::not_found(
+            "no such user"));
+  }
+  return User{
+      1, "ada@example.com", "Ada"};
 }
 ```
 
 :::
 
-Spring's 404 from `notFound().build()` has an empty body. crocket's 404 is problem details, `application/problem+json`, with `code` `not_found`. Same status, different body. `GET /users/nope` is also 404 in crocket, and it's `path.invalid`, because the capture didn't parse.
+Spring's 404 from `notFound().build()` has an empty body. crocket's `GET /users/9` is problem details, `application/problem+json`, with `code` `not_found` and detail `no such user`. Same status, different body. `GET /users/nope` matches the route, the capture doesn't parse, and the function doesn't run. That body is 404 `path.invalid` with detail `not found`. Spring raises `TypeMismatchException` before `userById` runs, so that case is not the method's empty body.
 
 ## Query parameters
 
 :::pair Spring Boot | crocket
 
 ```java
-public record Search(int page, String q) {}
+public record Search(
+    int page, String q) {}
 
 @GetMapping("/search")
-Search search(@RequestParam(defaultValue = "1") int page,
-              @RequestParam(required = false) String q) {
+Search search(
+    @RequestParam(defaultValue = "1")
+    int page,
+    @RequestParam(required = false)
+    String q) {
   return new Search(page, q);
 }
 ```
@@ -117,12 +147,17 @@ struct Search {
 };
 
 [[= http::get("/search")]]
-auto search(Query<Search> query) -> Search { return *query; }
+auto search(Query<Search> query)
+    -> Search {
+  return *query;
+}
 ```
 
 :::
 
-One struct is the whole query string. You don't repeat the names as `@RequestParam`s. A missing `page` stays `1`. A value that isn't an integer is 422 `query.invalid`.
+One struct is the whole query string. You don't repeat the names as `@RequestParam`s. `/search?page=2&q=ada` returns `{"page":2,"q":"ada"}`. A missing query string returns `{"page":1,"q":null}`. `?page=nope` is 422 `query.invalid`, detail `query parameter 'page' is not valid`, and `search` doesn't return the struct.
+
+`defaultValue` and `required = false` are the documented `@RequestParam` attributes. A value that isn't an int raises `TypeMismatchException` before `search` runs. That is not crocket's 422.
 
 ## JSON body and validation
 
@@ -132,24 +167,32 @@ One struct is the whole query string. You don't repeat the names as `@RequestPar
 
 ```java
 public record NewUser(
-    @Email @NotBlank @Size(max = 254) String email,
+    @Email @NotBlank @Size(max = 254)
+    String email,
     @Size(max = 80) String name) {}
 
 @PostMapping("/users")
-ResponseEntity<User> create(@Valid @RequestBody NewUser body) {
-  var user = new User(1, body.email(), body.name());
-  return ResponseEntity.created(URI.create("/users/1")).body(user);
+ResponseEntity<User> create(
+    @Valid @RequestBody NewUser body) {
+  var user = new User(
+      1, body.email(), body.name());
+  return ResponseEntity
+      .created(URI.create("/users/1"))
+      .body(user);
 }
 ```
 
 ```cpp
 struct NewUser {
-  [[= json::email, = json::max_len(254)]] std::string email;
+  [[= json::email,
+      = json::max_len(254)]]
+  std::string email;
   std::optional<std::string> name;
 };
 
 [[= http::post("/users")]]
-auto create(Json<NewUser> body) -> Created<User> {
+auto create(Json<NewUser> body)
+    -> Created<User> {
   User user{1, body->email, body->name};
   return {user, "/users/1"};
 }
@@ -157,7 +200,7 @@ auto create(Json<NewUser> body) -> Created<User> {
 
 :::
 
-Spring's default for a `@Valid` failure is 400. crocket's is 422 `json.validation`, and every failing field is in that one body. If you need Spring to answer 422 too, map `MethodArgumentNotValidException` yourself. I'm not going to pretend the defaults match.
+`@Valid` on `@RequestBody` runs Jakarta Bean Validation. Spring's reference says a failure raises `MethodArgumentNotValidException`, which is a 400. crocket's is 422 `json.validation`, and every failing field is in that one body. If you need Spring to answer 422 too, map that exception yourself. I'm not going to pretend the defaults match. `@Email`, `@NotBlank`, and `@Size` are `jakarta.validation.constraints`. `@Size` on a nullable `name` doesn't reject null.
 
 `name` is optional in the crocket struct. Leave it out and the response writes `null`. There's no `@Size` on that optional in this example. Length checks apply to the string itself.
 
@@ -172,14 +215,16 @@ crocket doesn't read `multipart/form-data` or an HTML form. A file upload isn't 
 ```java
 @PostMapping("/users/{id}/archive")
 User archive(@PathVariable int id) {
-  return new User(id, "ada@example.com", "Ada");
+  return new User(
+      id, "ada@example.com", "Ada");
 }
 ```
 
 ```cpp
 [[= http::post("/users/{id}/archive")]]
 auto archive(int id) -> Status<User> {
-  return Status<User>{200, User{id, "ada@example.com", "Ada"}};
+  return Status<User>{200, User{
+      id, "ada@example.com", "Ada"}};
 }
 ```
 
@@ -195,10 +240,15 @@ A `OncePerRequestFilter` calls `chain.doFilter`. A `HandlerInterceptor` has `pre
 
 ```java
 @Component
-class AppHeader extends OncePerRequestFilter {
+class AppHeader
+    extends OncePerRequestFilter {
   @Override
-  protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
-      throws ServletException, IOException {
+  protected void doFilterInternal(
+      HttpServletRequest req,
+      HttpServletResponse res,
+      FilterChain chain)
+      throws ServletException,
+          IOException {
     res.setHeader("x-app", "users");
     chain.doFilter(req, res);
   }
@@ -207,7 +257,10 @@ class AppHeader extends OncePerRequestFilter {
 
 ```cpp
 struct AppHeader {
-  void on_response(const Request&, Response& rs) { rs.headers.set("x-app", "users"); }
+  void on_response(
+      const Request&, Response& rs) {
+    rs.headers.set("x-app", "users");
+  }
 };
 ```
 
@@ -231,14 +284,20 @@ An exception you didn't catch is 500 `internal`. The client doesn't get `what()`
 
 ```java
 @GetMapping("/admin")
-public String admin(@AuthenticationPrincipal Jwt jwt) {
-  return "hello " + jwt.getSubject() + "\n";
+public String admin(
+    @AuthenticationPrincipal Jwt jwt) {
+  return "hello "
+      + jwt.getSubject() + "\n";
 }
 ```
 
 ```cpp
-[[= http::get("/admin"), = auth::require("admin")]]
-auto admin(Auth<> who) -> std::string { return std::format("hello {}\n", who.subject); }
+[[= http::get("/admin"),
+    = auth::require("admin")]]
+auto admin(Auth<> who) -> std::string {
+  return std::format(
+      "hello {}\n", who.subject);
+}
 ```
 
 :::
@@ -247,9 +306,12 @@ Spring still needs the resource-server config that demands the role. crocket put
 
 ```cpp
       .manage(auth::Jwt{
-          .issuer = "https://login.example.com/",
+          .issuer =
+              "https://login.example.com/",
           .audience = "users",
-          .jwks = "https://login.example.com/.well-known/jwks.json",
+          .jwks =
+              "https://login.example.com/"
+              ".well-known/jwks.json",
       })
 ```
 
@@ -278,14 +340,19 @@ Spring serves `classpath:/static/` because the starter says so. crocket serves a
 @Configuration
 class Assets implements WebMvcConfigurer {
   @Override
-  public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    registry.addResourceHandler("/assets/**").addResourceLocations("file:public/");
+  public void addResourceHandlers(
+      ResourceHandlerRegistry registry) {
+    registry
+        .addResourceHandler("/assets/**")
+        .addResourceLocations(
+            "file:public/");
   }
 }
 ```
 
 ```cpp
-      .mount("/assets", files{.root = "public"});
+      .mount("/assets",
+          files{.root = "public"});
 ```
 
 :::
@@ -308,7 +375,9 @@ Actuator plus Micrometer is a starter and a registry. crocket's log and metrics 
 springdoc scans the controllers and serves `/v3/api-docs` plus a Swagger UI. crocket builds the document from the same reflection that built the routes. There's no extra dependency.
 
 ```cpp
-      .attach(OpenApi{{.title = "Users", .version = "1.0.0"}})
+      .attach(OpenApi{{
+          .title = "Users",
+          .version = "1.0.0"}})
 ```
 
 The JSON is `GET /openapi.json`. Set `.docs = "/docs"` if you also want the Swagger UI page. That page loads its script from `cdn.jsdelivr.net`. A content security policy of `default-src 'self'` won't allow it, so leave `.docs` unset and ship the JSON. That's what this site does.
@@ -325,21 +394,31 @@ class UsersTest {
   @Autowired MockMvc mvc;
 
   @Test
-  void createsAndMisses() throws Exception {
-    mvc.perform(post("/users").contentType(APPLICATION_JSON)
-            .content("{\"email\":\"ada@example.com\",\"name\":\"Ada\"}"))
+  void createsAndMisses()
+      throws Exception {
+    mvc.perform(post("/users")
+            .contentType(APPLICATION_JSON)
+            .content("{\"email\":"
+                + "\"ada@example.com\","
+                + "\"name\":\"Ada\"}"))
         .andExpect(status().isCreated());
-    mvc.perform(get("/users/9")).andExpect(status().isNotFound());
+    mvc.perform(get("/users/9"))
+        .andExpect(status().isNotFound());
   }
 }
 ```
 
 ```cpp
-    LocalClient client(app);
-    auto created = client.post("/users").json(R"({"email":"ada@example.com","name":"Ada"})").dispatch();
-    assert(created.status == 201);
-    auto missing = client.get("/users/9").dispatch();
-    assert(missing.status == 404);
+LocalClient client(app);
+auto created = client.post("/users")
+    .json("{\"email\":"
+          "\"ada@example.com\","
+          "\"name\":\"Ada\"}")
+    .dispatch();
+assert(created.status == 201);
+auto missing = client.get("/users/9")
+    .dispatch();
+assert(missing.status == 404);
 ```
 
 :::
@@ -356,18 +435,23 @@ A JRE image runs a jar. The crocket image has to be the GCC 16.2 toolchain, or a
 FROM eclipse-temurin:21-jre
 COPY build/libs/users.jar /app/users.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/users.jar"]
+ENTRYPOINT ["java", "-jar",
+  "/app/users.jar"]
 ```
 
 ```dockerfile
 FROM ghcr.io/sean3z/crocket-toolchain:gcc-16.2
 COPY . /src
 WORKDIR /src
-RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-      -DCMAKE_C_COMPILER=/opt/gcc-16.2/bin/gcc-16.2 \
-      -DCMAKE_CXX_COMPILER=/opt/gcc-16.2/bin/g++-16.2 \
+ENV CC=/opt/gcc-16.2/bin/gcc-16.2 \
+    CXX=/opt/gcc-16.2/bin/g++-16.2
+RUN cmake -S . -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_C_COMPILER=$CC \
+      -DCMAKE_CXX_COMPILER=$CXX \
  && cmake --build build \
- && install -m755 build/users /usr/local/bin/users
+ && install -m755 build/users \
+      /usr/local/bin/users
 EXPOSE 8080
 CMD ["users"]
 ```

@@ -371,6 +371,13 @@ pre {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Generic monospace faces (Fira Code, JetBrains Mono) turn !== and -> into glyphs. */
+code, pre, kbd, samp,
+.listing, .compare {
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
 code { font-family: inherit; }
 
 /* Chips for backticks. pre > code is a block, so listings stay plain. */
@@ -617,7 +624,11 @@ code { font-family: inherit; }
 
 .compare .listing { margin: 0; min-width: 0; }
 
-.compare pre { font-size: 0.78rem; }
+.compare pre {
+  font-size: 0.78rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+}
 
 .pager {
   display: flex;
