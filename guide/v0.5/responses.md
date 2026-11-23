@@ -62,6 +62,20 @@ auto report(std::uint64_t id, State<Store> store) -> Cacheable<std::string> {
 
 This is in the tree this guide was checked against (commit `9b446f8`). It is listed as unreleased relative to tag 0.5.1, so a project pinned to `0.5.1` does not have it yet.
 
+A directory on disk is the shortest version. `root` is opened once at ignite, and every request reads relative to it:
+
+```cpp
+.mount("/", files{
+    .root = "public",
+    .precompressed = true,
+    .cache = {{"*.html", "no-cache"},
+              {"assets/*", "public, max-age=31536000, immutable"}}})
+```
+
+`precompressed` serves a sibling `app.js.br` or `app.js.gz` when the client accepts it, so you compress once at build time. Edits to a file show up without a restart.
+
+Embedding puts the frontend inside the binary instead, so there's nothing to copy next to it when you ship:
+
 ```cpp
 static constexpr unsigned char index_html[] = {
 #embed "web/index.html"
