@@ -1,16 +1,36 @@
 # crocket.dev
 
-The landing page for [crocket](https://github.com/sean3z/crocket), served by crocket itself.
+The source for [crocket.dev](https://crocket.dev). It is the landing page, the guide, and the migration pages, served by [crocket](https://github.com/sean3z/crocket) itself.
 
-`GET /` is a route. It picks one rival for the benchmark block and sends `Cache-Control: no-cache`, so a refresh can show a different comparison. CSS, script, and the guide are `#embed`'d and mounted with `crocket::files`. HTML responses carry a content security policy that allows only this origin: no inline script, no inline style, no third-party host. `GET /healthz` is crocket's built-in liveness route.
+`GET /` is a route. It picks one rival for the benchmark block and sends `Cache-Control: no-cache`, so a refresh can show a different comparison. CSS and script URLs carry a content hash. HTML stays `no-cache`. The content security policy is `default-src 'self'`: no inline script, no inline style, no third-party host. `GET /healthz` is crocket's built-in liveness route.
 
-crocket is pinned to commit `9b446f8c2423262ef1cbf3afe370a0ae2f81d181` (static file serving). The latest release is [0.5.1](https://github.com/sean3z/crocket/releases/tag/0.5.1). Static files are unreleased in that tag, which is why the pin is a commit and not `0.5.1`.
+crocket is pinned to commit `9b446f8c2423262ef1cbf3afe370a0ae2f81d181` (static file serving). The latest release is [0.5.1](https://github.com/sean3z/crocket/releases/tag/0.5.1). Static files are not in that tag, which is why the pin is a commit.
 
-The app listens on port **8100** (`CROCKET_PORT` still overrides it; that variable belongs to the framework). There are no application environment variables.
+The app listens on port **8100**. `CROCKET_PORT` still overrides it. That variable belongs to the framework. This site adds none of its own.
 
-The guide is markdown in `guide/v0.5/`. `tools/build_guide.py` renders it to HTML, highlights code, and writes `src/guide_assets.cpp`, which `#embed`s the pages. CMake runs that script before it compiles. The pages are served by `crocket::files` with the same content security policy as the landing page.
+## Where things live
 
-## Run
+Guide prose is markdown in `guide/v0.5/`. The Express and Spring pages are `guide/v0.5/migrate-express.md` and `guide/v0.5/migrate-spring.md`.
+
+Crocket code on those pages is copied from `checks/snippets/users.cpp` and `checks/snippets/listen.cpp`. The `/ai/` example is `checks/snippets/orders.cpp`, quoted by `web/ai/index.html`. `checks/snippets/check_quotes.py` fails if a `cpp` fence is not a consecutive slice of the matching file. Change the `.cpp` first, then paste the same lines into the markdown.
+
+`tools/build_guide.py` renders the guide, fingerprints CSS and JS, and writes `web/llms-full.txt`, `web/guide/`, `src/hashed/`, and `src/guide_assets.cpp`.
+
+## Check and build locally
+
+You need Python 3 for the guide, and GCC 16.2 for the binary. The toolchain image is `ghcr.io/sean3z/crocket-toolchain:gcc-16.2`. You don't have to install that compiler on the host if you build in Docker.
+
+```sh
+python3 checks/snippets/check_quotes.py
+python3 tools/build_guide.py
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=g++-16.2 -DCROCKET_SITE_CHECK_SNIPPETS=ON
+cmake --build build --target migrate-snippets migrate-listen ai-orders crocket-site
+```
+
+`CROCKET_SITE_CHECK_SNIPPETS=ON` compiles the migration and `/ai/` programs. A static preview of the rendered pages is `python3 -m http.server 8766 --directory web`.
+
+## Deploy
 
 Docker 29 with the classic builder. BuildKit and buildx are not required.
 
@@ -20,23 +40,8 @@ curl -i http://127.0.0.1:8100/
 curl -i http://127.0.0.1:8100/healthz
 ```
 
-`deploy/deploy.sh` exports `DOCKER_BUILDKIT=0`, builds the image, starts compose, and waits until `/healthz` returns. Compose publishes only `127.0.0.1:8100:8100`.
+`deploy/deploy.sh` exports `DOCKER_BUILDKIT=0`, builds the image, starts compose, and waits until `/healthz` returns. Compose publishes only `127.0.0.1:8100:8100`. The image build fetches crocket and h2o from GitHub.
 
-The image build fetches crocket and h2o from GitHub. The compiler is GCC 16.2 inside `ghcr.io/sean3z/crocket-toolchain:gcc-16.2`. You don't install that compiler on the host.
+On the Ubuntu 24.04 VPS, nginx terminates TLS and proxies to that loopback port. Install `deploy/nginx-crocket.dev.conf` where nginx includes site files, then reload nginx. Certificates are read from `/etc/letsencrypt/live/crocket.dev/`. The certificate needs both `crocket.dev` and `www.crocket.dev`, because `www` answers on 443 only long enough to 301 to `https://crocket.dev`.
 
-## Deploy
-
-On the Ubuntu 24.04 VPS, nginx terminates TLS and proxies to the loopback port. Install `deploy/nginx-crocket.dev.conf` where nginx includes site files, then reload nginx. Certificates are read from `/etc/letsencrypt/live/crocket.dev/`. The certificate needs both `crocket.dev` and `www.crocket.dev` on it, because `www` answers on 443 only long enough to 301 to `https://crocket.dev`.
-
-Port 80 for either name redirects to `https://crocket.dev`. The proxy sets `Host`, `X-Forwarded-For`, `X-Forwarded-Proto`, `X-Forwarded-Host`, and `X-Forwarded-Port`.
-
-The process trusts loopback and the private ranges, so those forwarded headers are used when the peer is nginx or the docker bridge, and ignored otherwise. `CROCKET_ALLOWED_HOSTS` can replace the default host list (`crocket.dev`, `localhost`, `127.0.0.1`).
-
-## What this build measured
-
-On a 4-core machine the release process starts 4 event loops and 4 workers. After it was idle:
-
-- Image size: 176 MB (`docker images`). Ubuntu 26.04 is almost all of that. The stripped `crocket-site` binary is 1.6 MB, and GCC 16.2's `libstdc++` plus `libgcc_s` add about 3.6 MB.
-- Idle RSS: 11.2 MiB (`VmRSS` 11460 kB). About 1.5 MiB of that is anonymous (`RssAnon` 1584 kB). The rest is file-backed libraries.
-
-Those numbers are this program on this machine, not a crocket benchmark. The framework's own bench results are not in its git tree.
+Port 80 for either name redirects to `https://crocket.dev`. The proxy sets `Host`, `X-Forwarded-For`, `X-Forwarded-Proto`, `X-Forwarded-Host`, and `X-Forwarded-Port`. The process trusts loopback and the private ranges, so those forwarded headers are used when the peer is nginx or the docker bridge, and ignored otherwise. `CROCKET_ALLOWED_HOSTS` can replace the default host list (`crocket.dev`, `localhost`, `127.0.0.1`).

@@ -25,7 +25,7 @@ FINGERPRINTS = {
 }
 
 # This site's repository. Edit links point at these files, not at sean3z/crocket.
-EDIT_BASE = "https://origin.cursor.com/git/sean-wragg/tmp-df2bdaef10926a6b/blob/main"
+EDIT_BASE = "https://github.com/sean3z/crocket.dev/edit/main"
 COMMIT = "9b446f8c2423262ef1cbf3afe370a0ae2f81d181"
 COMMIT_SHORT = "9b446f8"
 
