@@ -500,7 +500,7 @@ code { font-family: inherit; }
 .site-footer p { margin: 0; }
 
 .guide-shell {
-  width: min(76rem, calc(100% - var(--pad) * 2));
+  width: min(90rem, calc(100% - var(--pad) * 2));
   margin: 0 auto 2rem;
   display: grid;
   grid-template-columns: 13.5rem minmax(0, 1fr) 12.5rem;
@@ -590,7 +590,7 @@ code { font-family: inherit; }
 }
 
 .guide-main p,
-.guide-main li { max-width: 42rem; }
+.guide-main li { max-width: 54rem; }
 
 .guide-main ul,
 .guide-main ol { padding-left: 1.2rem; }
