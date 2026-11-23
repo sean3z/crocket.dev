@@ -19,7 +19,7 @@ A response timer:
 
 ```cpp
 struct Timer {
-  void on_response(const Request& rq, Response& rs) {
+  auto on_response(const Request& rq, Response& rs) -> void {
     auto us = std::chrono::duration_cast<std::chrono::microseconds>(
                   Clock::now() - rq.received)
                   .count();

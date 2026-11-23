@@ -4,7 +4,9 @@
 Syntax highlighting is done here. The pages ship no inline script or style.
 """
 
+import hashlib
 import html
+import json
 import re
 import sys
 from pathlib import Path
@@ -13,11 +15,42 @@ ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT / "guide" / "v0.5"
 WEB = ROOT / "web" / "guide"
 CPP = ROOT / "src" / "guide_assets.cpp"
+HASHED = ROOT / "src" / "hashed"
+PARITY = ROOT / "data" / "parity-sizes.json"
+BENCH = ROOT / "data" / "benchmarks.json"
+FINGERPRINTS = {
+    "/style.css": ROOT / "web" / "style.css",
+    "/theme.js": ROOT / "web" / "theme.js",
+    "/ai/exchange.js": ROOT / "web" / "ai" / "exchange.js",
+}
 
 # This site's repository. Edit links point at these files, not at sean3z/crocket.
 EDIT_BASE = "https://origin.cursor.com/git/sean-wragg/tmp-df2bdaef10926a6b/blob/main"
 COMMIT = "9b446f8c2423262ef1cbf3afe370a0ae2f81d181"
 COMMIT_SHORT = "9b446f8"
+
+
+def asset_versions():
+    """Short content hashes so a long-cached CSS or JS URL changes when the file does."""
+    versions = {}
+    for url, path in FINGERPRINTS.items():
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+        versions[url] = digest
+    return versions
+
+
+def bust_assets(text, versions):
+    for url, digest in versions.items():
+        text = re.sub(
+            rf'((?:href|src)="{re.escape(url)})(?:\?v=[0-9a-fA-F]*)?(")',
+            rf"\1?v={digest}\2",
+            text,
+        )
+    return text
+
+
+def mb(nbytes):
+    return f"{nbytes / 1_000_000:.1f}"
 
 # (slug, nav title, markdown filename). index.md is the introduction at /guide/v0.5/.
 CHAPTERS = [
@@ -374,20 +407,27 @@ def parse(md):
                 sys.exit(f"bad :::pair line: {line}")
             left_label, right_label = label.group(1), label.group(2)
             i += 1
-            while i < len(lines) and not lines[i].strip():
-                i += 1
-            left = _read_fence(lines, i)
-            i = left[0]
-            while i < len(lines) and not lines[i].strip():
-                i += 1
-            right = _read_fence(lines, i)
-            i = right[0]
-            while i < len(lines) and not lines[i].strip():
-                i += 1
-            if i >= len(lines) or lines[i].strip() != ":::":
-                sys.exit(f":::pair {left_label} | {right_label} is missing its closing :::")
+            i, left_parts, right_parts = _read_pair(lines, i, left_label, right_label)
+            blocks.append(("pair", left_label, left_parts, right_label, right_parts))
+            continue
+        if line.startswith(":::parity ") or line.startswith(":::numbers ") or line.startswith(":::cta"):
+            kind, _, arg = line.strip().partition(" ")
+            kind = kind[3:]
             i += 1
-            blocks.append(("pair", left_label, left[1], left[2], right_label, right[1], right[2]))
+            body_lines = []
+            if kind == "cta":
+                while i < len(lines) and lines[i].strip() != ":::":
+                    if lines[i].strip():
+                        body_lines.append(lines[i].strip())
+                    i += 1
+                if i >= len(lines):
+                    sys.exit(":::cta is missing its closing :::")
+                i += 1
+                blocks.append(("cta", body_lines))
+            else:
+                if lines[i - 1].strip() != f":::{kind} {arg}":
+                    sys.exit(f"bad :::{kind} line: {line}")
+                blocks.append((kind, arg.strip()))
             continue
         if line.startswith("```"):
             i, lang, code = _read_fence(lines, i)
@@ -433,6 +473,42 @@ def parse(md):
     return blocks
 
 
+def _read_pair(lines, i, left_label, right_label):
+    """Fences until :::. A line that is only | starts the right column.
+
+    Two fences and no | keep the original left, right order.
+    """
+    left, right = [], []
+    side = left
+    saw_break = False
+    while i < len(lines) and lines[i].strip() != ":::":
+        if not lines[i].strip():
+            i += 1
+            continue
+        if lines[i].strip() == "|":
+            if saw_break:
+                sys.exit(f":::pair {left_label} | {right_label} has two column breaks")
+            saw_break = True
+            side = right
+            i += 1
+            continue
+        if not lines[i].startswith("```"):
+            sys.exit(f":::pair {left_label} | {right_label} expected a fence, got: {lines[i]}")
+        i, lang, code = _read_fence(lines, i)
+        side.append((lang, code))
+    if i >= len(lines) or lines[i].strip() != ":::":
+        sys.exit(f":::pair {left_label} | {right_label} is missing its closing :::")
+    i += 1
+    if not saw_break:
+        if len(left) != 2:
+            sys.exit(f":::pair {left_label} | {right_label} needs two fences, or a | between columns")
+        right = [left[1]]
+        left = [left[0]]
+    if not left or not right:
+        sys.exit(f":::pair {left_label} | {right_label} needs a fence on each side")
+    return i, left, right
+
+
 def _block_start(line):
     return (
         line.startswith("```")
@@ -449,6 +525,171 @@ def _block_start(line):
 def render_listing(label, lang, code):
     head = f"<header><span>{esc(label)}</span></header>" if label else ""
     return f'<figure class="listing">{head}<pre><code>{highlight(code, lang)}</code></pre></figure>'
+
+
+def render_column(label, parts):
+    chunks = []
+    for n, (lang, code) in enumerate(parts):
+        chunks.append(render_listing(label if n == 0 else "", lang, code))
+    return '<div class="compare-col">' + "".join(chunks) + "</div>"
+
+
+def load_json(path):
+    if not path.is_file():
+        sys.exit(f"missing {path.relative_to(ROOT)}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def render_parity(which):
+    data = load_json(PARITY)
+    if which == "express":
+        side = data["npm"]
+        groups = []
+        current = None
+        for row in side["direct"]:
+            if row["feature"] == "The framework":
+                continue
+            if current is None or current[0] != row["feature"]:
+                current = [row["feature"], []]
+                groups.append(current)
+            current[1].append(row["name"])
+        groups.append(["Static files and ETags", []])
+        unit = "unpacked"
+        total = side["total_unpacked_bytes"]
+        count = side["package_count"]
+        direct = side["direct_count"]
+        label = (
+            f"{direct} direct packages, {count} with the dependencies they pull in, "
+            f"about {mb(total)} MB {unit}. Approx., from npm registry unpacked sizes, "
+            f"{data['fetched']}. That total includes Express itself."
+        )
+    elif which == "spring":
+        side = data["maven"]
+        groups = []
+        current = None
+        for row in side["direct"]:
+            if current is None or current[0] != row["feature"]:
+                current = [row["feature"], []]
+                groups.append(current)
+            current[1].append(row["artifact"])
+        groups.append(["Structured logging", []])
+        groups.append(["CORS", []])
+        groups.append(["Static files", []])
+        total = side["total_jar_bytes"]
+        count = side["artifact_count"]
+        direct = side["direct_count"]
+        label = (
+            f"{direct} direct artifacts, {count} jars once the tree is deduped, "
+            f"about {mb(total)} MB. Approx., from Maven Central jar sizes, {data['fetched']}."
+        )
+    else:
+        sys.exit(f"unknown parity side: {which}")
+    binary = data["crocket_binary"]
+    rows = []
+    for feature, names in groups:
+        if names:
+            shown = ", ".join(f"<code>{esc(name)}</code>" for name in names)
+        elif feature == "Static files and ETags":
+            shown = "none. <code>express.static</code> already does this"
+        elif feature == "Static files":
+            shown = "none. <code>spring-boot-starter-web</code> serves <code>classpath:/static</code>"
+        elif feature == "CORS":
+            shown = "none. Spring MVC already does this"
+        elif feature == "Structured logging":
+            shown = "none. Logback comes with <code>spring-boot-starter-web</code>"
+        else:
+            shown = "none"
+        rows.append(f"<tr><td>{esc(feature)}</td><td>{shown}</td></tr>")
+    note = (
+        f"<p class=\"parity-total\">{esc(label)} "
+        f"The crocket program on this page (<code>checks/snippets/users.cpp</code>) is a "
+        f"{mb(binary['stripped_bytes'])} MB stripped Release binary, commit {COMMIT_SHORT}. "
+        f"It still loads libstdc++ ({mb(binary['libstdcxx_bytes'])} MB in the GCC 16.2 toolchain).</p>"
+    )
+    return (
+        '<div class="table-wrap"><table><thead><tr><th>Already in crocket</th>'
+        "<th>What you add</th></tr></thead><tbody>"
+        + "".join(rows)
+        + "</tbody></table></div>"
+        + note
+    )
+
+
+def render_numbers(rival_id):
+    bench = load_json(BENCH)
+    verify_benchmarks(bench)
+    rival = bench["rivals"][rival_id]
+    crocket = bench["crocket"]
+    post = bench["post"]
+    cards = [
+        (
+            f"{crocket['req_s']} <span>req/s</span>",
+            f"vs {rival['label']}'s {rival['req_s']}",
+            "Heroes CRUD, max throughput. " + rival["req_note"],
+        ),
+        (
+            f"{crocket['peak_mb']} <span>MB</span>",
+            f"vs {rival['peak_mb']} MB peak",
+            f"Peak RSS. Idle was {crocket['idle_mb']} MB vs {rival['idle_mb']} MB.",
+        ),
+        (
+            f"{crocket['cpu_us']} <span>µs</span>",
+            f"vs {rival['cpu_us']} µs",
+            "App CPU time per request at that max.",
+        ),
+        (
+            f"{crocket['cores_at_4k']} <span>cores</span>",
+            f"vs {rival['cores_at_4k']}",
+            "Cores in use at 4,000 req/s.",
+        ),
+    ]
+    articles = []
+    for value, vs, caption in cards:
+        articles.append(
+            "<article class=\"stat\">"
+            f"<p class=\"stat-value\">{value}</p>"
+            f"<p class=\"stat-vs\">{esc(vs)}</p>"
+            f"<p class=\"stat-caption\">{esc(caption)}</p>"
+            "</article>"
+        )
+    return (
+        '<div class="numbers">'
+        + "".join(articles)
+        + "</div>"
+        + f"<p class=\"stat-foot\">{esc(bench['hardware'])} "
+        + f"<a href=\"{esc(post)}\">See the full benchmark</a></p>"
+    )
+
+
+def verify_benchmarks(bench):
+    """The homepage rotates these same strings. They have to match src/main.cpp."""
+    source = (ROOT / "src" / "main.cpp").read_text(encoding="utf-8")
+    needed = [
+        f"{bench['crocket']['req_s']} ",
+        f"{bench['crocket']['peak_mb']} <span>MB</span>",
+        f"vs {bench['rivals']['node']['label']}'s {bench['rivals']['node']['req_s']}",
+        f"vs {bench['rivals']['node']['label']}'s {bench['rivals']['node']['peak_mb']} MB",
+        f"vs {bench['rivals']['spring']['label']}'s {bench['rivals']['spring']['req_s']}",
+        f"vs {bench['rivals']['spring']['label']}'s {bench['rivals']['spring']['peak_mb']} MB",
+        bench["rivals"]["node"]["req_note"],
+        bench["rivals"]["spring"]["req_note"],
+    ]
+    missing = [item for item in needed if item not in source]
+    if missing:
+        sys.exit("benchmark figures drifted from src/main.cpp:\n" + "\n".join(missing))
+
+
+def render_cta(lines):
+    links = []
+    for line in lines:
+        primary = line.startswith("primary ")
+        rest = line[len("primary ") :] if primary else line
+        href, _, label = rest.partition(" ")
+        if not href or not label:
+            sys.exit(f"bad cta line: {line}")
+        cls = "btn btn-primary" if primary else "btn"
+        links.append(f'<a class="{cls}" href="{esc(href)}">{esc(label)}</a>')
+    return '<div class="actions">' + "".join(links) + "</div>"
 
 
 def render_blocks(blocks):
@@ -480,13 +721,19 @@ def render_blocks(blocks):
         elif kind == "code":
             body.append(render_listing(block[1], block[1], block[2]))
         elif kind == "pair":
-            _, left_label, left_lang, left_code, right_label, right_lang, right_code = block
+            _, left_label, left_parts, right_label, right_parts = block
             body.append(
                 '<div class="compare">'
-                + render_listing(left_label, left_lang, left_code)
-                + render_listing(right_label, right_lang, right_code)
+                + render_column(left_label, left_parts)
+                + render_column(right_label, right_parts)
                 + "</div>"
             )
+        elif kind == "parity":
+            body.append(render_parity(block[1]))
+        elif kind == "numbers":
+            body.append(render_numbers(block[1]))
+        elif kind == "cta":
+            body.append(render_cta(block[1]))
         elif kind == "list":
             ordered, items = block[1], block[2]
             tag = "ol" if ordered else "ul"
@@ -697,6 +944,7 @@ def check_links(pages):
                     broken.append(f"{path}: missing anchor {href}")
                 continue
             url, _, anchor = href.partition("#")
+            url = url.split("?", 1)[0]
             if not url.startswith("/"):
                 broken.append(f"{path}: relative link {href}")
                 continue
@@ -812,7 +1060,10 @@ def main():
         href = chapter_href(slug)
         canonical = "https://crocket.dev" + href
         edit = f"guide/v0.5/{filename}"
-        page = render_page(title, body, toc, CHAPTERS, index, edit, canonical)
+        page = bust_assets(
+            render_page(title, body, toc, CHAPTERS, index, edit, canonical),
+            asset_versions(),
+        )
         rel = "v0.5/index.html" if slug == "index" else f"v0.5/{slug}/index.html"
         out = WEB / rel
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -831,6 +1082,21 @@ def main():
     ):
         if static_page.exists():
             highlight_static_cpp(static_page)
+    versions = asset_versions()
+    HASHED.mkdir(parents=True, exist_ok=True)
+    hashed_pages = {
+        ROOT / "web" / "index.html": HASHED / "index.html",
+        ROOT / "web" / "404.html": HASHED / "404.html",
+        ROOT / "web" / "teapot.html": HASHED / "teapot.html",
+        ROOT / "web" / "ai" / "index.html": HASHED / "ai" / "index.html",
+    }
+    for src, dest in hashed_pages.items():
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(bust_assets(src.read_text(encoding="utf-8"), versions), encoding="utf-8")
+    print(
+        "asset fingerprints "
+        + " ".join(f"{url}?v={digest}" for url, digest in versions.items())
+    )
     write_llms_full()
     broken = check_links(pages)
     broken.extend(check_llms_links())

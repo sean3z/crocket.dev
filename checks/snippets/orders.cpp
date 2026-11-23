@@ -11,26 +11,23 @@
 
 using namespace crocket;
 
-struct NewOrder {
+struct Order {
+  [[= json::from_path]] std::optional<int> id;
   [[= json::min_len(1), = json::max_len(80)]] std::string sku;
   [[= json::min(1)]] int qty;
-};
-
-struct Order {
-  int id = 0;
-  std::string sku;
-  int qty = 0;
 };
 
 namespace api {
 
 [[= http::post("/orders")]]
-auto create(Json<NewOrder> body) -> Created<Order> {
-  return {Order{1, body->sku, body->qty}, "/orders/1"};
+auto create(Json<Order> body) -> Created<Order> {
+  Order order = *body;
+  order.id = 1;
+  return {order, "/orders/1"};
 }
 
 [[= http::get("/orders/{id}"), = auth::require("orders")]]
-auto order(int id, [[maybe_unused]] Auth<> who) -> Result<Order> {
+auto order(int id) -> Result<Order> {
   if (id != 1) {
     return std::unexpected(
         ApiError::not_found("no such order"));
@@ -40,7 +37,7 @@ auto order(int id, [[maybe_unused]] Auth<> who) -> Result<Order> {
 
 }  // namespace api
 
-Crocket make_app() {
+auto make_app() -> Crocket {
   Config cfg;
   cfg.server.port = 8080;
   return build(cfg)
@@ -51,7 +48,7 @@ Crocket make_app() {
       .mount("/", reflect_routes<^^api>());
 }
 
-int main(int argc, char** argv) {
+auto main(int argc, char** argv) -> int {
   Crocket app = make_app();
   if (argc > 1 && std::string_view(argv[1]) == "--check") {
     LocalClient client(app);

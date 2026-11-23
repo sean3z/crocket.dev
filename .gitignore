@@ -3,4 +3,5 @@ build-*/
 .cache/
 *.o
 src/guide_assets.cpp
+src/hashed/
 web/guide/

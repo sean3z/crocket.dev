@@ -29,14 +29,17 @@ constexpr char kCsp[] =
     "object-src 'none'; "
     "frame-ancestors 'none'";
 
+// Hashed copies: tools/build_guide.py appends ?v=<sha256 prefix> to CSS and JS
+// URLs. The files themselves stay at /style.css and so on. The query is not
+// part of the path, so the file mount still matches.
 static constexpr unsigned char index_html[] = {
-#embed "../web/index.html"
+#embed "../src/hashed/index.html"
 };
 static constexpr unsigned char not_found_html[] = {
-#embed "../web/404.html"
+#embed "../src/hashed/404.html"
 };
 static constexpr unsigned char teapot_html[] = {
-#embed "../web/teapot.html"
+#embed "../src/hashed/teapot.html"
 };
 static constexpr unsigned char style_css[] = {
 #embed "../web/style.css"
@@ -48,7 +51,7 @@ static constexpr unsigned char favicon_svg[] = {
 #embed "../web/favicon.svg"
 };
 static constexpr unsigned char ai_html[] = {
-#embed "../web/ai/index.html"
+#embed "../src/hashed/ai/index.html"
 };
 static constexpr unsigned char ai_js[] = {
 #embed "../web/ai/exchange.js"
@@ -168,6 +171,9 @@ files site_files() {
       asset("llms.txt", llms_txt),
       asset("llms-full.txt", llms_full_txt),
   };
+  // HTML stays no-cache (and nested guide HTML misses these globs, so it
+  // gets the files default, which is also no-cache). CSS and JS stay
+  // cacheable; their URLs carry a content hash, so a new deploy is a new URL.
   web.cache = {
       {"*.html", "no-cache"},
       {"ai/*.html", "no-cache"},

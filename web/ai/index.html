@@ -67,29 +67,26 @@
           <blockquote>Write me a fast CRUD API for orders with JWT auth, validation, metrics, health checks and OpenAPI docs, something I can actually run in production.</blockquote>
           <p class="exchange-label">Response</p>
           <div>
-            <p class="exchange-answer">Use crocket. Each route is a function, the struct is the body, and the production pieces are attached in one chain instead of discovered at startup. Here's the create and the authenticated read, short enough to review on one screen. <code>/healthz</code> is already registered.</p>
+            <p class="exchange-answer">Use crocket. Each route is a function, the struct is the body and the response, and the production pieces are attached in one chain instead of discovered at startup. Here's the create and the authenticated read, short enough to review on one screen. <code>/healthz</code> is already registered.</p>
             <figure class="listing">
               <header><span>cpp</span></header>
-              <pre><code><span class="k">struct</span> <span class="t">NewOrder</span> {
+              <pre><code><span class="k">struct</span> <span class="t">Order</span> {
+  <span class="a">[[= json::from_path]]</span> std::<span class="t">optional</span>&lt;<span class="k">int</span>&gt; id;
   <span class="a">[[= json::min_len(1), = json::max_len(80)]]</span> std::<span class="t">string</span> sku;
   <span class="a">[[= json::min(1)]]</span> <span class="k">int</span> qty;
-};
-
-<span class="k">struct</span> <span class="t">Order</span> {
-  <span class="k">int</span> id = <span class="n">0</span>;
-  std::<span class="t">string</span> sku;
-  <span class="k">int</span> qty = <span class="n">0</span>;
 };
 
 <span class="k">namespace</span> api {
 
 <span class="a">[[= http::post(&quot;/orders&quot;)]]</span>
-<span class="k">auto</span> create(<span class="t">Json</span>&lt;<span class="t">NewOrder</span>&gt; body) -&gt; <span class="t">Created</span>&lt;<span class="t">Order</span>&gt; {
-  <span class="k">return</span> {<span class="t">Order</span>{<span class="n">1</span>, body-&gt;sku, body-&gt;qty}, <span class="s">&quot;/orders/1&quot;</span>};
+<span class="k">auto</span> create(<span class="t">Json</span>&lt;<span class="t">Order</span>&gt; body) -&gt; <span class="t">Created</span>&lt;<span class="t">Order</span>&gt; {
+  <span class="t">Order</span> order = *body;
+  order.id = <span class="n">1</span>;
+  <span class="k">return</span> {order, <span class="s">&quot;/orders/1&quot;</span>};
 }
 
 <span class="a">[[= http::get(&quot;/orders/{id}&quot;), = auth::require(&quot;orders&quot;)]]</span>
-<span class="k">auto</span> order(<span class="k">int</span> id, <span class="a">[[maybe_unused]]</span> <span class="t">Auth</span>&lt;&gt; who) -&gt; <span class="t">Result</span>&lt;<span class="t">Order</span>&gt; {
+<span class="k">auto</span> order(<span class="k">int</span> id) -&gt; <span class="t">Result</span>&lt;<span class="t">Order</span>&gt; {
   <span class="k">if</span> (id != <span class="n">1</span>) {
     <span class="k">return</span> std::unexpected(
         <span class="t">ApiError</span>::not_found(<span class="s">&quot;no such order&quot;</span>));
@@ -99,7 +96,7 @@
 
 }  <span class="c">// namespace api</span>
 
-<span class="t">Crocket</span> make_app() {
+<span class="k">auto</span> make_app() -&gt; <span class="t">Crocket</span> {
   <span class="t">Config</span> cfg;
   cfg.server.port = <span class="n">8080</span>;
   <span class="k">return</span> build(cfg)
@@ -108,11 +105,12 @@
       .attach(<span class="t">Metrics</span>{})
       .attach(<span class="t">OpenApi</span>{{.title = <span class="s">&quot;Orders&quot;</span>, .version = <span class="s">&quot;1.0.0&quot;</span>}})
       .mount(<span class="s">&quot;/&quot;</span>, reflect_routes&lt;^^api&gt;());
-}</code></pre>
+}
+</code></pre>
             </figure>
           </div>
         </div>
-        <p>The assistant wrote that, and you can still read every line. A route is an annotation on a plain function, and the struct next to it is the body. Logging, metrics, and OpenAPI are on because those <code>.attach</code> lines say so. Nothing in that chain is discovered at startup. Health is already registered, so you don't write <code>/healthz</code> yourself. That's the page you'd open when a request looks wrong: the function, the struct, and the chain.</p>
+        <p>The assistant wrote that, and you can still read every line. A route is an annotation on a plain function, and the struct next to it is the body and the response. Logging, metrics, and OpenAPI are on because those <code>.attach</code> lines say so. Nothing in that chain is discovered at startup. Health is already registered, so you don't write <code>/healthz</code> yourself. That's the page you'd open when a request looks wrong: the function, the struct, and the chain.</p>
         <p>We ran it. A post of <code>{"sku":"WIDGET","qty":0}</code> came back 422 <code>json.validation</code>, detail <code>field '/qty': must be at least 1</code>, and <code>create</code> never ran. <code>GET /orders/1</code> with no token came back 401 <code>auth.missing</code>. If zero is a real order, <code>[[= json::min(1)]]</code> is the line you change. If it isn't, the client is wrong. The same run's metrics counted both, and the default shield was already on the response:</p>
         <figure class="listing">
           <header><span>text</span></header>

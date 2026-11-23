@@ -52,7 +52,9 @@ def fences(text):
 def listen_main(source):
     """The compiled main(), which both migration pages quote."""
     lines = source.splitlines()
-    start = next(i for i, line in enumerate(lines) if line.startswith("int main("))
+    start = next(
+        i for i, line in enumerate(lines) if re.match(r"(?:auto|int) main\(", line)
+    )
     end = next(i for i in range(start, len(lines)) if lines[i].strip() == "}")
     return "\n".join(lines[start : end + 1])
 

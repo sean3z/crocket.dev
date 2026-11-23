@@ -96,7 +96,7 @@
 
 }  <span class="c">// namespace api</span>
 
-<span class="k">int</span> main() {
+<span class="k">auto</span> main() -&gt; <span class="k">int</span> {
   <span class="k">return</span> build(Config::from_env())
       .attach(Logger{})
       .mount(<span class="s">"/"</span>, reflect_routes&lt;^^api&gt;())

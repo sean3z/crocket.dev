@@ -1,0 +1,32 @@
+{
+  "post": "https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21",
+  "post_updated": "2026-11-08",
+  "hardware": "Three DigitalOcean c-4 droplets, Postgres 16, wrk2, median of 3 runs.",
+  "crocket": {
+    "req_s": "35.2k",
+    "peak_mb": "21",
+    "idle_mb": "13",
+    "cpu_us": "94",
+    "cores_at_4k": "0.49"
+  },
+  "rivals": {
+    "node": {
+      "label": "Node.js (Fastify)",
+      "req_s": "6.6k",
+      "peak_mb": "216",
+      "idle_mb": "87",
+      "cpu_us": "157",
+      "cores_at_4k": "0.97",
+      "req_note": "Single Node process."
+    },
+    "spring": {
+      "label": "Spring Boot",
+      "req_s": "8.4k",
+      "peak_mb": "471",
+      "idle_mb": "225",
+      "cpu_us": "393",
+      "cores_at_4k": "1.80",
+      "req_note": "JVM ran untuned."
+    }
+  }
+}

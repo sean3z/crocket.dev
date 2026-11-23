@@ -10,9 +10,7 @@ Every success response below is the same JSON. `POST /users` with `{"email":"ada
 
 ## Project and build
 
-Express is a package. crocket is a library you compile into the binary. You need GCC 16.2 with `-freflection`. Linking `crocket::crocket` turns that on, so the target doesn't set the C++ standard itself.
-
-`crocket::auth` is only there because this program checks a JWT. Drop it if you don't.
+Express installs a package and starts a script. crocket is a library you compile in. You need GCC 16.2. Linking `crocket::crocket` turns on `-freflection`, so the target doesn't set the standard itself. `crocket::auth` is only there for the JWT route.
 
 :::pair Express | crocket
 
@@ -20,23 +18,30 @@ Express is a package. crocket is a library you compile into the binary. You need
 {
   "name": "users",
   "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "express": "^5.1.0"
   }
 }
 ```
 
+```sh
+npm install
+npm start
+```
+
+|
+
 ```cmake
 cmake_minimum_required(VERSION 3.28)
 project(users CXX)
 
 include(FetchContent)
-set(crocket_pin
-9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
 FetchContent_Declare(crocket
-  GIT_REPOSITORY
-    https://github.com/sean3z/crocket.git
-  GIT_TAG ${crocket_pin})
+  GIT_REPOSITORY https://github.com/sean3z/crocket.git
+  GIT_TAG 9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)
@@ -44,17 +49,14 @@ target_link_libraries(users PRIVATE
   crocket::crocket crocket::auth)
 ```
 
-:::
-
 ```sh
-cmake -S . -B build -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=g++-16.2
+cmake -S . -B build
 cmake --build build
-./build/users
 ```
 
-Tag `0.5.1` doesn't have static files yet. This page pins the commit that does. The [quickstart](/guide/v0.5/quickstart/) is the shorter version of the same setup.
+:::
+
+`npm start` runs `node server.js`, the listen example below. The binary is `build/users`. Tag `0.5.1` has no static files, so this page pins commit `9b446f8`, which does. The [quickstart](/guide/v0.5/quickstart/) pins the tag.
 
 ## Listen
 
@@ -74,7 +76,7 @@ app.listen(port);
 ```
 
 ```cpp
-int main() {
+auto main() -> int {
   return build(Config::from_env())
       .launch();
 }
@@ -181,7 +183,8 @@ app.post("/users", (req, res) => {
 ```
 
 ```cpp
-struct NewUser {
+struct User {
+  [[= json::from_path]] std::optional<int> id;
   [[= json::email,
       = json::max_len(254)]]
   std::string email;
@@ -189,16 +192,16 @@ struct NewUser {
 };
 
 [[= http::post("/users")]]
-auto create(Json<NewUser> body)
-    -> Created<User> {
-  User user{1, body->email, body->name};
+auto create(Json<User> body) -> Created<User> {
+  User user = *body;
+  user.id = 1;
   return {user, "/users/1"};
 }
 ```
 
 :::
 
-Unknown JSON fields are ignored. Duplicate keys are an error. An empty `name` is written back as `null`. There's no schema library to keep in sync, because the struct is the schema.
+`id` is `json::from_path`. This route has no `{id}` in the path, so a body that includes `id` is 422 `json.read_only`, and the handler is what fills it in. Unknown JSON fields are ignored. Duplicate keys are an error. An empty `name` is written back as `null`. There's no schema library to keep in sync, because the struct is the schema.
 
 crocket doesn't parse `multipart/form-data` or an HTML form body. `Query<T>` is the query string. A file upload isn't a feature you can reach for yet.
 
@@ -247,8 +250,8 @@ app.use((req, res, next) => {
 
 ```cpp
 struct AppHeader {
-  void on_response(
-      const Request&, Response& rs) {
+  auto on_response(
+      const Request&, Response& rs) -> void {
     rs.headers.set("x-app", "users");
   }
 };
@@ -273,30 +276,26 @@ Passport sessions, cookie logins, and `express-session` don't have a crocket twi
 :::pair Express | crocket
 
 ```js
-app.get("/admin", async (req, res) => {
-  const header =
-    req.get("authorization") ?? "";
-  const token =
-    header.startsWith("Bearer ")
-      ? header.slice(7) : "";
-  try {
-    const { payload } = await jwtVerify(
-      token, jwks, {
-        issuer:
-          "https://login.example.com/",
-        audience: "users",
-      });
-    if (!payload.roles?.includes(
-        "admin")) {
-      return res.sendStatus(403);
-    }
-    res.type("text")
-      .send(`hello ${payload.sub}\n`);
-  } catch {
-    res.sendStatus(401);
+import { auth } from "express-oauth2-jwt-bearer";
+
+const checkJwt = auth({
+  issuerBaseURL:
+    "https://login.example.com/",
+  audience: "users",
+});
+
+app.get("/admin", checkJwt, (req, res) => {
+  const roles =
+    req.auth.payload.roles ?? [];
+  if (!roles.includes("admin")) {
+    return res.sendStatus(403);
   }
+  res.type("text")
+    .send(`hello ${req.auth.payload.sub}\n`);
 });
 ```
+
+|
 
 ```cpp
 [[= http::get("/admin"),
@@ -307,24 +306,17 @@ auto admin(Auth<> who) -> std::string {
 }
 ```
 
-:::
-
-`jwtVerify` is the `jose` package, not an Express function. The handler catches a bad token and calls `res.sendStatus(401)`. `req.get`, `res.type`, and `res.sendStatus` are Express.
-
-The verifier is managed next to the other app state. It isn't an env-var dance in this example:
-
 ```cpp
-      .manage(auth::Jwt{
-          .issuer =
-              "https://login.example.com/",
-          .audience = "users",
-          .jwks =
-              "https://login.example.com/"
-              ".well-known/jwks.json",
-      })
+      .manage(auth::Jwt::oidc(
+          "https://login.example.com/",
+          "users"))
 ```
 
-A revoked token stays valid until `exp`. There's no introspection endpoint. `#include <crocket/auth.hpp>` isn't pulled in by `crocket.hpp`.
+:::
+
+`auth` is the `express-oauth2-jwt-bearer` package. You configure it once, and the route uses that middleware. A missing or bad token is 401 before the handler runs. The handler checks `roles` and sends 403. `req.auth.payload` is the claims, and `issuerBaseURL` discovers the keys.
+
+`auth::Jwt::oidc` discovers the keys the same way when `jwks` is empty. A token without `admin` in `roles` is 403 `auth.forbidden`. A revoked token stays valid until `exp`. There's no introspection endpoint. `#include <crocket/auth.hpp>` isn't pulled in by `crocket.hpp`.
 
 ## Config
 
@@ -467,4 +459,24 @@ Fairings aren't middleware. They don't call `next`, they don't see the parsed bo
 
 There's no session store, no template engine, and no multipart parser. WebSockets, server-sent events, and streamed bodies aren't built. What's planned is [issue 37](https://github.com/sean3z/crocket/issues/37).
 
-The memory and the throughput are measured, not guessed. On the Heroes CRUD rig, crocket did 35.2k req/s at 21 MB peak, against a single Node process at 6.6k req/s and 216 MB. The numbers, the hardware, and the caveats are in [By the numbers](/#numbers) and in [Where the cycles go](https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21). [todo.crocket.dev](https://todo.crocket.dev) is a real app on this stack, not a sample pasted into a README.
+The memory and the throughput are measured, not guessed. [todo.crocket.dev](https://todo.crocket.dev) is a real app on this stack, not a sample pasted into a README.
+
+## What you'd still install
+
+crocket shows up with the boring production pieces already in the binary. Express is a fine router. The rest of this is the mall you walk through before the app feels finished.
+
+:::parity express
+
+`express.static` already handles files and ETags, so that row isn't a package. crocket doesn't rate-limit requests or gzip a response body, so those packages aren't in the pile either. The byte counts are published package sizes, not an installed `node_modules` and not a container image.
+
+## By the numbers
+
+Express isn't in this shootout. The Node column is Fastify, one process, which is the name on the homepage.
+
+:::numbers node
+
+:::cta
+primary /guide/v0.5/quickstart/ Quickstart
+/guide/v0.5/migrate-spring/ From Spring Boot
+https://todo.crocket.dev Todo demo
+:::

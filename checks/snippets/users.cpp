@@ -13,13 +13,22 @@
 
 using namespace crocket;
 
+namespace api {
+
 struct User {
-  int id = 0;
+  [[= json::from_path]] std::optional<int> id;
+  [[= json::email,
+      = json::max_len(254)]]
   std::string email;
   std::optional<std::string> name;
 };
 
-namespace api {
+[[= http::post("/users")]]
+auto create(Json<User> body) -> Created<User> {
+  User user = *body;
+  user.id = 1;
+  return {user, "/users/1"};
+}
 
 [[= http::get("/users/{id}")]]
 auto user_by_id(int id) -> Result<User> {
@@ -43,20 +52,6 @@ auto search(Query<Search> query)
   return *query;
 }
 
-struct NewUser {
-  [[= json::email,
-      = json::max_len(254)]]
-  std::string email;
-  std::optional<std::string> name;
-};
-
-[[= http::post("/users")]]
-auto create(Json<NewUser> body)
-    -> Created<User> {
-  User user{1, body->email, body->name};
-  return {user, "/users/1"};
-}
-
 [[= http::post("/users/{id}/archive")]]
 auto archive(int id) -> Status<User> {
   return Status<User>{200, User{
@@ -73,24 +68,19 @@ auto admin(Auth<> who) -> std::string {
 }  // namespace api
 
 struct AppHeader {
-  void on_response(
-      const Request&, Response& rs) {
+  auto on_response(
+      const Request&, Response& rs) -> void {
     rs.headers.set("x-app", "users");
   }
 };
 
-Crocket make_app() {
+auto make_app() -> Crocket {
   Config cfg;
   cfg.server.port = 8080;
   return build(cfg)
-      .manage(auth::Jwt{
-          .issuer =
-              "https://login.example.com/",
-          .audience = "users",
-          .jwks =
-              "https://login.example.com/"
-              ".well-known/jwks.json",
-      })
+      .manage(auth::Jwt::oidc(
+          "https://login.example.com/",
+          "users"))
       .attach(Logger{})
       .attach(Metrics{})
       .attach(AppHeader{})
@@ -103,7 +93,7 @@ Crocket make_app() {
           files{.root = "public"});
 }
 
-int main(int argc, char** argv) {
+auto main(int argc, char** argv) -> int {
   Crocket app = make_app();
   if (argc > 1 && std::string_view(argv[1]) == "--check") {
     LocalClient client(app);

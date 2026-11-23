@@ -29,7 +29,7 @@ struct Hex { std::uint32_t value; };
 
 template <>
 struct crocket::FromParam<Hex> {
-  static std::optional<Hex> parse(std::string_view s) {
+  static auto parse(std::string_view s) -> std::optional<Hex> {
     std::uint32_t v{};
     auto [p, ec] = std::from_chars(s.data(), s.data() + s.size(), v, 16);
     if (s.empty() || ec != std::errc{} || p != s.data() + s.size()) return std::nullopt;

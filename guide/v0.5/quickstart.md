@@ -41,7 +41,7 @@ auto hello(std::string_view name) -> std::string {
 
 }  // namespace api
 
-int main() {
+auto main() -> int {
   return build(Config::from_env())
       .attach(Logger{})
       .mount("/", reflect_routes<^^api>())

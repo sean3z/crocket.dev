@@ -1,11 +1,11 @@
 // The listen example on the Express and Spring Boot migration pages.
-// Config::from_env() is the call at commit 9b446f8. launch() serves.
+// Config::from_env() then launch().
 
 #include <crocket/crocket.hpp>
 
 using namespace crocket;
 
-int main() {
+auto main() -> int {
   return build(Config::from_env())
       .launch();
 }

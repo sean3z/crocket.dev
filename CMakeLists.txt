@@ -37,16 +37,33 @@ endif()
 file(GLOB GUIDE_MD CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/guide/v0.5/*.md")
 set(GUIDE_CPP "${CMAKE_CURRENT_SOURCE_DIR}/src/guide_assets.cpp")
 set(LLMS_FULL "${CMAKE_CURRENT_SOURCE_DIR}/web/llms-full.txt")
+set(HASHED_HTML
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/index.html"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/404.html"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/teapot.html"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/ai/index.html")
 add_custom_command(
-    OUTPUT "${GUIDE_CPP}" "${LLMS_FULL}"
-    COMMAND bash -c "python3 tools/build_guide.py || { test -s web/llms-full.txt && test -s src/guide_assets.cpp; }"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_guide.py" "${CMAKE_CURRENT_SOURCE_DIR}/web/llms.txt" ${GUIDE_MD}
+    OUTPUT "${GUIDE_CPP}" "${LLMS_FULL}" ${HASHED_HTML}
+    COMMAND bash -c "python3 tools/build_guide.py || { test -s web/llms-full.txt && test -s src/guide_assets.cpp && test -s src/hashed/index.html && test -s src/hashed/404.html && test -s src/hashed/teapot.html && test -s src/hashed/ai/index.html; }"
+    DEPENDS
+      "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_guide.py"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/llms.txt"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/style.css"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/theme.js"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/ai/exchange.js"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/index.html"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/404.html"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/teapot.html"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/ai/index.html"
+      "${CMAKE_CURRENT_SOURCE_DIR}/data/parity-sizes.json"
+      "${CMAKE_CURRENT_SOURCE_DIR}/data/benchmarks.json"
+      ${GUIDE_MD}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     COMMENT "Rendering the crocket guide"
     VERBATIM)
 
 add_executable(crocket-site src/main.cpp "${GUIDE_CPP}")
-set_source_files_properties(src/main.cpp PROPERTIES OBJECT_DEPENDS "${LLMS_FULL}")
+set_source_files_properties(src/main.cpp PROPERTIES OBJECT_DEPENDS "${LLMS_FULL};${HASHED_HTML}")
 target_link_libraries(crocket-site PRIVATE crocket::crocket)
 target_compile_options(crocket-site PRIVATE -Wall -Wextra -ffunction-sections -fdata-sections)
 target_link_options(crocket-site PRIVATE

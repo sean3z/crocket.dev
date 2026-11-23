@@ -630,12 +630,28 @@ code { font-family: inherit; }
 
 .guide-main .listing { margin: 1rem 0; }
 
+.guide-main .numbers {
+  gap: 1.75rem 1.25rem;
+  margin: 0.5rem 0 0;
+}
+
+.guide-main .parity-total {
+  margin: 0.85rem 0 0;
+}
+
 .compare {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
   margin: 1rem 0;
   align-items: start;
+}
+
+.compare-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
 .compare .listing { margin: 0; min-width: 0; }

@@ -1,0 +1,2041 @@
+{
+  "fetched": "2026-11-23",
+  "npm": {
+    "registry": "https://registry.npmjs.org/<name>/latest",
+    "method": "latest published version of each package; production dependencies only; dev, optional, and peer dependencies are not walked; bundled dependencies stay inside the parent's unpacked size; deduped by package name Packages with no dist.unpackedSize use the sum of file sizes in the published tarball.",
+    "direct": [
+      {
+        "name": "express",
+        "feature": "The framework"
+      },
+      {
+        "name": "zod",
+        "feature": "JSON validation"
+      },
+      {
+        "name": "express-oauth2-jwt-bearer",
+        "feature": "JWT and OIDC"
+      },
+      {
+        "name": "prom-client",
+        "feature": "Prometheus metrics"
+      },
+      {
+        "name": "express-prom-bundle",
+        "feature": "Prometheus metrics"
+      },
+      {
+        "name": "pino",
+        "feature": "Structured logging"
+      },
+      {
+        "name": "pino-http",
+        "feature": "Structured logging"
+      },
+      {
+        "name": "swagger-jsdoc",
+        "feature": "OpenAPI"
+      },
+      {
+        "name": "swagger-ui-express",
+        "feature": "OpenAPI"
+      },
+      {
+        "name": "helmet",
+        "feature": "Security headers"
+      },
+      {
+        "name": "cors",
+        "feature": "CORS"
+      },
+      {
+        "name": "@grpc/grpc-js",
+        "feature": "gRPC"
+      },
+      {
+        "name": "@grpc/proto-loader",
+        "feature": "gRPC"
+      }
+    ],
+    "packages": [
+      {
+        "name": "@grpc/grpc-js",
+        "version": "1.14.7",
+        "unpacked_bytes": 2570503,
+        "direct": true
+      },
+      {
+        "name": "@grpc/proto-loader",
+        "version": "0.8.1",
+        "unpacked_bytes": 122180,
+        "direct": true
+      },
+      {
+        "name": "cors",
+        "version": "2.8.6",
+        "unpacked_bytes": 19956,
+        "direct": true
+      },
+      {
+        "name": "express",
+        "version": "5.3.0",
+        "unpacked_bytes": 76638,
+        "direct": true
+      },
+      {
+        "name": "express-oauth2-jwt-bearer",
+        "version": "1.11.0",
+        "unpacked_bytes": 75621,
+        "direct": true
+      },
+      {
+        "name": "express-prom-bundle",
+        "version": "9.0.0",
+        "unpacked_bytes": 24134,
+        "direct": true
+      },
+      {
+        "name": "helmet",
+        "version": "8.3.0",
+        "unpacked_bytes": 105555,
+        "direct": true
+      },
+      {
+        "name": "pino",
+        "version": "10.4.0",
+        "unpacked_bytes": 705711,
+        "direct": true
+      },
+      {
+        "name": "pino-http",
+        "version": "11.0.0",
+        "unpacked_bytes": 85685,
+        "direct": true
+      },
+      {
+        "name": "prom-client",
+        "version": "15.1.3",
+        "unpacked_bytes": 126441,
+        "direct": true
+      },
+      {
+        "name": "swagger-jsdoc",
+        "version": "6.3.0",
+        "unpacked_bytes": 710019,
+        "direct": true
+      },
+      {
+        "name": "swagger-ui-express",
+        "version": "5.0.1",
+        "unpacked_bytes": 23964,
+        "direct": true
+      },
+      {
+        "name": "zod",
+        "version": "4.6.7",
+        "unpacked_bytes": 6148944,
+        "direct": true
+      },
+      {
+        "name": "@apidevtools/json-schema-ref-parser",
+        "version": "16.0.8",
+        "unpacked_bytes": 529403,
+        "direct": false
+      },
+      {
+        "name": "@apidevtools/openapi-schemas",
+        "version": "2.1.0",
+        "unpacked_bytes": 189152,
+        "direct": false
+      },
+      {
+        "name": "@apidevtools/swagger-methods",
+        "version": "3.0.2",
+        "unpacked_bytes": 6795,
+        "direct": false
+      },
+      {
+        "name": "@apidevtools/swagger-parser",
+        "version": "13.1.0",
+        "unpacked_bytes": 56311,
+        "direct": false
+      },
+      {
+        "name": "@isaacs/nonrecursive-glob-match",
+        "version": "1.1.0",
+        "unpacked_bytes": 426992,
+        "direct": false
+      },
+      {
+        "name": "@js-sdsl/ordered-map",
+        "version": "4.4.2",
+        "unpacked_bytes": 400201,
+        "direct": false
+      },
+      {
+        "name": "@opentelemetry/api",
+        "version": "1.10.0",
+        "unpacked_bytes": 622898,
+        "direct": false
+      },
+      {
+        "name": "@pinojs/redact",
+        "version": "0.4.0",
+        "unpacked_bytes": 97351,
+        "direct": false
+      },
+      {
+        "name": "@scarf/scarf",
+        "version": "1.4.0",
+        "unpacked_bytes": 38647,
+        "direct": false
+      },
+      {
+        "name": "@types/body-parser",
+        "version": "1.19.6",
+        "unpacked_bytes": 7888,
+        "direct": false
+      },
+      {
+        "name": "@types/connect",
+        "version": "3.4.38",
+        "unpacked_bytes": 5907,
+        "direct": false
+      },
+      {
+        "name": "@types/express",
+        "version": "5.0.6",
+        "unpacked_bytes": 7576,
+        "direct": false
+      },
+      {
+        "name": "@types/express-serve-static-core",
+        "version": "5.1.3",
+        "unpacked_bytes": 45367,
+        "direct": false
+      },
+      {
+        "name": "@types/http-errors",
+        "version": "2.0.5",
+        "unpacked_bytes": 6827,
+        "direct": false
+      },
+      {
+        "name": "@types/json-schema",
+        "version": "7.0.15",
+        "unpacked_bytes": 31748,
+        "direct": false
+      },
+      {
+        "name": "@types/node",
+        "version": "26.6.6",
+        "unpacked_bytes": 2586357,
+        "direct": false
+      },
+      {
+        "name": "@types/qs",
+        "version": "6.15.1",
+        "unpacked_bytes": 7564,
+        "direct": false
+      },
+      {
+        "name": "@types/range-parser",
+        "version": "1.2.7",
+        "unpacked_bytes": 4615,
+        "direct": false
+      },
+      {
+        "name": "@types/send",
+        "version": "1.2.1",
+        "unpacked_bytes": 9006,
+        "direct": false
+      },
+      {
+        "name": "@types/serve-static",
+        "version": "2.2.0",
+        "unpacked_bytes": 8660,
+        "direct": false
+      },
+      {
+        "name": "accepts",
+        "version": "1.3.8",
+        "unpacked_bytes": 16795,
+        "direct": false
+      },
+      {
+        "name": "ajv",
+        "version": "8.20.0",
+        "unpacked_bytes": 1033496,
+        "direct": false
+      },
+      {
+        "name": "ajv-draft-04",
+        "version": "1.0.0",
+        "unpacked_bytes": 32868,
+        "direct": false
+      },
+      {
+        "name": "ansi-regex",
+        "version": "6.6.0",
+        "unpacked_bytes": 9373,
+        "direct": false
+      },
+      {
+        "name": "ansi-styles",
+        "version": "7.0.0",
+        "unpacked_bytes": 22120,
+        "direct": false
+      },
+      {
+        "name": "argparse",
+        "version": "3.0.4",
+        "unpacked_bytes": 177843,
+        "direct": false
+      },
+      {
+        "name": "atomic-sleep",
+        "version": "1.0.0",
+        "unpacked_bytes": 6571,
+        "direct": false
+      },
+      {
+        "name": "balanced-match",
+        "version": "5.0.0",
+        "unpacked_bytes": 17854,
+        "direct": false
+      },
+      {
+        "name": "bintrees",
+        "version": "1.0.2",
+        "unpacked_bytes": 2351484,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "body-parser",
+        "version": "2.4.0",
+        "unpacked_bytes": 42899,
+        "direct": false
+      },
+      {
+        "name": "brace-expansion",
+        "version": "5.1.0",
+        "unpacked_bytes": 133523,
+        "direct": false
+      },
+      {
+        "name": "bytes",
+        "version": "3.1.2",
+        "unpacked_bytes": 12270,
+        "direct": false
+      },
+      {
+        "name": "call-bind-apply-helpers",
+        "version": "1.0.2",
+        "unpacked_bytes": 15952,
+        "direct": false
+      },
+      {
+        "name": "call-bound",
+        "version": "1.0.4",
+        "unpacked_bytes": 17106,
+        "direct": false
+      },
+      {
+        "name": "call-me-maybe",
+        "version": "1.0.2",
+        "unpacked_bytes": 3790,
+        "direct": false
+      },
+      {
+        "name": "cliui",
+        "version": "9.0.1",
+        "unpacked_bytes": 57360,
+        "direct": false
+      },
+      {
+        "name": "commander",
+        "version": "15.1.0",
+        "unpacked_bytes": 207052,
+        "direct": false
+      },
+      {
+        "name": "content-disposition",
+        "version": "3.1.0",
+        "unpacked_bytes": 60184,
+        "direct": false
+      },
+      {
+        "name": "content-type",
+        "version": "3.1.1",
+        "unpacked_bytes": 36219,
+        "direct": false
+      },
+      {
+        "name": "cookie",
+        "version": "2.0.2",
+        "unpacked_bytes": 61272,
+        "direct": false
+      },
+      {
+        "name": "cookie-signature",
+        "version": "1.2.2",
+        "unpacked_bytes": 4993,
+        "direct": false
+      },
+      {
+        "name": "debug",
+        "version": "4.4.3",
+        "unpacked_bytes": 42793,
+        "direct": false
+      },
+      {
+        "name": "depd",
+        "version": "2.0.0",
+        "unpacked_bytes": 27117,
+        "direct": false
+      },
+      {
+        "name": "doctrine",
+        "version": "3.0.0",
+        "unpacked_bytes": 106364,
+        "direct": false
+      },
+      {
+        "name": "dunder-proto",
+        "version": "1.0.1",
+        "unpacked_bytes": 13003,
+        "direct": false
+      },
+      {
+        "name": "ee-first",
+        "version": "1.1.1",
+        "unpacked_bytes": 6259,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "encodeurl",
+        "version": "3.0.1",
+        "unpacked_bytes": 10702,
+        "direct": false
+      },
+      {
+        "name": "es-define-property",
+        "version": "1.0.1",
+        "unpacked_bytes": 10217,
+        "direct": false
+      },
+      {
+        "name": "es-errors",
+        "version": "1.3.0",
+        "unpacked_bytes": 12324,
+        "direct": false
+      },
+      {
+        "name": "es-object-atoms",
+        "version": "1.1.2",
+        "unpacked_bytes": 11967,
+        "direct": false
+      },
+      {
+        "name": "escalade",
+        "version": "3.2.0",
+        "unpacked_bytes": 12385,
+        "direct": false
+      },
+      {
+        "name": "escape-html",
+        "version": "1.0.3",
+        "unpacked_bytes": 3660,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "esutils",
+        "version": "2.0.3",
+        "unpacked_bytes": 50582,
+        "direct": false
+      },
+      {
+        "name": "etag",
+        "version": "2.0.0",
+        "unpacked_bytes": 11194,
+        "direct": false
+      },
+      {
+        "name": "fast-deep-equal",
+        "version": "3.1.3",
+        "unpacked_bytes": 12966,
+        "direct": false
+      },
+      {
+        "name": "fast-uri",
+        "version": "4.2.3",
+        "unpacked_bytes": 331611,
+        "direct": false
+      },
+      {
+        "name": "finalhandler",
+        "version": "2.1.1",
+        "unpacked_bytes": 18111,
+        "direct": false
+      },
+      {
+        "name": "forwarded",
+        "version": "0.2.0",
+        "unpacked_bytes": 5876,
+        "direct": false
+      },
+      {
+        "name": "fresh",
+        "version": "0.5.2",
+        "unpacked_bytes": 10116,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "function-bind",
+        "version": "1.1.2",
+        "unpacked_bytes": 31427,
+        "direct": false
+      },
+      {
+        "name": "get-caller-file",
+        "version": "2.0.5",
+        "unpacked_bytes": 4719,
+        "direct": false
+      },
+      {
+        "name": "get-east-asian-width",
+        "version": "1.7.0",
+        "unpacked_bytes": 14724,
+        "direct": false
+      },
+      {
+        "name": "get-intrinsic",
+        "version": "1.3.0",
+        "unpacked_bytes": 46542,
+        "direct": false
+      },
+      {
+        "name": "get-proto",
+        "version": "1.0.1",
+        "unpacked_bytes": 10840,
+        "direct": false
+      },
+      {
+        "name": "glob",
+        "version": "14.0.6",
+        "unpacked_bytes": 1898653,
+        "direct": false
+      },
+      {
+        "name": "gopd",
+        "version": "1.2.0",
+        "unpacked_bytes": 9869,
+        "direct": false
+      },
+      {
+        "name": "has-symbols",
+        "version": "1.1.0",
+        "unpacked_bytes": 23409,
+        "direct": false
+      },
+      {
+        "name": "hasown",
+        "version": "2.0.4",
+        "unpacked_bytes": 10332,
+        "direct": false
+      },
+      {
+        "name": "http-errors",
+        "version": "2.0.1",
+        "unpacked_bytes": 19064,
+        "direct": false
+      },
+      {
+        "name": "iconv-lite",
+        "version": "0.7.3",
+        "unpacked_bytes": 344185,
+        "direct": false
+      },
+      {
+        "name": "inherits",
+        "version": "2.0.4",
+        "unpacked_bytes": 3958,
+        "direct": false
+      },
+      {
+        "name": "ipaddr.js",
+        "version": "2.5.0",
+        "unpacked_bytes": 64424,
+        "direct": false
+      },
+      {
+        "name": "is-promise",
+        "version": "4.0.0",
+        "unpacked_bytes": 2958,
+        "direct": false
+      },
+      {
+        "name": "jose",
+        "version": "6.2.18",
+        "unpacked_bytes": 222333,
+        "direct": false
+      },
+      {
+        "name": "js-yaml",
+        "version": "5.5.0",
+        "unpacked_bytes": 1626579,
+        "direct": false
+      },
+      {
+        "name": "json-schema-traverse",
+        "version": "1.0.0",
+        "unpacked_bytes": 22220,
+        "direct": false
+      },
+      {
+        "name": "lodash.camelcase",
+        "version": "4.3.0",
+        "unpacked_bytes": 21934,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "lodash.mergewith",
+        "version": "4.6.2",
+        "unpacked_bytes": 54199,
+        "direct": false
+      },
+      {
+        "name": "long",
+        "version": "5.3.2",
+        "unpacked_bytes": 139458,
+        "direct": false
+      },
+      {
+        "name": "lru-cache",
+        "version": "11.5.3",
+        "unpacked_bytes": 3334485,
+        "direct": false
+      },
+      {
+        "name": "math-intrinsics",
+        "version": "1.1.0",
+        "unpacked_bytes": 17323,
+        "direct": false
+      },
+      {
+        "name": "merge-descriptors",
+        "version": "2.0.0",
+        "unpacked_bytes": 4373,
+        "direct": false
+      },
+      {
+        "name": "mime-db",
+        "version": "1.54.0",
+        "unpacked_bytes": 225566,
+        "direct": false
+      },
+      {
+        "name": "mime-types",
+        "version": "3.0.2",
+        "unpacked_bytes": 22871,
+        "direct": false
+      },
+      {
+        "name": "minimatch",
+        "version": "11.0.9",
+        "unpacked_bytes": 507556,
+        "direct": false
+      },
+      {
+        "name": "minipass",
+        "version": "7.1.3",
+        "unpacked_bytes": 366791,
+        "direct": false
+      },
+      {
+        "name": "ms",
+        "version": "2.1.3",
+        "unpacked_bytes": 6721,
+        "direct": false
+      },
+      {
+        "name": "negotiator",
+        "version": "1.1.0",
+        "unpacked_bytes": 24407,
+        "direct": false
+      },
+      {
+        "name": "object-assign",
+        "version": "4.1.1",
+        "unpacked_bytes": 5493,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "object-inspect",
+        "version": "1.14.0",
+        "unpacked_bytes": 86766,
+        "direct": false
+      },
+      {
+        "name": "on-exit-leak-free",
+        "version": "2.1.2",
+        "unpacked_bytes": 9246,
+        "direct": false
+      },
+      {
+        "name": "on-finished",
+        "version": "2.4.2",
+        "unpacked_bytes": 12172,
+        "direct": false
+      },
+      {
+        "name": "once",
+        "version": "1.4.0",
+        "unpacked_bytes": 4046,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "parseurl",
+        "version": "1.3.3",
+        "unpacked_bytes": 10299,
+        "direct": false
+      },
+      {
+        "name": "path-scurry",
+        "version": "3.0.0",
+        "unpacked_bytes": 542674,
+        "direct": false
+      },
+      {
+        "name": "path-to-regexp",
+        "version": "9.0.0",
+        "unpacked_bytes": 60461,
+        "direct": false
+      },
+      {
+        "name": "pino-abstract-transport",
+        "version": "3.0.0",
+        "unpacked_bytes": 39716,
+        "direct": false
+      },
+      {
+        "name": "pino-std-serializers",
+        "version": "7.1.0",
+        "unpacked_bytes": 54009,
+        "direct": false
+      },
+      {
+        "name": "process-warning",
+        "version": "5.1.1",
+        "unpacked_bytes": 36172,
+        "direct": false
+      },
+      {
+        "name": "protobufjs",
+        "version": "8.8.1",
+        "unpacked_bytes": 3778568,
+        "direct": false
+      },
+      {
+        "name": "proxy-addr",
+        "version": "2.0.8",
+        "unpacked_bytes": 16326,
+        "direct": false
+      },
+      {
+        "name": "qs",
+        "version": "6.17.1",
+        "unpacked_bytes": 459008,
+        "direct": false
+      },
+      {
+        "name": "quick-format-unescaped",
+        "version": "4.0.4",
+        "unpacked_bytes": 12829,
+        "direct": false
+      },
+      {
+        "name": "range-parser",
+        "version": "2.0.0",
+        "unpacked_bytes": 24232,
+        "direct": false
+      },
+      {
+        "name": "raw-body",
+        "version": "4.0.0",
+        "unpacked_bytes": 30081,
+        "direct": false
+      },
+      {
+        "name": "real-require",
+        "version": "1.0.0",
+        "unpacked_bytes": 3929,
+        "direct": false
+      },
+      {
+        "name": "require-from-string",
+        "version": "2.0.2",
+        "unpacked_bytes": 3422,
+        "direct": false
+      },
+      {
+        "name": "router",
+        "version": "2.3.0",
+        "unpacked_bytes": 80745,
+        "direct": false
+      },
+      {
+        "name": "safe-stable-stringify",
+        "version": "3.0.1",
+        "unpacked_bytes": 39088,
+        "direct": false
+      },
+      {
+        "name": "safer-buffer",
+        "version": "2.1.2",
+        "unpacked_bytes": 42299,
+        "direct": false
+      },
+      {
+        "name": "send",
+        "version": "1.2.1",
+        "unpacked_bytes": 32200,
+        "direct": false
+      },
+      {
+        "name": "serve-static",
+        "version": "2.2.1",
+        "unpacked_bytes": 14335,
+        "direct": false
+      },
+      {
+        "name": "setprototypeof",
+        "version": "1.2.0",
+        "unpacked_bytes": 4025,
+        "direct": false
+      },
+      {
+        "name": "side-channel",
+        "version": "1.1.1",
+        "unpacked_bytes": 22864,
+        "direct": false
+      },
+      {
+        "name": "side-channel-list",
+        "version": "1.0.1",
+        "unpacked_bytes": 16973,
+        "direct": false
+      },
+      {
+        "name": "side-channel-map",
+        "version": "1.0.1",
+        "unpacked_bytes": 13348,
+        "direct": false
+      },
+      {
+        "name": "side-channel-weakmap",
+        "version": "1.0.2",
+        "unpacked_bytes": 14667,
+        "direct": false
+      },
+      {
+        "name": "sonic-boom",
+        "version": "5.0.2",
+        "unpacked_bytes": 123700,
+        "direct": false
+      },
+      {
+        "name": "split2",
+        "version": "4.2.0",
+        "unpacked_bytes": 17419,
+        "direct": false
+      },
+      {
+        "name": "statuses",
+        "version": "2.0.2",
+        "unpacked_bytes": 12505,
+        "direct": false
+      },
+      {
+        "name": "string-width",
+        "version": "9.0.0",
+        "unpacked_bytes": 17209,
+        "direct": false
+      },
+      {
+        "name": "strip-ansi",
+        "version": "7.2.0",
+        "unpacked_bytes": 4276,
+        "direct": false
+      },
+      {
+        "name": "swagger-ui-dist",
+        "version": "5.36.0",
+        "unpacked_bytes": 13351918,
+        "direct": false
+      },
+      {
+        "name": "tdigest",
+        "version": "0.1.3",
+        "unpacked_bytes": 43150,
+        "direct": false
+      },
+      {
+        "name": "thread-stream",
+        "version": "4.2.1",
+        "unpacked_bytes": 102614,
+        "direct": false
+      },
+      {
+        "name": "toidentifier",
+        "version": "1.0.1",
+        "unpacked_bytes": 4685,
+        "direct": false
+      },
+      {
+        "name": "type-is",
+        "version": "3.0.0",
+        "unpacked_bytes": 27670,
+        "direct": false
+      },
+      {
+        "name": "undici-types",
+        "version": "8.13.1",
+        "unpacked_bytes": 124844,
+        "direct": false
+      },
+      {
+        "name": "url-value-parser",
+        "version": "2.2.0",
+        "unpacked_bytes": 7547,
+        "direct": false
+      },
+      {
+        "name": "vary",
+        "version": "1.1.2",
+        "unpacked_bytes": 8747,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "wrap-ansi",
+        "version": "10.0.2",
+        "unpacked_bytes": 25896,
+        "direct": false
+      },
+      {
+        "name": "wrappy",
+        "version": "1.0.2",
+        "unpacked_bytes": 2961,
+        "direct": false,
+        "size_source": "tarball member sizes"
+      },
+      {
+        "name": "y18n",
+        "version": "5.0.8",
+        "unpacked_bytes": 23435,
+        "direct": false
+      },
+      {
+        "name": "yaml",
+        "version": "2.9.1",
+        "unpacked_bytes": 686297,
+        "direct": false
+      },
+      {
+        "name": "yargs",
+        "version": "18.2.0",
+        "unpacked_bytes": 236734,
+        "direct": false
+      },
+      {
+        "name": "yargs-parser",
+        "version": "22.0.0",
+        "unpacked_bytes": 85628,
+        "direct": false
+      }
+    ],
+    "missing_unpacked_size": [],
+    "direct_count": 13,
+    "package_count": 149,
+    "total_unpacked_bytes": 50362035
+  },
+  "maven": {
+    "repository": "https://repo1.maven.org/maven2",
+    "method": "jar Content-Length from Maven Central; compile and runtime dependencies; test, provided, optional, and BOM imports excluded; versions from spring-boot-dependencies 3.5.0 when a POM omits one; deduped by group:artifact. springdoc 2.8.16 is the latest 2.8 release (3.x targets Spring Boot 4).",
+    "direct": [
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-web",
+        "version": "3.5.0",
+        "feature": "HTTP and JSON"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-validation",
+        "version": "3.5.0",
+        "feature": "JSON validation"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-security",
+        "version": "3.5.0",
+        "feature": "Security headers"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-oauth2-resource-server",
+        "version": "3.5.0",
+        "feature": "JWT and OIDC"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-actuator",
+        "version": "3.5.0",
+        "feature": "Metrics"
+      },
+      {
+        "group": "io.micrometer",
+        "artifact": "micrometer-registry-prometheus",
+        "version": "1.15.0",
+        "feature": "Prometheus metrics"
+      },
+      {
+        "group": "org.springdoc",
+        "artifact": "springdoc-openapi-starter-webmvc-ui",
+        "version": "2.8.16",
+        "feature": "OpenAPI"
+      },
+      {
+        "group": "net.devh",
+        "artifact": "grpc-spring-boot-starter",
+        "version": "3.1.0.RELEASE",
+        "feature": "gRPC"
+      }
+    ],
+    "artifacts": [
+      {
+        "group": "io.micrometer",
+        "artifact": "micrometer-registry-prometheus",
+        "version": "1.15.0",
+        "jar_bytes": 42167,
+        "direct": true,
+        "feature": "Prometheus metrics",
+        "packaging": "jar"
+      },
+      {
+        "group": "net.devh",
+        "artifact": "grpc-spring-boot-starter",
+        "version": "3.1.0.RELEASE",
+        "jar_bytes": 4549,
+        "direct": true,
+        "feature": "gRPC",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springdoc",
+        "artifact": "springdoc-openapi-starter-webmvc-ui",
+        "version": "2.8.16",
+        "jar_bytes": 24196,
+        "direct": true,
+        "feature": "OpenAPI",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-actuator",
+        "version": "3.5.0",
+        "jar_bytes": 4805,
+        "direct": true,
+        "feature": "Metrics",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-oauth2-resource-server",
+        "version": "3.5.0",
+        "jar_bytes": 4774,
+        "direct": true,
+        "feature": "JWT and OIDC",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-security",
+        "version": "3.5.0",
+        "jar_bytes": 4741,
+        "direct": true,
+        "feature": "Security headers",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-validation",
+        "version": "3.5.0",
+        "jar_bytes": 4766,
+        "direct": true,
+        "feature": "JSON validation",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-web",
+        "version": "3.5.0",
+        "jar_bytes": 4802,
+        "direct": true,
+        "feature": "HTTP and JSON",
+        "packaging": "jar"
+      },
+      {
+        "group": "ch.qos.logback",
+        "artifact": "logback-classic",
+        "version": "1.5.18",
+        "jar_bytes": 306760,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "ch.qos.logback",
+        "artifact": "logback-core",
+        "version": "1.5.18",
+        "jar_bytes": 627250,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.fasterxml",
+        "artifact": "classmate",
+        "version": "1.5.1",
+        "jar_bytes": 67815,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "com.fasterxml.jackson.core",
+        "artifact": "jackson-annotations",
+        "version": "2.19.0",
+        "jar_bytes": 78580,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.fasterxml.jackson.core",
+        "artifact": "jackson-core",
+        "version": "2.19.0",
+        "jar_bytes": 599926,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.fasterxml.jackson.core",
+        "artifact": "jackson-databind",
+        "version": "2.19.0",
+        "jar_bytes": 1678748,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.fasterxml.jackson.dataformat",
+        "artifact": "jackson-dataformat-yaml",
+        "version": "2.19.2",
+        "jar_bytes": 60230,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.fasterxml.jackson.datatype",
+        "artifact": "jackson-datatype-jdk8",
+        "version": "2.19.0",
+        "jar_bytes": 36215,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "com.fasterxml.jackson.datatype",
+        "artifact": "jackson-datatype-jsr310",
+        "version": "2.19.0",
+        "jar_bytes": 136957,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "com.fasterxml.jackson.module",
+        "artifact": "jackson-module-parameter-names",
+        "version": "2.19.0",
+        "jar_bytes": 10391,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "com.github.stephenc.jcip",
+        "artifact": "jcip-annotations",
+        "version": "1.0-1",
+        "jar_bytes": 4722,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.android",
+        "artifact": "annotations",
+        "version": "4.1.1.4",
+        "jar_bytes": 3120,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.api.grpc",
+        "artifact": "proto-google-common-protos",
+        "version": "2.29.0",
+        "jar_bytes": 2030846,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.code.findbugs",
+        "artifact": "jsr305",
+        "version": "3.0.2",
+        "jar_bytes": 19936,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.code.gson",
+        "artifact": "gson",
+        "version": "2.10.1",
+        "jar_bytes": 283367,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.errorprone",
+        "artifact": "error_prone_annotations",
+        "version": "2.23.0",
+        "jar_bytes": 16829,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.guava",
+        "artifact": "failureaccess",
+        "version": "1.0.1",
+        "jar_bytes": 4617,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "com.google.guava",
+        "artifact": "guava",
+        "version": "32.1.3-android",
+        "jar_bytes": 2863205,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "com.google.guava",
+        "artifact": "listenablefuture",
+        "version": "9999.0-empty-to-avoid-conflict-with-guava",
+        "jar_bytes": 2199,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.j2objc",
+        "artifact": "j2objc-annotations",
+        "version": "2.8",
+        "jar_bytes": 9301,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.protobuf",
+        "artifact": "protobuf-java",
+        "version": "3.25.1",
+        "jar_bytes": 1875070,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.protobuf",
+        "artifact": "protobuf-java-util",
+        "version": "3.25.1",
+        "jar_bytes": 73122,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.google.protobuf",
+        "artifact": "protobuf-javalite",
+        "version": "3.25.1",
+        "jar_bytes": 711118,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.nimbusds",
+        "artifact": "nimbus-jose-jwt",
+        "version": "9.37.3",
+        "jar_bytes": 779374,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "com.sun.activation",
+        "artifact": "jakarta.activation",
+        "version": "2.0.1",
+        "jar_bytes": 62154,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "commons-io",
+        "artifact": "commons-io",
+        "version": "2.18.0",
+        "jar_bytes": 538910,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-api",
+        "version": "1.63.0",
+        "jar_bytes": 297526,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-context",
+        "version": "1.63.0",
+        "jar_bytes": 293,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-core",
+        "version": "1.63.0",
+        "jar_bytes": 634235,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-inprocess",
+        "version": "1.63.0",
+        "jar_bytes": 40555,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-netty-shaded",
+        "version": "1.63.0",
+        "jar_bytes": 9753447,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-protobuf",
+        "version": "1.63.0",
+        "jar_bytes": 5223,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-protobuf-lite",
+        "version": "1.63.0",
+        "jar_bytes": 7853,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-services",
+        "version": "1.63.0",
+        "jar_bytes": 828981,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-stub",
+        "version": "1.63.0",
+        "jar_bytes": 50249,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.grpc",
+        "artifact": "grpc-util",
+        "version": "1.63.0",
+        "jar_bytes": 99374,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.micrometer",
+        "artifact": "micrometer-commons",
+        "version": "1.14.7",
+        "jar_bytes": 47921,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.micrometer",
+        "artifact": "micrometer-core",
+        "version": "1.15.0",
+        "jar_bytes": 863849,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.micrometer",
+        "artifact": "micrometer-jakarta9",
+        "version": "1.15.0",
+        "jar_bytes": 32821,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.micrometer",
+        "artifact": "micrometer-observation",
+        "version": "1.14.7",
+        "jar_bytes": 75025,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.perfmark",
+        "artifact": "perfmark-api",
+        "version": "0.26.0",
+        "jar_bytes": 6816,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-config",
+        "version": "1.3.6",
+        "jar_bytes": 33215,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-core",
+        "version": "1.3.6",
+        "jar_bytes": 95554,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-exposition-formats",
+        "version": "1.3.6",
+        "jar_bytes": 2094866,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-exposition-textformats",
+        "version": "1.3.6",
+        "jar_bytes": 19592,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-model",
+        "version": "1.3.6",
+        "jar_bytes": 90911,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-tracer-common",
+        "version": "1.3.6",
+        "jar_bytes": 3280,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-tracer-initializer",
+        "version": "1.3.6",
+        "jar_bytes": 3967,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-tracer-otel",
+        "version": "1.3.6",
+        "jar_bytes": 3975,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.prometheus",
+        "artifact": "prometheus-metrics-tracer-otel-agent",
+        "version": "1.3.6",
+        "jar_bytes": 4276,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "io.swagger.core.v3",
+        "artifact": "swagger-annotations-jakarta",
+        "version": "2.2.43",
+        "jar_bytes": 50576,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.swagger.core.v3",
+        "artifact": "swagger-core-jakarta",
+        "version": "2.2.43",
+        "jar_bytes": 257748,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "io.swagger.core.v3",
+        "artifact": "swagger-models-jakarta",
+        "version": "2.2.43",
+        "jar_bytes": 141530,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "jakarta.annotation",
+        "artifact": "jakarta.annotation-api",
+        "version": "2.1.1",
+        "jar_bytes": 26141,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "jakarta.validation",
+        "artifact": "jakarta.validation-api",
+        "version": "3.0.2",
+        "jar_bytes": 93298,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "jakarta.xml.bind",
+        "artifact": "jakarta.xml.bind-api",
+        "version": "3.0.1",
+        "jar_bytes": 128941,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "net.devh",
+        "artifact": "grpc-client-spring-boot-starter",
+        "version": "3.1.0.RELEASE",
+        "jar_bytes": 117849,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "net.devh",
+        "artifact": "grpc-common-spring-boot",
+        "version": "3.1.0.RELEASE",
+        "jar_bytes": 24759,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "net.devh",
+        "artifact": "grpc-server-spring-boot-starter",
+        "version": "3.1.0.RELEASE",
+        "jar_bytes": 144191,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.apache.commons",
+        "artifact": "commons-lang3",
+        "version": "3.20.0",
+        "jar_bytes": 713862,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.apache.logging.log4j",
+        "artifact": "log4j-api",
+        "version": "2.24.3",
+        "jar_bytes": 348513,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.apache.logging.log4j",
+        "artifact": "log4j-to-slf4j",
+        "version": "2.24.3",
+        "jar_bytes": 23834,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.apache.tomcat",
+        "artifact": "tomcat-annotations-api",
+        "version": "10.1.41",
+        "jar_bytes": 14236,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.apache.tomcat.embed",
+        "artifact": "tomcat-embed-core",
+        "version": "10.1.41",
+        "jar_bytes": 3626407,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.apache.tomcat.embed",
+        "artifact": "tomcat-embed-el",
+        "version": "10.1.41",
+        "jar_bytes": 265867,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.apache.tomcat.embed",
+        "artifact": "tomcat-embed-websocket",
+        "version": "10.1.41",
+        "jar_bytes": 281675,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.checkerframework",
+        "artifact": "checker-qual",
+        "version": "3.37.0",
+        "jar_bytes": 224460,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.codehaus.mojo",
+        "artifact": "animal-sniffer-annotations",
+        "version": "1.23",
+        "jar_bytes": 3109,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.hdrhistogram",
+        "artifact": "HdrHistogram",
+        "version": "2.2.2",
+        "jar_bytes": 177206,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      },
+      {
+        "group": "org.hibernate.validator",
+        "artifact": "hibernate-validator",
+        "version": "8.0.2.Final",
+        "jar_bytes": 1327484,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.jboss.logging",
+        "artifact": "jboss-logging",
+        "version": "3.4.3.Final",
+        "jar_bytes": 60782,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.jspecify",
+        "artifact": "jspecify",
+        "version": "1.0.0",
+        "jar_bytes": 3819,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.latencyutils",
+        "artifact": "LatencyUtils",
+        "version": "2.0.3",
+        "jar_bytes": 29779,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.slf4j",
+        "artifact": "jul-to-slf4j",
+        "version": "2.0.17",
+        "jar_bytes": 6349,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.slf4j",
+        "artifact": "slf4j-api",
+        "version": "2.0.17",
+        "jar_bytes": 69908,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springdoc",
+        "artifact": "springdoc-openapi-starter-common",
+        "version": "2.8.16",
+        "jar_bytes": 550193,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springdoc",
+        "artifact": "springdoc-openapi-starter-webmvc-api",
+        "version": "2.8.16",
+        "jar_bytes": 41058,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework",
+        "artifact": "spring-aop",
+        "version": "6.2.7",
+        "jar_bytes": 419803,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework",
+        "artifact": "spring-beans",
+        "version": "6.2.7",
+        "jar_bytes": 886414,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework",
+        "artifact": "spring-context",
+        "version": "6.2.7",
+        "jar_bytes": 1357447,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework",
+        "artifact": "spring-core",
+        "version": "6.2.7",
+        "jar_bytes": 1962562,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework",
+        "artifact": "spring-expression",
+        "version": "6.2.7",
+        "jar_bytes": 317832,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework",
+        "artifact": "spring-jcl",
+        "version": "6.2.7",
+        "jar_bytes": 24539,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework",
+        "artifact": "spring-web",
+        "version": "6.2.7",
+        "jar_bytes": 2088910,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework",
+        "artifact": "spring-webmvc",
+        "version": "6.2.7",
+        "jar_bytes": 1089611,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot",
+        "version": "3.5.0",
+        "jar_bytes": 1892327,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-actuator",
+        "version": "3.5.0",
+        "jar_bytes": 703234,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-actuator-autoconfigure",
+        "version": "3.5.0",
+        "jar_bytes": 834466,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-autoconfigure",
+        "version": "3.5.0",
+        "jar_bytes": 2072527,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter",
+        "version": "3.5.0",
+        "jar_bytes": 4767,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-json",
+        "version": "3.5.0",
+        "jar_bytes": 4746,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-logging",
+        "version": "3.5.0",
+        "jar_bytes": 4756,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.boot",
+        "artifact": "spring-boot-starter-tomcat",
+        "version": "3.5.0",
+        "jar_bytes": 4791,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.security",
+        "artifact": "spring-security-config",
+        "version": "6.5.0",
+        "jar_bytes": 2101084,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.security",
+        "artifact": "spring-security-core",
+        "version": "6.5.0",
+        "jar_bytes": 618776,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.security",
+        "artifact": "spring-security-crypto",
+        "version": "6.5.0",
+        "jar_bytes": 100789,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.security",
+        "artifact": "spring-security-oauth2-core",
+        "version": "6.5.0",
+        "jar_bytes": 106931,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.security",
+        "artifact": "spring-security-oauth2-jose",
+        "version": "6.5.0",
+        "jar_bytes": 122482,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.security",
+        "artifact": "spring-security-oauth2-resource-server",
+        "version": "6.5.0",
+        "jar_bytes": 120509,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.springframework.security",
+        "artifact": "spring-security-web",
+        "version": "6.5.0",
+        "jar_bytes": 1047763,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.webjars",
+        "artifact": "swagger-ui",
+        "version": "5.32.0",
+        "jar_bytes": 1144952,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.webjars",
+        "artifact": "webjars-locator-lite",
+        "version": "1.1.3",
+        "jar_bytes": 8676,
+        "direct": false,
+        "feature": "",
+        "packaging": "jar"
+      },
+      {
+        "group": "org.yaml",
+        "artifact": "snakeyaml",
+        "version": "2.4",
+        "jar_bytes": 339825,
+        "direct": false,
+        "feature": "",
+        "packaging": "bundle"
+      }
+    ],
+    "missing_jars": [],
+    "direct_count": 8,
+    "artifact_count": 111,
+    "pom_only_count": 0,
+    "total_jar_bytes": 56203459
+  },
+  "crocket_binary": {
+    "program": "checks/snippets/users.cpp",
+    "target": "migrate-snippets",
+    "build": "Release",
+    "commit": "9b446f8c2423262ef1cbf3afe370a0ae2f81d181",
+    "stripped_bytes": 2405064,
+    "stripped_tool": "strip --strip-unneeded",
+    "libstdcxx_bytes": 2813040,
+    "libstdcxx_file": "GCC 16.2 libstdc++.so.6.0.36",
+    "note": "Measured 2026-11-23 from the Release link of this page's program. The dynamic libstdc++ is not inside the binary."
+  }
+}

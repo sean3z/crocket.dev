@@ -8,42 +8,66 @@ The crocket column is `checks/snippets/users.cpp`, compiled against commit `9b44
 
 ## Project and build
 
-Spring Boot is a starter and a plugin. crocket is a library fetched at configure time. You need GCC 16.2. `crocket::auth` is here only for the JWT route.
+Spring Boot is a starter. crocket is a library fetched at configure time. You need GCC 16.2. `crocket::auth` is here only for the JWT route.
 
 :::pair Spring Boot | crocket
 
-```java
-plugins {
-  id("org.springframework.boot")
-      version "3.5.0"
-  id("io.spring.dependency-management")
-      version "1.1.7"
-}
-dependencies {
-  implementation(
-      "org.springframework.boot:"
-      + "spring-boot-starter-web")
-  implementation(
-      "org.springframework.boot:"
-      + "spring-boot-starter-validation")
-  implementation(
-      "org.springframework.boot:"
-      + "spring-boot-starter-oauth2-"
-      + "resource-server")
-}
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.0</version>
+  </parent>
+  <groupId>com.example</groupId>
+  <artifactId>users</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
 ```
+
+```sh
+mvn package
+java -jar target/users-0.0.1-SNAPSHOT.jar
+```
+
+|
 
 ```cmake
 cmake_minimum_required(VERSION 3.28)
 project(users CXX)
 
 include(FetchContent)
-set(crocket_pin
-9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
 FetchContent_Declare(crocket
-  GIT_REPOSITORY
-    https://github.com/sean3z/crocket.git
-  GIT_TAG ${crocket_pin})
+  GIT_REPOSITORY https://github.com/sean3z/crocket.git
+  GIT_TAG 9b446f8c2423262ef1cbf3afe370a0ae2f81d181)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)
@@ -51,17 +75,14 @@ target_link_libraries(users PRIVATE
   crocket::crocket crocket::auth)
 ```
 
-:::
-
 ```sh
-cmake -S . -B build -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=g++-16.2
+cmake -S . -B build
 cmake --build build
-./build/users
 ```
 
-There's no annotation processor and no `target/classes`. The binary is the server. Tag `0.5.1` doesn't include static files. Pin `9b446f8` when you need them. The [quickstart](/guide/v0.5/quickstart/) is the short form.
+:::
+
+The jar name follows the artifact id and version. The crocket binary is `build/users`. Tag `0.5.1` has no static files. Pin `9b446f8` when you need them. The [quickstart](/guide/v0.5/quickstart/) pins the tag.
 
 ## Listen
 
@@ -80,7 +101,7 @@ public class UsersApplication {
 ```
 
 ```cpp
-int main() {
+auto main() -> int {
   return build(Config::from_env())
       .launch();
 }
@@ -187,7 +208,8 @@ ResponseEntity<User> create(
 ```
 
 ```cpp
-struct NewUser {
+struct User {
+  [[= json::from_path]] std::optional<int> id;
   [[= json::email,
       = json::max_len(254)]]
   std::string email;
@@ -195,14 +217,16 @@ struct NewUser {
 };
 
 [[= http::post("/users")]]
-auto create(Json<NewUser> body)
-    -> Created<User> {
-  User user{1, body->email, body->name};
+auto create(Json<User> body) -> Created<User> {
+  User user = *body;
+  user.id = 1;
   return {user, "/users/1"};
 }
 ```
 
 :::
+
+`id` is `json::from_path`. This route has no `{id}` in the path, so a body that includes `id` is 422 `json.read_only`, and the handler is what fills it in. Spring's two types are the usual split. crocket keeps one.
 
 `@Valid` on `@RequestBody` runs Jakarta Bean Validation. Spring's reference says a failure raises `MethodArgumentNotValidException`, which is a 400. crocket's is 422 `json.validation`, and every failing field is in that one body. If you need Spring to answer 422 too, map that exception yourself. I'm not going to pretend the defaults match. `@Email`, `@NotBlank`, and `@Size` are `jakarta.validation.constraints`. `@Size` on a nullable `name` doesn't reject null.
 
@@ -261,8 +285,8 @@ class AppHeader
 
 ```cpp
 struct AppHeader {
-  void on_response(
-      const Request&, Response& rs) {
+  auto on_response(
+      const Request&, Response& rs) -> void {
     rs.headers.set("x-app", "users");
   }
 };
@@ -306,33 +330,45 @@ auto admin(Auth<> who) -> std::string {
 
 :::
 
-Spring still needs the resource-server config that demands the role. crocket puts that on the function. The verifier is this value:
+Spring still needs the resource-server config that demands the role. crocket puts that on the function. The verifier is this call. With no `jwks` URL, crocket discovers the keys from the issuer.
 
 ```cpp
-      .manage(auth::Jwt{
-          .issuer =
-              "https://login.example.com/",
-          .audience = "users",
-          .jwks =
-              "https://login.example.com/"
-              ".well-known/jwks.json",
-      })
+      .manage(auth::Jwt::oidc(
+          "https://login.example.com/",
+          "users"))
 ```
 
 A missing token is 401. A token without `admin` in its `roles` claim is 403 `auth.forbidden`. There's no session and no remember-me. A token you revoke at the issuer keeps working until `exp`, because nothing calls an introspection endpoint. Include `<crocket/auth.hpp>` yourself. `crocket.hpp` doesn't.
 
 ## Config
 
-`application.properties` and `@Value` scatter configuration through the app. crocket keeps one `Config` and you set the fields.
+Spring Boot reads `application.yml`. crocket keeps one `Config` and you set the fields. The issuer and audience aren't fields on that object. They're the `auth::Jwt::oidc` arguments.
+
+:::pair Spring Boot | crocket
+
+```yaml
+server:
+  port: 8080
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://login.example.com/
+          audiences:
+            - users
+```
 
 ```cpp
 Config cfg;
 cfg.server.port = 8080;
 ```
 
+:::
+
 That's the whole port setup for this program. Limits, timeouts, proxies, and TLS are the same object. They're documented in [configuration](/guide/v0.5/configuration/), including the environment variables that can override a field. This page doesn't repeat those names. Values you assign after the environment is read are the ones that stick.
 
-`@ConfigurationProperties` doesn't have an equivalent generator. It's a struct you write.
+`@ConfigurationProperties` doesn't have an equivalent generator. It's a struct you write. `server.port` and `issuer-uri` don't need `@Value`.
 
 ## Static files
 
@@ -474,4 +510,24 @@ Filters aren't fairings. Nothing calls `doFilter`, `on_request` is before the ro
 
 There's no Spring Data, no session, and no Thymeleaf. An optional Postgres library exists (`crocket::pg`). It isn't JPA, and this page doesn't invent a repository API for it. Multipart uploads aren't implemented. WebSockets, server-sent events, and streamed bodies aren't either. The list of what's planned is [issue 37](https://github.com/sean3z/crocket/issues/37).
 
-On the Heroes CRUD rig, crocket's peak was 21 MB and 35.2k req/s. Spring Boot's peak on that same run was 471 MB and 8.4k req/s, with the JVM left untuned. Read the hardware and the caveats in [By the numbers](/#numbers) and in [Where the cycles go](https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21) before you quote either number. [todo.crocket.dev](https://todo.crocket.dev) is a running app, if you want to see the framework do more than answer `/users/1`.
+The memory and the throughput are measured, not guessed. [todo.crocket.dev](https://todo.crocket.dev) is a running app, if you want to see the framework do more than answer `/users/1`.
+
+## What you'd still install
+
+Spring Boot will fetch the same pockets crocket already compiled in. The bags are just heavier.
+
+:::parity spring
+
+Logback, CORS, and static files come with the web starter, so they aren't extra jars. Boot can gzip responses with a property. crocket doesn't. Neither list has a rate limiter, because crocket doesn't ship one. The byte counts are jar sizes from Maven Central, not a fat jar and not a container image.
+
+## By the numbers
+
+Same rig as the homepage. Spring Boot 3.5, JVM left untuned.
+
+:::numbers spring
+
+:::cta
+primary /guide/v0.5/quickstart/ Quickstart
+/guide/v0.5/migrate-express/ From Express
+https://todo.crocket.dev Todo demo
+:::
