@@ -112,9 +112,21 @@ Crocket make_app() {
             </figure>
           </div>
         </div>
+        <p>The assistant wrote that, and you can still read every line. A route is an annotation on a plain function, and the struct next to it is the body. Logging, metrics, and OpenAPI are on because those <code>.attach</code> lines say so. Nothing in that chain is discovered at startup. Health is already registered, so you don't write <code>/healthz</code> yourself. That's the page you'd open when a request looks wrong: the function, the struct, and the chain.</p>
+        <p>We ran it. A post of <code>{"sku":"WIDGET","qty":0}</code> came back 422 <code>json.validation</code>, detail <code>field '/qty': must be at least 1</code>, and <code>create</code> never ran. <code>GET /orders/1</code> with no token came back 401 <code>auth.missing</code>. If zero is a real order, <code>[[= json::min(1)]]</code> is the line you change. If it isn't, the client is wrong. The same run's metrics counted both, and the default shield was already on the response:</p>
+        <figure class="listing">
+          <header><span>text</span></header>
+          <pre><code>crocket_http_requests_total{method="POST",route="/orders",status="422"} 1
+crocket_http_requests_total{method="GET",route="/orders/{id}",status="401"} 1</code></pre>
+        </figure>
+        <p>The compiler catches a capture whose name doesn't match the parameter. It won't catch a minimum of 1 that should have been 0, so you still read the diff.</p>
         <p>An assistant makes the C++ cheap to write. crocket makes it easy to read and run, and you keep the speed.</p>
-        <p>A <code>qty</code> of 0 never enters <code>create</code>. That run returned 422 <code>json.validation</code>, detail <code>field '/qty': must be at least 1</code>. A read with no token returned 401 <code>auth.missing</code>. If zero is a real order, change <code>[[= json::min(1)]]</code>.</p>
-        <p>The compiler catches a capture that doesn't match. It won't catch a minimum that should have been 0. Read the diff, then the <a href="/guide/">guide</a>, the <a href="/guide/v0.5/migrate-express/">Express</a> or <a href="/guide/v0.5/migrate-spring/">Spring Boot</a> pages, or <a href="https://todo.crocket.dev">todo.crocket.dev</a>.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="/guide/v0.5/quickstart/">Quickstart</a>
+          <a class="btn" href="/guide/v0.5/migrate-express/">From Express</a>
+          <a class="btn" href="/guide/v0.5/migrate-spring/">From Spring Boot</a>
+          <a class="btn" href="https://todo.crocket.dev">Todo demo</a>
+        </div>
       </div>
     </article>
   </main>
