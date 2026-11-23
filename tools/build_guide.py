@@ -652,11 +652,20 @@ def check_links(pages):
     known = {}
     for path, text in pages.items():
         known[path] = collect_ids(text)
-    for extra in (ROOT / "web" / "index.html", ROOT / "web" / "404.html"):
+    for extra in (
+        ROOT / "web" / "index.html",
+        ROOT / "web" / "404.html",
+        ROOT / "web" / "ai" / "index.html",
+    ):
         if extra.exists():
             known[extra] = collect_ids(extra.read_text(encoding="utf-8"))
     broken = []
-    targets = [ROOT / "web" / "index.html", ROOT / "web" / "404.html", *pages.keys()]
+    targets = [
+        ROOT / "web" / "index.html",
+        ROOT / "web" / "404.html",
+        ROOT / "web" / "ai" / "index.html",
+        *pages.keys(),
+    ]
     for path in targets:
         text = path.read_text(encoding="utf-8") if path.exists() else pages.get(path, "")
         for href in re.findall(r'href="([^"]+)"', text):

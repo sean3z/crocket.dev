@@ -41,23 +41,27 @@
         <h1>A program you can still read</h1>
         <p class="tagline">The model can write the service. You still have to own it at 2 a.m.</p>
 
-        <h2 id="right-now">C++ right now</h2>
-        <p>C++ didn't go away while everyone talked about Python. In the <a href="https://www.tiobe.com/tiobe-index/">TIOBE index for November 2026</a>, C++ is 4th, with a rating of 8.35%. A year earlier it was 3rd, and the rating is down 0.60 points. TIOBE says those ratings come from skilled engineers, courses, and vendors, counted across search engines. The same page says the index isn't about the best language or the one with the most lines of code.</p>
-        <p><a href="https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/">GitHub's 2025 Octoverse</a> measures something else. Nearly 80% of new repositories used just six languages, and C++ is one of the six. The table counts 1,701,552 C++ repositories from September 2024 through August 2025. The growth column on that row is 11.82%, January through August 2025 against the same months in 2024. GitHub's note is performance-critical workloads in game engines, inference, and embedded systems supporting AI. In the AI-tagged slice of the same post, C++ crossed 7,800 repositories, up 11%.</p>
-        <p>Those two sources don't say the same thing, and they shouldn't be mashed into one "C++ is surging" line. Search interest slipped a place. New public repositories in that language still grew, and GitHub ties the work to inference and other tight loops. Assistants make the typing cheaper. They don't make a tangled service easier to page someone about.</p>
+        <h2 id="right-now">Why C++ now</h2>
+        <p><a href="https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/">GitHub's 2025 Octoverse</a> puts C++ in a small set. Nearly 80% of new repositories used just six languages, and C++ is one of them, with Python, JavaScript, TypeScript, Java, and C#. The table counts 1,701,552 C++ repositories from September 2024 through August 2025. Growth on that row is 11.82%, January through August 2025 against the same months in 2024. GitHub's note is performance-critical workloads in game engines, inference, and embedded systems supporting AI. In the AI-tagged slice of the same post, C++ crossed 7,800 repositories, up 11%. <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a> is one public example of that work. The project describes itself as LLM inference in C/C++.</p>
+        <p>Assistants are what make that trade easier to accept. In the <a href="https://survey.stackoverflow.co/2025/ai">2025 Stack Overflow Developer Survey</a>, 84% of respondents are using or planning to use AI tools in their development process, up from 76% the year before, and 51% of professional developers use them daily. <a href="https://blog.jetbrains.com/research/2025/10/state-of-developer-ecosystem-2025/">JetBrains' 2025 Developer Ecosystem Survey</a>, 24,534 developers, says 85% regularly use AI tools for coding and development, and 62% rely on at least one AI coding assistant, agent, or code editor. For the majority who have embraced those tools, nearly nine out of ten save at least an hour a week, and one in five saves eight hours or more. The activity respondents are most likely to delegate is writing boilerplate.</p>
+        <p>Cheaper drafting isn't a finished program. Stack Overflow's biggest frustration, cited by 66%, is AI solutions that are almost right, but not quite, and 45% say debugging AI-generated code is more time-consuming. JetBrains lists inconsistent quality of AI-generated code as the first concern. The traditional cost of C++ was writing it. When an assistant writes the first draft, what's left is reading it, reviewing it, and running it. That's where a small, explicit, compile-checked surface pays off. The performance and the memory savings stay. They're in <a href="/#numbers">By the numbers</a>.</p>
 
         <h2 id="review">Why the shape helps</h2>
-        <p>crocket is easy to read twice: once for the model, and once for the person who has to triage what the model wrote. A route is one annotated function. A struct is the schema. There's no macro that hides the path, no route table you have to remember to update, and no container that injects dependencies you can't grep. Logging, metrics, auth, and OpenAPI are on because a line in the builder says so. The compiler checks that the capture name matches the parameter.</p>
+        <p>crocket is built for that read. A route is one annotated function. A struct is the schema. There's no macro that hides the path, no route table you have to remember to update, and no container that injects dependencies you can't grep. Logging, metrics, auth, and OpenAPI are on because a line in the builder says so. The compiler checks that the capture name matches the parameter.</p>
         <p>On call, that small surface is the point. You search for <code>http::post</code> and you have the write path. You search for <code>attach</code> and you have the production behavior. A bad path segment fails the build, with both names in the error, instead of failing as a 404 after the deploy. The JSON decoder and the handler share one struct, so <code>qty</code> can't be a string in the handler and a number in the spec.</p>
 
         <h2 id="example">An illustrative prompt</h2>
-        <p class="note">Illustrative example, not a transcript. This isn't copied from a chat product, and it doesn't use one.</p>
-        <div class="exchange">
+        <p class="note">Not a transcript, and not a copy of a chat product.</p>
+        <div class="exchange" data-exchange>
+          <div class="exchange-bar">
+            <p class="exchange-kicker">Illustrative example</p>
+            <button type="button" class="exchange-replay" hidden>Replay</button>
+          </div>
           <p class="exchange-label">Prompt</p>
           <blockquote>Write me a fast CRUD API for orders with JWT auth, validation, metrics, health checks and OpenAPI docs, something I can actually run in production.</blockquote>
           <p class="exchange-label">Response</p>
           <div>
-            <p>Use crocket. Each route is a function, the struct is the body, and the production pieces are attached in one chain instead of discovered at startup. Here's the create and the authenticated read, short enough to review on one screen. <code>/healthz</code> is already registered.</p>
+            <p class="exchange-answer">Use crocket. Each route is a function, the struct is the body, and the production pieces are attached in one chain instead of discovered at startup. Here's the create and the authenticated read, short enough to review on one screen. <code>/healthz</code> is already registered.</p>
             <figure class="listing">
               <header><span>cpp</span></header>
               <pre><code>struct NewOrder {
@@ -160,5 +164,6 @@ crocket_http_requests_total{method="GET",route="/orders/{id}",status="401"} 1</c
       <p>Served by crocket. The orders program on this page was checked against commit <a href="https://github.com/sean3z/crocket/commit/9b446f8c2423262ef1cbf3afe370a0ae2f81d181">9b446f8</a>.</p>
     </div>
   </footer>
+  <script src="/ai/exchange.js"></script>
 </body>
 </html>

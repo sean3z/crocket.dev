@@ -649,8 +649,85 @@ code { font-family: inherit; }
   gap: 0.85rem;
   margin-top: 1rem;
   min-width: 0;
+  padding: 1rem 1rem 1.15rem;
+  background: color-mix(in srgb, var(--card) 72%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
 }
 .exchange > * { min-width: 0; max-width: 100%; }
+
+.exchange-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.exchange-kicker {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.exchange-replay {
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  cursor: pointer;
+}
+
+.exchange-replay:hover { border-color: var(--ink); }
+
+.exchange-think {
+  margin: 0;
+  padding: 0.15rem 0 0.15rem 0.85rem;
+  border-left: 2px solid var(--line);
+  color: var(--muted);
+  font-size: 0.92rem;
+  list-style: none;
+  overflow: hidden;
+  max-height: 16rem;
+  transition: max-height 0.4s ease, opacity 0.35s ease, padding 0.4s ease;
+}
+
+.exchange-think li {
+  margin: 0.4rem 0;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.exchange-think li.is-in { opacity: 1; }
+
+.exchange-think.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.caret {
+  display: inline-block;
+  width: 0.5ch;
+  height: 1em;
+  margin-left: 1px;
+  background: currentColor;
+  vertical-align: text-bottom;
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret { animation: none; }
+  .exchange-think,
+  .exchange-think li { transition: none; }
+}
 
 .exchange-label {
   margin: 0;

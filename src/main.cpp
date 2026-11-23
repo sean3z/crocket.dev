@@ -50,6 +50,9 @@ static constexpr unsigned char favicon_svg[] = {
 static constexpr unsigned char ai_html[] = {
 #embed "../web/ai/index.html"
 };
+static constexpr unsigned char ai_js[] = {
+#embed "../web/ai/exchange.js"
+};
 
 // A browser navigation asks for HTML. Other 404s (a missing favicon, curl with
 // no Accept) keep crocket's problem+json body.
@@ -155,10 +158,12 @@ files site_files() {
       asset("theme.js", theme_js),
       asset("favicon.svg", favicon_svg),
       asset("ai/index.html", ai_html),
+      asset("ai/exchange.js", ai_js),
   };
   web.cache = {
       {"*.html", "no-cache"},
       {"ai/*.html", "no-cache"},
+      {"ai/*.js", "public, max-age=3600"},
       {"*.css", "public, max-age=3600"},
       {"*.js", "public, max-age=3600"},
       {"*.svg", "public, max-age=86400"},
