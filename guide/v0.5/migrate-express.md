@@ -70,8 +70,7 @@ import express from "express";
 export const app = express();
 app.use(express.json());
 
-const port = Number(
-  process.env.PORT ?? 8080);
+const port = Number(process.env.PORT ?? 8080);
 app.listen(port);
 ```
 
@@ -112,12 +111,9 @@ app.get("/users/:id", (req, res) => {
 [[= http::get("/users/{id}")]]
 auto user_by_id(int id) -> Result<User> {
   if (id != 1) {
-    return std::unexpected(
-        ApiError::not_found(
-            "no such user"));
+    return std::unexpected(ApiError::not_found("no such user"));
   }
-  return User{
-      1, "ada@example.com", "Ada"};
+  return User{1, "ada@example.com", "Ada"};
 }
 ```
 
@@ -133,8 +129,7 @@ Express still runs the handler for `GET /users/nope`. `Number("nope")` is `NaN`,
 
 ```js
 app.get("/search", (req, res) => {
-  const page = Number(
-    req.query.page ?? 1);
+  const page = Number(req.query.page ?? 1);
   const q = req.query.q ?? null;
   res.json({ page, q });
 });
@@ -147,8 +142,7 @@ struct Search {
 };
 
 [[= http::get("/search")]]
-auto search(Query<Search> query)
-    -> Search {
+auto search(Query<Search> query) -> Search {
   return *query;
 }
 ```
@@ -185,8 +179,7 @@ app.post("/users", (req, res) => {
 ```cpp
 struct User {
   [[= json::from_path]] std::optional<int> id;
-  [[= json::email,
-      = json::max_len(254)]]
+  [[= json::email, = json::max_len(254)]]
   std::string email;
   std::optional<std::string> name;
 };
@@ -212,8 +205,7 @@ crocket doesn't parse `multipart/form-data` or an HTML form body. `Query<T>` is 
 :::pair Express | crocket
 
 ```js
-app.post("/users/:id/archive",
-  (req, res) => {
+app.post("/users/:id/archive", (req, res) => {
   const id = Number(req.params.id);
   res.json({
     id,
@@ -226,8 +218,7 @@ app.post("/users/:id/archive",
 ```cpp
 [[= http::post("/users/{id}/archive")]]
 auto archive(int id) -> Status<User> {
-  return Status<User>{200, User{
-      id, "ada@example.com", "Ada"}};
+  return Status<User>{200, User{id, "ada@example.com", "Ada"}};
 }
 ```
 
@@ -250,8 +241,7 @@ app.use((req, res, next) => {
 
 ```cpp
 struct AppHeader {
-  auto on_response(
-      const Request&, Response& rs) -> void {
+  auto on_response(const Request&, Response& rs) -> void {
     rs.headers.set("x-app", "users");
   }
 };
@@ -279,14 +269,12 @@ Passport sessions, cookie logins, and `express-session` don't have a crocket twi
 import { auth } from "express-oauth2-jwt-bearer";
 
 const checkJwt = auth({
-  issuerBaseURL:
-    "https://login.example.com/",
+  issuerBaseURL: "https://login.example.com/",
   audience: "users",
 });
 
 app.get("/admin", checkJwt, (req, res) => {
-  const roles =
-    req.auth.payload.roles ?? [];
+  const roles = req.auth.payload.roles ?? [];
   if (!roles.includes("admin")) {
     return res.sendStatus(403);
   }
@@ -298,18 +286,16 @@ app.get("/admin", checkJwt, (req, res) => {
 |
 
 ```cpp
-[[= http::get("/admin"),
-    = auth::require("admin")]]
+[[= http::get("/admin"), = auth::require("admin")]]
 auto admin(Auth<> who) -> std::string {
-  return std::format(
-      "hello {}\n", who.subject);
+  return std::format("hello {}\n", who.subject);
 }
 ```
 
 ```cpp
-      .manage(auth::Jwt::oidc(
-          "https://login.example.com/",
-          "users"))
+  .manage(auth::Jwt::oidc(
+      "https://login.example.com/",
+      "users"))
 ```
 
 :::
@@ -341,8 +327,8 @@ app.use("/assets",
 ```
 
 ```cpp
-      .mount("/assets",
-          files{.root = "public"});
+  .mount("/assets",
+      files{.root = "public"});
 ```
 
 :::
@@ -354,8 +340,8 @@ Static files are in commit `9b446f8` and they're not in the `0.5.1` tag. Pin the
 You'd add `pino-http` or `morgan`, and `prom-client` if you want Prometheus. Both are built in. Attach them.
 
 ```cpp
-      .attach(Logger{})
-      .attach(Metrics{})
+  .attach(Logger{})
+  .attach(Metrics{})
 ```
 
 `Logger` writes one structured line per request. The route template is in the line, not the raw path, so `/users/1` doesn't blow up the cardinality. `Authorization` and `Cookie` are dropped. `Metrics` serves Prometheus text at `GET /metrics`. It isn't StatsD and it isn't OpenTelemetry. One scraper per process. Two scrapers would each see half of a counter.
@@ -365,9 +351,9 @@ You'd add `pino-http` or `morgan`, and `prom-client` if you want Prometheus. Bot
 Express won't write the spec from the route table. You maintain a document, or a library reads comments. crocket writes OpenAPI 3.1 from the handlers at startup.
 
 ```cpp
-      .attach(OpenApi{{
-          .title = "Users",
-          .version = "1.0.0"}})
+  .attach(OpenApi{{
+      .title = "Users",
+      .version = "1.0.0"}})
 ```
 
 `GET /openapi.json` is that document. `.docs = "/docs"` also serves a Swagger UI page, and that page loads its script from `cdn.jsdelivr.net`. If your content security policy only allows your own origin, leave `.docs` unset and serve the JSON yourself. This site does it that way.
@@ -397,14 +383,15 @@ assert.equal(missing.status, 404);
 
 ```cpp
 LocalClient client(app);
+
 auto created = client.post("/users")
     .json("{\"email\":"
           "\"ada@example.com\","
           "\"name\":\"Ada\"}")
     .dispatch();
 assert(created.status == 201);
-auto missing = client.get("/users/9")
-    .dispatch();
+
+auto missing = client.get("/users/9").dispatch();
 assert(missing.status == 404);
 ```
 
