@@ -126,16 +126,20 @@
 
           <article class="card">
             <h3>JSON and protobuf</h3>
-            <p>A plain struct is the schema. <code>Json&lt;T&gt;</code> reads the body straight into <code>T</code>, with no document tree and no derive macro. Protobuf field numbers follow declaration order. <code>proto::field</code> pins one when you retire a number. Unknown protobuf fields are skipped.</p>
+            <p>A plain struct is the schema. <code>Json&lt;T&gt;</code> reads the body straight into <code>T</code>, and the same struct is the response. <code>json::from_path</code> on <code>id</code> means a create request must not send it. Protobuf field numbers follow declaration order, and a JSON annotation does not take a number. <code>proto::field</code> pins one when you retire a number. Unknown protobuf fields are skipped.</p>
             <figure class="listing">
-              <pre><code><span class="k">struct</span> NewUser {
+              <pre><code><span class="k">struct</span> User {
+  <span class="a">[[= json::from_path]]</span> std::optional&lt;<span class="k">int</span>&gt; id;
   std::string email;                <span class="c">// required</span>
   std::optional&lt;std::string&gt; name;  <span class="c">// may be absent or null</span>
   <span class="k">int</span> age = 0;                      <span class="c">// may be absent: keeps its default</span>
 };
 
 [[= http::post(<span class="s">"/users"</span>)]]
-<span class="k">auto</span> create(Json&lt;NewUser&gt; body) -&gt; Json&lt;NewUser&gt; { <span class="k">return</span> body; }
+<span class="k">auto</span> create(Json&lt;User&gt; body) -&gt; Json&lt;User&gt; {
+  body-&gt;id = 1;
+  <span class="k">return</span> body;
+}
 
 <span class="k">struct</span> HelloRequest {
   std::string name;                                    <span class="c">// field 1</span>
@@ -260,8 +264,8 @@ crocket::build()
 
     <section class="section" id="measured">
       <div class="wrap">
-        <h2>Small, and only the numbers in the repo</h2>
-        <p class="intro"><code>./dev bench</code> times a build with h2load, in process, against Rocket 0.5, and against h2o alone. Those results stay in <code>bench/results/</code>, which git ignores. The notes below are the ones written down in the repo. The headline measurements in the next section come from the published write-ups, and each one names its own machine.</p>
+        <h2>Small and fast, measured</h2>
+        <p class="intro">Every figure here is one written down in the crocket repo, and the note under the list names the page it comes from. <code>./dev bench</code> times a build with h2load, in process, against Rocket 0.5, and against h2o alone. Those results stay in <code>bench/results/</code>, which git ignores. The headline measurements in the next section come from the published write-ups, and each one names its own machine.</p>
         <ul class="facts">
           <li><strong>Routing.</strong> Candidates are found in the same time with 10 routes or 1,000, and the lookup allocates nothing. The tree is built at ignite.</li>
           <li><strong>Hot path, 0.4.0.</strong> The changelog records roughly 1.6 times the h2c throughput of the previous crocket, with every production feature on.</li>

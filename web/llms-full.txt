@@ -359,14 +359,18 @@ Failures are counted per route and extractor kind in `crocket_extractor_failures
 Any plain aggregate works as JSON. No annotations are required.
 
 ```cpp
-struct NewUser {
+struct User {
+  [[= json::from_path]] std::optional<int> id;
   std::string email;                // required
   std::optional<std::string> name;  // may be absent or null
   int age = 0;                      // may be absent: keeps its default
 };
 
 [[= http::post("/users")]]
-auto create(Json<NewUser> body) -> Json<NewUser> { return body; }
+auto create(Json<User> body) -> Json<User> {
+  body->id = 1;
+  return body;
+}
 ```
 
 By default, JSON names are the member names. A member is required unless it is `optional` or has a default. Unknown fields are ignored. Empty optionals are written as `null`. `Json<T>` reads the body straight into `T`, with no document tree in between.
