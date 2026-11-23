@@ -64,6 +64,12 @@ JS_KEYWORDS = {
     "catch", "of",
 }
 
+CPP_TYPES = {
+    "string", "string_view", "optional", "vector", "uint8_t", "uint16_t",
+    "uint32_t", "uint64_t", "int8_t", "int16_t", "int32_t", "int64_t",
+    "size_t", "ptrdiff_t", "byte", "string_view",
+}
+
 JAVA_KEYWORDS = {
     "package", "import", "public", "private", "protected", "class", "record",
     "interface", "extends", "implements", "return", "new", "if", "else", "static",
@@ -201,12 +207,25 @@ def highlight_cpp(code):
             out.append(span("a", code[i:j]))
             i = j
             continue
+        if ch.isdigit():
+            j = i + 1
+            while j < n and (code[j].isdigit() or code[j] in ".xXabcdefABCDEF"):
+                j += 1
+            out.append(span("n", code[i:j]))
+            i = j
+            continue
         if ch.isalpha() or ch == "_":
             j = i + 1
             while j < n and (code[j].isalnum() or code[j] == "_"):
                 j += 1
             word = code[i:j]
-            out.append(span("k" if word in CPP_KEYWORDS else "", word))
+            if word in CPP_KEYWORDS:
+                kind = "k"
+            elif word in CPP_TYPES or (word[0].isupper() and word not in CPP_KEYWORDS):
+                kind = "t"
+            else:
+                kind = ""
+            out.append(span(kind, word))
             i = j
             continue
         out.append(esc(ch))
@@ -703,6 +722,24 @@ def url_to_file(url):
     return candidate
 
 
+def highlight_static_cpp(path):
+    """Highlight hand-written cpp listings in place. Tags are stripped first, so this is idempotent."""
+    text = path.read_text(encoding="utf-8")
+    pattern = re.compile(
+        r"(<header><span>cpp</span></header>\s*<pre><code>)(.*?)(</code></pre>)",
+        re.S,
+    )
+
+    def repl(match):
+        plain = html.unescape(re.sub(r"<[^>]+>", "", match.group(2)))
+        return match.group(1) + highlight_cpp(plain) + match.group(3)
+
+    updated, count = pattern.subn(repl, text)
+    if count and updated != text:
+        path.write_text(updated, encoding="utf-8")
+    return count
+
+
 def write_llms_full():
     """One markdown file of every chapter, in guide order, from the same sources."""
     parts = [
@@ -788,6 +825,12 @@ def main():
             pages[home] = page
             assets.append(("guide/index.html", "../web/guide/index.html"))
     write_cpp(assets)
+    for static_page in (
+        ROOT / "web" / "ai" / "index.html",
+        ROOT / "web" / "teapot.html",
+    ):
+        if static_page.exists():
+            highlight_static_cpp(static_page)
     write_llms_full()
     broken = check_links(pages)
     broken.extend(check_llms_links())

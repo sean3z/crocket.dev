@@ -4,7 +4,7 @@ You already know the shape: a function per route, a bit of middleware, `listen` 
 
 The Express examples here are Express 5.
 
-The crocket column on this page is `checks/snippets/users.cpp`. That file is compiled against commit `9b446f8`, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
+The crocket column on this page is `checks/snippets/users.cpp`, compiled against commit `9b446f8`, which is the tree this site is pinned to. The listen example is `checks/snippets/listen.cpp`, compiled the same way. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
 
 Every success response below is the same JSON. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}`.
 
@@ -58,7 +58,7 @@ Tag `0.5.1` doesn't have static files yet. This page pins the commit that does. 
 
 ## Listen
 
-Express binds a port when you call `listen`. crocket binds the port you put on `Config` when you call `launch`. This program uses 8080 so it matches the Express and Spring examples.
+Express binds a port when you call `listen`. crocket builds an app from `Config::from_env()` and binds it when you call `launch`. The default port is 8000. The environment can replace it, and the variable names are in the [configuration](/guide/v0.5/configuration/) chapter.
 
 :::pair Express | crocket
 
@@ -74,13 +74,15 @@ app.listen(port);
 ```
 
 ```cpp
-Config cfg;
-cfg.server.port = 8080;
+int main() {
+  return build(Config::from_env())
+      .launch();
+}
 ```
 
 :::
 
-`make_app()` builds that config into the app, and `main` ends with `return app.launch();`. There's no callback after listen. `GET /healthz` is already registered and answers `{"status":"ok"}`.
+`launch` serves until the process is signaled. There's no callback after listen. `GET /healthz` is already registered and answers `{"status":"ok"}`. The routes below mount onto that same builder. `checks/snippets/users.cpp` is the whole program, and it sets the port to 8080 so the rest of this page matches the Express and Spring examples.
 
 ## Path parameters
 

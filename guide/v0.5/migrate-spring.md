@@ -4,7 +4,7 @@ A `@RestController` method and a crocket handler are doing the same job. The met
 
 The Spring examples here are Spring Boot 3.
 
-The crocket column is `checks/snippets/users.cpp`, compiled against commit `9b446f8`. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
+The crocket column is `checks/snippets/users.cpp`, compiled against commit `9b446f8`. The listen example is `checks/snippets/listen.cpp`, compiled the same way. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
 
 ## Project and build
 
@@ -65,7 +65,7 @@ There's no annotation processor and no `target/classes`. The binary is the serve
 
 ## Listen
 
-`server.port` is a property. crocket's port is a field. This program uses 8080, same as a Spring app that sets `server.port=8080`.
+`SpringApplication.run` starts the process. crocket builds an app from `Config::from_env()` and binds it when you call `launch`. The default port is 8000. Spring Boot's default is 8080. The variable names are in the [configuration](/guide/v0.5/configuration/) chapter.
 
 :::pair Spring Boot | crocket
 
@@ -80,13 +80,15 @@ public class UsersApplication {
 ```
 
 ```cpp
-Config cfg;
-cfg.server.port = 8080;
+int main() {
+  return build(Config::from_env())
+      .launch();
+}
 ```
 
 :::
 
-`main` builds the app from that config and returns `app.launch()`. Tomcat isn't a separate choice. h2o is the wire engine, and your handlers never include its headers. `GET /healthz` is already there.
+`launch` serves until the process is signaled. Tomcat isn't a separate choice. h2o is the wire engine, and your handlers never include its headers. `GET /healthz` is already there. The routes below mount onto that same builder. This program sets the port to 8080 in `checks/snippets/users.cpp` so the rest of the page matches a Spring app on 8080.
 
 ## Path parameters
 

@@ -38,12 +38,12 @@
       <p class="tagline">I wired up the status code. Brewing coffee was out of scope.</p>
       <figure class="listing">
         <header><span>cpp</span></header>
-        <pre><code><span class="a">[[= http::get(</span><span class="s">"/teapot"</span><span class="a">)]]</span>
-<span class="k">auto</span> teapot() -&gt; WithStatus&lt;418, Response&gt; {
-  Response rs;
-  rs.set_content_type(<span class="s">"text/html; charset=utf-8"</span>);
-  rs.headers.set(<span class="s">"content-security-policy"</span>, kCsp);
-  rs.headers.set(<span class="s">"cache-control"</span>, <span class="s">"no-cache"</span>);
+        <pre><code><span class="a">[[= http::get(&quot;/teapot&quot;)]]</span>
+<span class="k">auto</span> teapot() -&gt; <span class="t">WithStatus</span>&lt;<span class="n">418</span>, <span class="t">Response</span>&gt; {
+  <span class="t">Response</span> rs;
+  rs.set_content_type(<span class="s">&quot;text/html; charset=utf-8&quot;</span>);
+  rs.headers.set(<span class="s">&quot;content-security-policy&quot;</span>, kCsp);
+  rs.headers.set(<span class="s">&quot;cache-control&quot;</span>, <span class="s">&quot;no-cache&quot;</span>);
   rs.body.assign(page, <span class="k">sizeof</span> page);
   <span class="k">return</span> {std::move(rs)};
 }</code></pre>

@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 USERS = (ROOT / "checks" / "snippets" / "users.cpp").read_text(encoding="utf-8")
 ORDERS = (ROOT / "checks" / "snippets" / "orders.cpp").read_text(encoding="utf-8")
+LISTEN = (ROOT / "checks" / "snippets" / "listen.cpp").read_text(encoding="utf-8")
 MIGRATION = [
     ROOT / "guide" / "v0.5" / "migrate-express.md",
     ROOT / "guide" / "v0.5" / "migrate-spring.md",
@@ -48,6 +49,14 @@ def fences(text):
         i += 1
 
 
+def listen_main(source):
+    """The compiled main(), which both migration pages quote."""
+    lines = source.splitlines()
+    start = next(i for i, line in enumerate(lines) if line.startswith("int main("))
+    end = next(i for i in range(start, len(lines)) if lines[i].strip() == "}")
+    return "\n".join(lines[start : end + 1])
+
+
 def html_listings(text):
     """Text of each <pre><code> whose header says cpp."""
     chunks = re.findall(
@@ -67,12 +76,17 @@ def main():
         text = path.read_text(encoding="utf-8")
         if "CROCKET_" in text:
             missing.append(f"{path.name}: contains a CROCKET_ name")
+        if not contained(listen_main(LISTEN), text):
+            missing.append(f"{path.name}: listen example is not the compiled main() in listen.cpp")
         for lang, code in fences(text):
             if lang not in {"cpp", "c++", "cxx"}:
                 continue
             checked += 1
-            if not contained(code, USERS):
-                missing.append(f"{path.name}: crocket snippet is not in users.cpp:\n{code}\n---")
+            if contained(code, USERS) or contained(code, LISTEN):
+                continue
+            missing.append(
+                f"{path.name}: crocket snippet is not in users.cpp or listen.cpp:\n{code}\n---"
+            )
     ai = AI_PAGE.read_text(encoding="utf-8")
     if "CROCKET_" in ai:
         missing.append("ai/index.html: contains a CROCKET_ name")

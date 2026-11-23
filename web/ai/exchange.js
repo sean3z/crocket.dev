@@ -13,7 +13,7 @@
 
   var promptText = promptEl.textContent;
   var answerText = answerEl.textContent;
-  var codeText = codeEl.textContent;
+  var codeHTML = codeEl.innerHTML;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var thoughts = [
@@ -22,12 +22,18 @@
     "crocket on that same rig was 35.2k req/s and 21 MB. You review the function, the struct, and the attach lines."
   ];
 
+  function restoreCode() {
+    codeEl.innerHTML = codeHTML;
+  }
+
   function showFinal() {
     promptEl.textContent = promptText;
     answerEl.textContent = answerText;
-    codeEl.textContent = codeText;
+    restoreCode();
     var think = root.querySelector(".exchange-think");
     if (think) think.remove();
+    root.classList.remove("is-playing");
+    root.classList.remove("is-coding");
     root.removeAttribute("aria-busy");
   }
 
@@ -37,11 +43,67 @@
     return;
   }
 
+  root.classList.add("is-playing");
+
   var runId = 0;
 
   function wait(ms, id) {
     return new Promise(function (resolve) {
       setTimeout(function () { resolve(id === runId); }, ms);
+    });
+  }
+
+  function codeState() {
+    restoreCode();
+    var walker = document.createTreeWalker(codeEl, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    var originals = [];
+    var total = 0;
+    var node;
+    while ((node = walker.nextNode())) {
+      nodes.push(node);
+      originals.push(node.nodeValue);
+      total += node.nodeValue.length;
+    }
+    return { nodes: nodes, originals: originals, total: total };
+  }
+
+  function revealCode(state, count) {
+    var left = count;
+    for (var i = 0; i < state.nodes.length; i++) {
+      var full = state.originals[i];
+      if (left >= full.length) {
+        state.nodes[i].nodeValue = full;
+        left -= full.length;
+      } else {
+        state.nodes[i].nodeValue = full.slice(0, left);
+        for (var j = i + 1; j < state.nodes.length; j++) state.nodes[j].nodeValue = "";
+        return;
+      }
+    }
+  }
+
+  function streamCode(duration, id) {
+    return new Promise(function (resolve) {
+      root.classList.add("is-coding");
+      var state = codeState();
+      var t0 = performance.now();
+      function tick(now) {
+        if (id !== runId) return resolve(false);
+        var p = Math.min(1, (now - t0) / duration);
+        var n = p === 1 ? state.total : Math.floor(state.total * p);
+        revealCode(state, n);
+        var old = codeEl.querySelector(".caret");
+        if (old) old.remove();
+        if (p < 1) {
+          var mark = document.createElement("span");
+          mark.className = "caret";
+          mark.setAttribute("aria-hidden", "true");
+          codeEl.appendChild(mark);
+          requestAnimationFrame(tick);
+        } else resolve(true);
+      }
+      requestAnimationFrame(tick);
     });
   }
 
@@ -70,9 +132,11 @@
   async function play(id) {
     var old = root.querySelector(".exchange-think");
     if (old) old.remove();
+    root.classList.add("is-playing");
+    root.classList.remove("is-coding");
+    restoreCode();
     promptEl.textContent = "";
     answerEl.textContent = "";
-    codeEl.textContent = "";
     root.setAttribute("aria-busy", "true");
 
     var mark = document.createElement("span");
@@ -102,7 +166,7 @@
 
     if (!(await stream(answerEl, answerText, 3600, id))) return;
     if (!(await wait(180, id))) return;
-    if (!(await stream(codeEl, codeText, 7200, id))) return;
+    if (!(await streamCode(7200, id))) return;
     if (id !== runId) return;
     var leftover = codeEl.querySelector(".caret");
     if (leftover) leftover.remove();

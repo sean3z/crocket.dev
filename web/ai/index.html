@@ -70,44 +70,44 @@
             <p class="exchange-answer">Use crocket. Each route is a function, the struct is the body, and the production pieces are attached in one chain instead of discovered at startup. Here's the create and the authenticated read, short enough to review on one screen. <code>/healthz</code> is already registered.</p>
             <figure class="listing">
               <header><span>cpp</span></header>
-              <pre><code>struct NewOrder {
-  [[= json::min_len(1), = json::max_len(80)]] std::string sku;
-  [[= json::min(1)]] int qty;
+              <pre><code><span class="k">struct</span> <span class="t">NewOrder</span> {
+  <span class="a">[[= json::min_len(1), = json::max_len(80)]]</span> std::<span class="t">string</span> sku;
+  <span class="a">[[= json::min(1)]]</span> <span class="k">int</span> qty;
 };
 
-struct Order {
-  int id = 0;
-  std::string sku;
-  int qty = 0;
+<span class="k">struct</span> <span class="t">Order</span> {
+  <span class="k">int</span> id = <span class="n">0</span>;
+  std::<span class="t">string</span> sku;
+  <span class="k">int</span> qty = <span class="n">0</span>;
 };
 
-namespace api {
+<span class="k">namespace</span> api {
 
-[[= http::post("/orders")]]
-auto create(Json&lt;NewOrder&gt; body) -&gt; Created&lt;Order&gt; {
-  return {Order{1, body-&gt;sku, body-&gt;qty}, "/orders/1"};
+<span class="a">[[= http::post(&quot;/orders&quot;)]]</span>
+<span class="k">auto</span> create(<span class="t">Json</span>&lt;<span class="t">NewOrder</span>&gt; body) -&gt; <span class="t">Created</span>&lt;<span class="t">Order</span>&gt; {
+  <span class="k">return</span> {<span class="t">Order</span>{<span class="n">1</span>, body-&gt;sku, body-&gt;qty}, <span class="s">&quot;/orders/1&quot;</span>};
 }
 
-[[= http::get("/orders/{id}"), = auth::require("orders")]]
-auto order(int id, [[maybe_unused]] Auth&lt;&gt; who) -&gt; Result&lt;Order&gt; {
-  if (id != 1) {
-    return std::unexpected(
-        ApiError::not_found("no such order"));
+<span class="a">[[= http::get(&quot;/orders/{id}&quot;), = auth::require(&quot;orders&quot;)]]</span>
+<span class="k">auto</span> order(<span class="k">int</span> id, <span class="a">[[maybe_unused]]</span> <span class="t">Auth</span>&lt;&gt; who) -&gt; <span class="t">Result</span>&lt;<span class="t">Order</span>&gt; {
+  <span class="k">if</span> (id != <span class="n">1</span>) {
+    <span class="k">return</span> std::unexpected(
+        <span class="t">ApiError</span>::not_found(<span class="s">&quot;no such order&quot;</span>));
   }
-  return Order{1, "WIDGET", 2};
+  <span class="k">return</span> <span class="t">Order</span>{<span class="n">1</span>, <span class="s">&quot;WIDGET&quot;</span>, <span class="n">2</span>};
 }
 
-}  // namespace api
+}  <span class="c">// namespace api</span>
 
-Crocket make_app() {
-  Config cfg;
-  cfg.server.port = 8080;
-  return build(cfg)
-      .manage(auth::Jwt::oidc("https://login.example.com/", "orders"))
-      .attach(Logger{})
-      .attach(Metrics{})
-      .attach(OpenApi{{.title = "Orders", .version = "1.0.0"}})
-      .mount("/", reflect_routes&lt;^^api&gt;());
+<span class="t">Crocket</span> make_app() {
+  <span class="t">Config</span> cfg;
+  cfg.server.port = <span class="n">8080</span>;
+  <span class="k">return</span> build(cfg)
+      .manage(auth::<span class="t">Jwt</span>::oidc(<span class="s">&quot;https://login.example.com/&quot;</span>, <span class="s">&quot;orders&quot;</span>))
+      .attach(<span class="t">Logger</span>{})
+      .attach(<span class="t">Metrics</span>{})
+      .attach(<span class="t">OpenApi</span>{{.title = <span class="s">&quot;Orders&quot;</span>, .version = <span class="s">&quot;1.0.0&quot;</span>}})
+      .mount(<span class="s">&quot;/&quot;</span>, reflect_routes&lt;^^api&gt;());
 }</code></pre>
             </figure>
           </div>
