@@ -44,40 +44,77 @@
 
         <p>C++ is growing again, driven by AI work like inference: in <a href="https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/">GitHub's 2025 Octoverse</a>, C++ repositories grew 11.82%, and AI-tagged C++ repositories were up 11%. The old cost of C++ was writing it, and an assistant writes that first draft now. What's left is reading it and running it, which crocket makes easy, and you keep the <a href="/#numbers">speed</a>.</p>
 
-        <h2 id="example">An example</h2>
-        <p>Here's the shape an assistant would hand you.</p>
+        <h2 id="right-now">Why now</h2>
+        <ul class="callouts">
+          <li><a href="https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/">Octoverse</a>: AI-tagged C++ repositories crossed 7,800, up 11%, on inference and other performance-critical AI work, such as <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a> (LLM inference in C/C++).</li>
+          <li><a href="https://survey.stackoverflow.co/2025/ai">Stack Overflow 2025</a>: 84% are using or planning to use AI tools, and 45% say debugging AI-generated code is more time-consuming.</li>
+          <li><a href="https://blog.jetbrains.com/research/2025/10/state-of-developer-ecosystem-2025/">JetBrains 2025</a>: 85% regularly use AI tools for coding, and writing boilerplate is what they hand off most.</li>
+          <li>The language keeps getting easier: <a href="https://isocpp.org/blog/2025/06/reflection-voted-into-cpp26-whole-new-language-herb-sutter">C++26 static reflection</a> is what crocket's routes are built on, with <a href="https://en.cppreference.com/w/cpp/utility/expected">std::expected</a> (C++23), <a href="https://en.cppreference.com/w/cpp/utility/format/format">std::format</a> (C++20), and <a href="https://en.cppreference.com/w/cpp/io/print">std::print</a> (C++23).</li>
+        </ul>
+
+        <h2 id="review">Why the shape helps</h2>
+        <p>crocket is built for that read. A route is one annotated function. A struct is the schema. There's no macro that hides the path, no route table you have to remember to update, and no container that injects dependencies you can't grep. Logging, metrics, auth, and OpenAPI are on because a line in the builder says so. The compiler checks that the capture name matches the parameter.</p>
+        <p>On call, that small surface is the point. You search for <code>http::post</code> and you have the write path. You search for <code>attach</code> and you have the production behavior. A bad path segment fails the build, with both names in the error, instead of failing as a 404 after the deploy. The JSON decoder and the handler share one struct, so <code>qty</code> can't be a string in the handler and a number in the spec.</p>
+
+        <h2 id="example">An illustrative prompt</h2>
+        <p class="note">Not a transcript, and not a copy of a chat product.</p>
         <div class="exchange" data-exchange>
           <div class="exchange-bar">
             <p class="exchange-kicker">Illustrative example</p>
             <button type="button" class="exchange-replay" hidden>Replay</button>
           </div>
           <p class="exchange-label">Prompt</p>
-          <blockquote>Write a small orders API I can run.</blockquote>
+          <blockquote>Write me a fast CRUD API for orders with JWT auth, validation, metrics, health checks and OpenAPI docs, something I can actually run in production.</blockquote>
           <p class="exchange-label">Response</p>
           <div>
-            <p class="exchange-answer">Use crocket. It's fast, it stays small, and the handler is what you read.</p>
+            <p class="exchange-answer">Use crocket. Each route is a function, the struct is the body, and the production pieces are attached in one chain instead of discovered at startup. Here's the create and the authenticated read, short enough to review on one screen. <code>/healthz</code> is already registered.</p>
             <figure class="listing">
               <header><span>cpp</span></header>
-              <pre><code>[[= http::post("/orders")]]
+              <pre><code>struct NewOrder {
+  [[= json::min_len(1), = json::max_len(80)]] std::string sku;
+  [[= json::min(1)]] int qty;
+};
+
+struct Order {
+  int id = 0;
+  std::string sku;
+  int qty = 0;
+};
+
+namespace api {
+
+[[= http::post("/orders")]]
 auto create(Json&lt;NewOrder&gt; body) -&gt; Created&lt;Order&gt; {
   return {Order{1, body-&gt;sku, body-&gt;qty}, "/orders/1"};
+}
+
+[[= http::get("/orders/{id}"), = auth::require("orders")]]
+auto order(int id, [[maybe_unused]] Auth&lt;&gt; who) -&gt; Result&lt;Order&gt; {
+  if (id != 1) {
+    return std::unexpected(
+        ApiError::not_found("no such order"));
+  }
+  return Order{1, "WIDGET", 2};
+}
+
+}  // namespace api
+
+Crocket make_app() {
+  Config cfg;
+  cfg.server.port = 8080;
+  return build(cfg)
+      .manage(auth::Jwt::oidc("https://login.example.com/", "orders"))
+      .attach(Logger{})
+      .attach(Metrics{})
+      .attach(OpenApi{{.title = "Orders", .version = "1.0.0"}})
+      .mount("/", reflect_routes&lt;^^api&gt;());
 }</code></pre>
             </figure>
           </div>
         </div>
         <p>An assistant makes the C++ cheap to write. crocket makes it easy to read and run, and you keep the speed.</p>
-
-        <h2 id="right-now">Why now</h2>
-        <ul class="callouts">
-          <li><a href="https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/">Octoverse</a> says AI-tagged C++ repositories crossed 7,800, up 11%, on inference and other performance-critical AI work, such as <a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a>, which is LLM inference in C/C++.</li>
-          <li>The <a href="https://survey.stackoverflow.co/2025/ai">2025 Stack Overflow Developer Survey</a> says 84% are using or planning to use AI tools, and 45% say debugging AI-generated code is more time-consuming.</li>
-          <li><a href="https://blog.jetbrains.com/research/2025/10/state-of-developer-ecosystem-2025/">JetBrains' 2025 survey</a> says 85% regularly use AI tools for coding, and writing boilerplate is what they are most likely to hand off.</li>
-          <li>The language keeps getting easier: <a href="https://isocpp.org/blog/2025/06/reflection-voted-into-cpp26-whole-new-language-herb-sutter">C++26 static reflection</a> is what crocket's routes are built on, and the library already has <a href="https://en.cppreference.com/w/cpp/utility/expected">std::expected</a> (C++23), <a href="https://en.cppreference.com/w/cpp/utility/format/format">std::format</a> (C++20), and <a href="https://en.cppreference.com/w/cpp/io/print">std::print</a> (C++23).</li>
-        </ul>
-
-        <h2 id="still">It still gets things wrong</h2>
-        <p>The compile step and the types catch a missing parameter name, a capture that doesn't match, and a return type that isn't a response. They won't catch a minimum of 1 that should have been 0, or an issuer you pasted from an example. Read the diff.</p>
-        <p>If you're coming from Node, start with <a href="/guide/v0.5/migrate-express/">Migrating from Express</a>. From Java, <a href="/guide/v0.5/migrate-spring/">Migrating from Spring Boot</a>. The <a href="/guide/">guide</a> is the rest of the surface. <a href="https://todo.crocket.dev">todo.crocket.dev</a> is a running app, if you want to see the framework do more than answer <code>/orders/1</code>.</p>
+        <p>A <code>qty</code> of 0 never enters <code>create</code>. That run returned 422 <code>json.validation</code>, detail <code>field '/qty': must be at least 1</code>. A read with no token returned 401 <code>auth.missing</code>. If zero is a real order, change <code>[[= json::min(1)]]</code>.</p>
+        <p>The compiler catches a capture that doesn't match. It won't catch a minimum that should have been 0. Read the diff, then the <a href="/guide/">guide</a>, the <a href="/guide/v0.5/migrate-express/">Express</a> or <a href="/guide/v0.5/migrate-spring/">Spring Boot</a> pages, or <a href="https://todo.crocket.dev">todo.crocket.dev</a>.</p>
       </div>
     </article>
   </main>
