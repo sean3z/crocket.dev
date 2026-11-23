@@ -134,12 +134,9 @@ ResponseEntity<User> userById(
 [[= http::get("/users/{id}")]]
 auto user_by_id(int id) -> Result<User> {
   if (id != 1) {
-    return std::unexpected(
-        ApiError::not_found(
-            "no such user"));
+    return std::unexpected(ApiError::not_found("no such user"));
   }
-  return User{
-      1, "ada@example.com", "Ada"};
+  return User{1, "ada@example.com", "Ada"};
 }
 ```
 
@@ -172,8 +169,7 @@ struct Search {
 };
 
 [[= http::get("/search")]]
-auto search(Query<Search> query)
-    -> Search {
+auto search(Query<Search> query) -> Search {
   return *query;
 }
 ```
@@ -210,8 +206,7 @@ ResponseEntity<User> create(
 ```cpp
 struct User {
   [[= json::from_path]] std::optional<int> id;
-  [[= json::email,
-      = json::max_len(254)]]
+  [[= json::email, = json::max_len(254)]]
   std::string email;
   std::optional<std::string> name;
 };
@@ -243,16 +238,14 @@ crocket doesn't read `multipart/form-data` or an HTML form. A file upload isn't 
 ```java
 @PostMapping("/users/{id}/archive")
 User archive(@PathVariable int id) {
-  return new User(
-      id, "ada@example.com", "Ada");
+  return new User(id, "ada@example.com", "Ada");
 }
 ```
 
 ```cpp
 [[= http::post("/users/{id}/archive")]]
 auto archive(int id) -> Status<User> {
-  return Status<User>{200, User{
-      id, "ada@example.com", "Ada"}};
+  return Status<User>{200, User{id, "ada@example.com", "Ada"}};
 }
 ```
 
@@ -285,8 +278,7 @@ class AppHeader
 
 ```cpp
 struct AppHeader {
-  auto on_response(
-      const Request&, Response& rs) -> void {
+  auto on_response(const Request&, Response& rs) -> void {
     rs.headers.set("x-app", "users");
   }
 };
@@ -312,19 +304,15 @@ An exception you didn't catch is 500 `internal`. The client doesn't get `what()`
 
 ```java
 @GetMapping("/admin")
-public String admin(
-    @AuthenticationPrincipal Jwt jwt) {
-  return "hello "
-      + jwt.getSubject() + "\n";
+public String admin(@AuthenticationPrincipal Jwt jwt) {
+  return "hello " + jwt.getSubject() + "\n";
 }
 ```
 
 ```cpp
-[[= http::get("/admin"),
-    = auth::require("admin")]]
+[[= http::get("/admin"), = auth::require("admin")]]
 auto admin(Auth<> who) -> std::string {
-  return std::format(
-      "hello {}\n", who.subject);
+  return std::format("hello {}\n", who.subject);
 }
 ```
 
@@ -333,9 +321,9 @@ auto admin(Auth<> who) -> std::string {
 Spring still needs the resource-server config that demands the role. crocket puts that on the function. The verifier is this call. With no `jwks` URL, crocket discovers the keys from the issuer.
 
 ```cpp
-      .manage(auth::Jwt::oidc(
-          "https://login.example.com/",
-          "users"))
+  .manage(auth::Jwt::oidc(
+      "https://login.example.com/",
+      "users"))
 ```
 
 A missing token is 401. A token without `admin` in its `roles` claim is 403 `auth.forbidden`. There's no session and no remember-me. A token you revoke at the issuer keeps working until `exp`, because nothing calls an introspection endpoint. Include `<crocket/auth.hpp>` yourself. `crocket.hpp` doesn't.
@@ -391,8 +379,7 @@ class Assets implements WebMvcConfigurer {
 ```
 
 ```cpp
-      .mount("/assets",
-          files{.root = "public"});
+  .mount("/assets", files{.root = "public"});
 ```
 
 :::
@@ -404,8 +391,8 @@ Routes win over files, so `/healthz` still hits the built-in handler. Static fil
 Actuator plus Micrometer is a starter and a registry. crocket's log and metrics are two fairings.
 
 ```cpp
-      .attach(Logger{})
-      .attach(Metrics{})
+  .attach(Logger{})
+  .attach(Metrics{})
 ```
 
 `Logger` writes one line per request, with the route template rather than the raw path. `Cookie` and `Authorization` don't get logged. `Metrics` is Prometheus text at `GET /metrics`. It isn't Micrometer, and it doesn't speak the other backends. Scrape each process once.
@@ -415,9 +402,9 @@ Actuator plus Micrometer is a starter and a registry. crocket's log and metrics 
 springdoc scans the controllers and serves `/v3/api-docs` plus a Swagger UI. crocket builds the document from the same reflection that built the routes. There's no extra dependency.
 
 ```cpp
-      .attach(OpenApi{{
-          .title = "Users",
-          .version = "1.0.0"}})
+  .attach(OpenApi{{
+      .title = "Users",
+      .version = "1.0.0"}})
 ```
 
 The JSON is `GET /openapi.json`. Set `.docs = "/docs"` if you also want the Swagger UI page. That page loads its script from `cdn.jsdelivr.net`. A content security policy of `default-src 'self'` won't allow it, so leave `.docs` unset and ship the JSON. That's what this site does.
@@ -456,8 +443,8 @@ auto created = client.post("/users")
           "\"name\":\"Ada\"}")
     .dispatch();
 assert(created.status == 201);
-auto missing = client.get("/users/9")
-    .dispatch();
+
+auto missing = client.get("/users/9").dispatch();
 assert(missing.status == 404);
 ```
 
@@ -475,8 +462,7 @@ A JRE image runs a jar. The crocket image has to be the GCC 16.2 toolchain, or a
 FROM eclipse-temurin:21-jre
 COPY build/libs/users.jar /app/users.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar",
-  "/app/users.jar"]
+ENTRYPOINT ["java", "-jar", "/app/users.jar"]
 ```
 
 ```dockerfile
