@@ -47,6 +47,9 @@ static constexpr unsigned char theme_js[] = {
 static constexpr unsigned char favicon_svg[] = {
 #embed "../web/favicon.svg"
 };
+static constexpr unsigned char ai_html[] = {
+#embed "../web/ai/index.html"
+};
 
 // A browser navigation asks for HTML. Other 404s (a missing favicon, curl with
 // no Accept) keep crocket's problem+json body.
@@ -151,14 +154,19 @@ files site_files() {
       asset("style.css", style_css),
       asset("theme.js", theme_js),
       asset("favicon.svg", favicon_svg),
+      asset("ai/index.html", ai_html),
   };
   web.cache = {
       {"*.html", "no-cache"},
+      {"ai/*.html", "no-cache"},
       {"*.css", "public, max-age=3600"},
       {"*.js", "public, max-age=3600"},
       {"*.svg", "public, max-age=86400"},
   };
-  web.headers = {{"*.html", {{"content-security-policy", kCsp}}}};
+  web.headers = {
+      {"*.html", {{"content-security-policy", kCsp}}},
+      {"ai/*.html", {{"content-security-policy", kCsp}}},
+  };
   // Nested guide pages need their own globs: * does not cross '/'.
   site_assets::add_guide(web.assets, web.headers, kCsp);
   return web;

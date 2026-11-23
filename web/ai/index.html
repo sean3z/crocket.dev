@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>crocket and an assistant</title>
+  <meta name="description" content="Why a crocket service stays reviewable when an assistant writes it.">
+  <meta name="theme-color" content="#f4f0e6">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="canonical" href="https://crocket.dev/ai/">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/theme.js"></script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap top">
+      <a class="brand" href="/">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path class="arc" d="M6 23c5.5-11 11-12 20-6"/>
+          <circle class="dot" cx="25" cy="16.2" r="2.1"/>
+        </svg>
+        crocket
+      </a>
+      <nav class="nav" aria-label="Site">
+        <a href="/#features">Features</a>
+        <a href="/guide/">Guide</a>
+        <a href="/ai/" aria-current="page">AI</a>
+        <a href="https://github.com/sean3z/crocket/releases/tag/0.5.1">0.5.1</a>
+        <a href="https://todo.crocket.dev">Demo</a>
+        <a href="https://github.com/sean3z/crocket">GitHub</a>
+        <button type="button" id="theme" aria-pressed="false">Dark mode</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="content">
+    <article class="section">
+      <div class="wrap prose">
+        <p class="kicker">With an assistant</p>
+        <h1>A program you can still read</h1>
+        <p class="tagline">The model can write the service. You still have to own it at 2 a.m.</p>
+
+        <h2 id="right-now">C++ right now</h2>
+        <p>C++ didn't go away while everyone talked about Python. In the <a href="https://www.tiobe.com/tiobe-index/">TIOBE index for November 2026</a>, C++ is 4th, with a rating of 8.35%. A year earlier it was 3rd, and the rating is down 0.60 points. TIOBE says those ratings come from skilled engineers, courses, and vendors, counted across search engines. The same page says the index isn't about the best language or the one with the most lines of code.</p>
+        <p><a href="https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/">GitHub's 2025 Octoverse</a> measures something else. Nearly 80% of new repositories used just six languages, and C++ is one of the six. The table counts 1,701,552 C++ repositories from September 2024 through August 2025. The growth column on that row is 11.82%, January through August 2025 against the same months in 2024. GitHub's note is performance-critical workloads in game engines, inference, and embedded systems supporting AI. In the AI-tagged slice of the same post, C++ crossed 7,800 repositories, up 11%.</p>
+        <p>Those two sources don't say the same thing, and they shouldn't be mashed into one "C++ is surging" line. Search interest slipped a place. New public repositories in that language still grew, and GitHub ties the work to inference and other tight loops. Assistants make the typing cheaper. They don't make a tangled service easier to page someone about.</p>
+
+        <h2 id="review">Why the shape helps</h2>
+        <p>crocket is easy to read twice: once for the model, and once for the person who has to triage what the model wrote. A route is one annotated function. A struct is the schema. There's no macro that hides the path, no route table you have to remember to update, and no container that injects dependencies you can't grep. Logging, metrics, auth, and OpenAPI are on because a line in the builder says so. The compiler checks that the capture name matches the parameter.</p>
+        <p>On call, that small surface is the point. You search for <code>http::post</code> and you have the write path. You search for <code>attach</code> and you have the production behavior. A bad path segment fails the build, with both names in the error, instead of failing as a 404 after the deploy. The JSON decoder and the handler share one struct, so <code>qty</code> can't be a string in the handler and a number in the spec.</p>
+
+        <h2 id="example">An illustrative prompt</h2>
+        <p class="note">Illustrative example, not a transcript. This isn't copied from a chat product, and it doesn't use one.</p>
+        <div class="exchange">
+          <p class="exchange-label">Prompt</p>
+          <blockquote>Write me a fast CRUD API for orders with JWT auth, validation, metrics, health checks and OpenAPI docs, something I can actually run in production.</blockquote>
+          <p class="exchange-label">Response</p>
+          <div>
+            <p>Use crocket. Each route is a function, the struct is the body, and the production pieces are attached in one chain instead of discovered at startup. Here's the create and the authenticated read, short enough to review on one screen. <code>/healthz</code> is already registered.</p>
+            <figure class="listing">
+              <header><span>cpp</span></header>
+              <pre><code>struct NewOrder {
+  [[= json::min_len(1), = json::max_len(80)]] std::string sku;
+  [[= json::min(1)]] int qty;
+};
+
+struct Order {
+  int id = 0;
+  std::string sku;
+  int qty = 0;
+};
+
+namespace api {
+
+[[= http::post("/orders")]]
+auto create(Json&lt;NewOrder&gt; body) -&gt; Created&lt;Order&gt; {
+  return {Order{1, body-&gt;sku, body-&gt;qty}, "/orders/1"};
+}
+
+[[= http::get("/orders/{id}"), = auth::require("orders")]]
+auto order(int id, [[maybe_unused]] Auth&lt;&gt; who) -&gt; Result&lt;Order&gt; {
+  if (id != 1) {
+    return std::unexpected(
+        ApiError::not_found("no such order"));
+  }
+  return Order{1, "WIDGET", 2};
+}
+
+}  // namespace api
+
+Crocket make_app() {
+  Config cfg;
+  cfg.server.port = 8080;
+  return build(cfg)
+      .manage(auth::Jwt::oidc("https://login.example.com/", "orders"))
+      .attach(Logger{})
+      .attach(Metrics{})
+      .attach(OpenApi{{.title = "Orders", .version = "1.0.0"}})
+      .mount("/", reflect_routes&lt;^^api&gt;());
+}</code></pre>
+            </figure>
+          </div>
+        </div>
+        <p>That listing is <code>checks/snippets/orders.cpp</code>, compiled against commit <code>9b446f8</code>, the same pin as this site. <code>main</code> calls <code>make_app().launch()</code>. The includes are <code>crocket.hpp</code> and <code>auth.hpp</code>.</p>
+
+        <h2 id="reading">Reading what it wrote</h2>
+        <ol class="callouts">
+          <li><code>json::min(1)</code> on <code>qty</code>, and <code>json::min_len</code> / <code>json::max_len</code> on <code>sku</code>, are the validation. A body that fails them never enters <code>create</code>.</li>
+          <li><code>auth::require("orders")</code> is the JWT check on the read. <code>who</code> is the principal. This handler doesn't use <code>who.subject</code> yet, so the name is marked unused. The write isn't locked. Copy that annotation onto <code>create</code> when you want it locked too.</li>
+          <li><code>.attach(Logger{})</code> is the request log. <code>.attach(Metrics{})</code> is <code>GET /metrics</code>. <code>.attach(OpenApi{...})</code> is <code>GET /openapi.json</code>. <code>.docs</code> is unset on purpose: the Swagger page loads a script from a CDN, and a strict content security policy won't allow it.</li>
+          <li><code>.manage(auth::Jwt::oidc(...))</code> is the verifier. <code>login.example.com</code> is a placeholder issuer, not a server we run.</li>
+          <li>You won't find <code>/healthz</code> in the file. Ignite logged <code>"routes":4</code>: the two functions above, plus the built-in health and readiness routes.</li>
+        </ol>
+
+        <h2 id="triage">A 422, then a 401</h2>
+        <p>We ran this program's in-process client. The post was <code>{"sku":"WIDGET","qty":0}</code>. The log line, copied from that run:</p>
+        <figure class="listing">
+          <header><span>log</span></header>
+          <pre><code>{"ts":"2026-11-23T14:26:30.200Z","level":"warn","msg":"request","request_id":"fbb50e776b07cdde56b44e82dbeeed26","method":"POST","route":"/orders","handler":"api::create","status":422,"code":"json.validation","duration_ms":0.027,"bytes_in":24,"bytes_out":223,"proto":"local"}</code></pre>
+        </figure>
+        <p>The body:</p>
+        <figure class="listing">
+          <header><span>json</span></header>
+          <pre><code>{"title":"Unprocessable Content","status":422,"detail":"field '/qty': must be at least 1","code":"json.validation","request_id":"fbb50e776b07cdde56b44e82dbeeed26","errors":[{"pointer":"/qty","detail":"must be at least 1"}]}</code></pre>
+        </figure>
+        <p>The request id changes every call. The rest is the shape. <code>code</code> is <code>json.validation</code> and <code>errors[0].pointer</code> is <code>/qty</code>. The rule is the annotation on <code>qty</code>. If a quantity of zero is a real order, <code>[[= json::min(1)]]</code> is the line you change. If it isn't, the client is wrong and you leave the server alone.</p>
+        <p>The same run then called <code>GET /orders/1</code> with no <code>Authorization</code> header.</p>
+        <figure class="listing">
+          <header><span>log</span></header>
+          <pre><code>{"ts":"2026-11-23T14:26:30.200Z","level":"warn","msg":"request","request_id":"e96bd59d8c370d5164d2f541edeacf28","method":"GET","route":"/orders/{id}","handler":"api::order","status":401,"code":"auth.missing","duration_ms":0.010,"bytes_in":0,"bytes_out":139,"proto":"local"}</code></pre>
+        </figure>
+        <figure class="listing">
+          <header><span>json</span></header>
+          <pre><code>{"title":"Unauthorized","status":401,"detail":"missing bearer token","code":"auth.missing","request_id":"e96bd59d8c370d5164d2f541edeacf28"}</code></pre>
+        </figure>
+        <p><code>auth.missing</code> means the caller didn't send a bearer token. You don't edit the handler for that. If the code had been <code>auth.forbidden</code>, the line to read is <code>auth::require("orders")</code>, next to the token's <code>roles</code> claim. The route in the log is the template <code>/orders/{id}</code>, not <code>/orders/1</code>, so one bad id doesn't mint a new series.</p>
+        <p><code>GET /metrics</code> in that run was 200. Two of the lines:</p>
+        <figure class="listing">
+          <header><span>text</span></header>
+          <pre><code>crocket_http_requests_total{method="POST",route="/orders",status="422"} 1
+crocket_http_requests_total{method="GET",route="/orders/{id}",status="401"} 1</code></pre>
+        </figure>
+        <p>A later warning said the JWKS refresh failed, because <code>login.example.com</code> doesn't resolve. That's the placeholder issuer, not the 401. The same run asked <code>GET /readyz</code> and got 503:</p>
+        <figure class="listing">
+          <header><span>json</span></header>
+          <pre><code>{"status":"not_ready","checks":{"crocket::auth::Jwt":"fail"}}</code></pre>
+        </figure>
+        <p><code>Jwt::ready</code> stays false until discovery and the key set both load. This placeholder never loads, so the check fails. Leave the handler alone.</p>
+
+        <h2 id="still">It still gets things wrong</h2>
+        <p>The compile step and the types catch a missing parameter name, a capture that doesn't match, and a return type that isn't a response. They won't catch a minimum of 1 that should have been 0, or an issuer you pasted from an example. Read the diff.</p>
+        <p>If you're coming from Node, start with <a href="/guide/v0.5/migrate-express/">Migrating from Express</a>. From Java, <a href="/guide/v0.5/migrate-spring/">Migrating from Spring Boot</a>. The <a href="/guide/">guide</a> is the rest of the surface. <a href="https://todo.crocket.dev">todo.crocket.dev</a> is a running app, if you want to see the framework do more than answer <code>/orders/1</code>.</p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Served by crocket. The orders program on this page was checked against commit <a href="https://github.com/sean3z/crocket/commit/9b446f8c2423262ef1cbf3afe370a0ae2f81d181">9b446f8</a>.</p>
+    </div>
+  </footer>
+</body>
+</html>

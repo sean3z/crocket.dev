@@ -565,6 +565,7 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical):
       <nav class="nav" aria-label="Site">
         <a href="/#features">Features</a>
         <a href="/guide/" aria-current="page">Guide</a>
+        <a href="/ai/">AI</a>
         <a href="https://github.com/sean3z/crocket/releases/tag/0.5.1">0.5.1</a>
         <a href="https://todo.crocket.dev">Demo</a>
         <a href="https://github.com/sean3z/crocket">GitHub</a>

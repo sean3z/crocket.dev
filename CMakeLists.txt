@@ -56,4 +56,8 @@ if(CROCKET_SITE_CHECK_SNIPPETS)
   add_executable(migrate-snippets checks/snippets/users.cpp)
   target_link_libraries(migrate-snippets PRIVATE crocket::auth)
   target_compile_options(migrate-snippets PRIVATE -Wall -Wextra)
+
+  add_executable(ai-orders checks/snippets/orders.cpp)
+  target_link_libraries(ai-orders PRIVATE crocket::auth)
+  target_compile_options(ai-orders PRIVATE -Wall -Wextra)
 endif()
