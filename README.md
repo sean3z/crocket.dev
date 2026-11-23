@@ -12,23 +12,22 @@ The app listens on port **8100**. `CROCKET_PORT` still overrides it. That variab
 
 Guide prose is markdown in `guide/v0.5/`. The Express and Spring pages are `guide/v0.5/migrate-express.md` and `guide/v0.5/migrate-spring.md`.
 
-Crocket code on those pages is copied from `checks/snippets/users.cpp` and `checks/snippets/listen.cpp`. The `/ai/` example is `checks/snippets/orders.cpp`, quoted by `web/ai/index.html`. `checks/snippets/check_quotes.py` fails if a `cpp` fence is not a consecutive slice of the matching file. Change the `.cpp` first, then paste the same lines into the markdown.
+The crocket examples live right in the markdown, and the `/ai/` example is in `web/ai/index.html`. Edit them in place.
 
 `tools/build_guide.py` renders the guide, fingerprints CSS and JS, and writes `web/llms-full.txt`, `web/guide/`, `src/hashed/`, and `src/guide_assets.cpp`.
 
-## Check and build locally
+## Build locally
 
 You need Python 3 for the guide, and GCC 16.2 for the binary. The toolchain image is `ghcr.io/sean3z/crocket-toolchain:gcc-16.2`. You don't have to install that compiler on the host if you build in Docker.
 
 ```sh
-python3 checks/snippets/check_quotes.py
 python3 tools/build_guide.py
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=g++-16.2 -DCROCKET_SITE_CHECK_SNIPPETS=ON
-cmake --build build --target migrate-snippets migrate-listen ai-orders crocket-site
+  -DCMAKE_CXX_COMPILER=g++-16.2
+cmake --build build --target crocket-site
 ```
 
-`CROCKET_SITE_CHECK_SNIPPETS=ON` compiles the migration and `/ai/` programs. A static preview of the rendered pages is `python3 -m http.server 8766 --directory web`.
+A static preview of the rendered pages is `python3 -m http.server 8766 --directory web`.
 
 ## Deploy
 

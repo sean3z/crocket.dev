@@ -4,7 +4,7 @@ You already know the shape: a function per route, a bit of middleware, `listen` 
 
 The Express examples here are Express 5.
 
-The crocket column on this page is `checks/snippets/users.cpp`, compiled against commit `9b446f8`, which is the tree this site is pinned to. The listen example is `checks/snippets/listen.cpp`, compiled the same way. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
+The crocket column on this page is written against commit `9b446f8`, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
 
 Every success response below is the same JSON. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}`.
 
@@ -83,7 +83,7 @@ auto main() -> int {
 
 :::
 
-`launch` serves until the process is signaled. There's no callback after listen. `GET /healthz` is already registered and answers `{"status":"ok"}`. The routes below mount onto that same builder. `checks/snippets/users.cpp` is the whole program, and it sets the port to 8080 so the rest of this page matches the Express and Spring examples.
+`launch` serves until the process is signaled. There's no callback after listen. `GET /healthz` is already registered and answers `{"status":"ok"}`. The routes below mount onto that same builder. The program sets the port to 8080 so the rest of this page matches the Express and Spring examples.
 
 ## Path parameters
 

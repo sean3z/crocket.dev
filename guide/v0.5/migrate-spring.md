@@ -4,7 +4,7 @@ A `@RestController` method and a crocket handler are doing the same job. The met
 
 The Spring examples here are Spring Boot 3.
 
-The crocket column is `checks/snippets/users.cpp`, compiled against commit `9b446f8`. The listen example is `checks/snippets/listen.cpp`, compiled the same way. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
+The crocket column is written against commit `9b446f8`. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
 
 ## Project and build
 
@@ -109,7 +109,7 @@ auto main() -> int {
 
 :::
 
-`launch` serves until the process is signaled. Tomcat isn't a separate choice. h2o is the wire engine, and your handlers never include its headers. `GET /healthz` is already there. The routes below mount onto that same builder. This program sets the port to 8080 in `checks/snippets/users.cpp` so the rest of the page matches a Spring app on 8080.
+`launch` serves until the process is signaled. Tomcat isn't a separate choice. h2o is the wire engine, and your handlers never include its headers. `GET /healthz` is already there. The routes below mount onto that same builder. This program sets the port to 8080 so the rest of the page matches a Spring app on 8080.
 
 ## Path parameters
 

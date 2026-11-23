@@ -16,16 +16,9 @@ FetchContent_Declare(crocket
 set(CROCKET_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(CROCKET_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(CROCKET_PG OFF CACHE STRING "" FORCE)
-# The site binary doesn't link auth. The migration snippets do, and only when
-# you ask: -DCROCKET_SITE_CHECK_SNIPPETS=ON
-option(CROCKET_SITE_CHECK_SNIPPETS "Compile the migration-guide crocket snippets" OFF)
-if(CROCKET_SITE_CHECK_SNIPPETS)
-  set(CROCKET_CLIENT ON CACHE STRING "" FORCE)
-  set(CROCKET_AUTH ON CACHE STRING "" FORCE)
-else()
-  set(CROCKET_CLIENT OFF CACHE STRING "" FORCE)
-  set(CROCKET_AUTH OFF CACHE STRING "" FORCE)
-endif()
+# The site binary doesn't link auth or the HTTP client.
+set(CROCKET_CLIENT OFF CACHE STRING "" FORCE)
+set(CROCKET_AUTH OFF CACHE STRING "" FORCE)
 FetchContent_MakeAvailable(crocket)
 
 # h2o is already built with function sections. These let --gc-sections drop
@@ -71,16 +64,3 @@ target_link_options(crocket-site PRIVATE
   "LINKER:--as-needed"
   "LINKER:-rpath,/usr/local/lib/crocket")
 
-if(CROCKET_SITE_CHECK_SNIPPETS)
-  add_executable(migrate-snippets checks/snippets/users.cpp)
-  target_link_libraries(migrate-snippets PRIVATE crocket::auth)
-  target_compile_options(migrate-snippets PRIVATE -Wall -Wextra)
-
-  add_executable(ai-orders checks/snippets/orders.cpp)
-  target_link_libraries(ai-orders PRIVATE crocket::auth)
-  target_compile_options(ai-orders PRIVATE -Wall -Wextra)
-
-  add_executable(migrate-listen checks/snippets/listen.cpp)
-  target_link_libraries(migrate-listen PRIVATE crocket::crocket)
-  target_compile_options(migrate-listen PRIVATE -Wall -Wextra)
-endif()

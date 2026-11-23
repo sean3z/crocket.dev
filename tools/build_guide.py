@@ -602,7 +602,7 @@ def render_parity(which):
         rows.append(f"<tr><td>{esc(feature)}</td><td>{shown}</td></tr>")
     note = (
         f"<p class=\"parity-total\">{esc(label)} "
-        f"The crocket program on this page (<code>checks/snippets/users.cpp</code>) is a "
+        f"The crocket program on this page is a "
         f"{mb(binary['stripped_bytes'])} MB stripped Release binary, commit {COMMIT_SHORT}. "
         f"It still loads libstdc++ ({mb(binary['libstdcxx_bytes'])} MB in the GCC 16.2 toolchain).</p>"
     )
