@@ -125,8 +125,8 @@
           </article>
 
           <article class="card">
-            <h3>JSON and protobuf</h3>
-            <p>A plain struct is the schema. <code>Json&lt;T&gt;</code> reads the body straight into <code>T</code>, and the same struct is the response. <code>json::from_path</code> on <code>id</code> means a create request must not send it. Protobuf field numbers follow declaration order, and a JSON annotation does not take a number. <code>proto::field</code> pins one when you retire a number. Unknown protobuf fields are skipped.</p>
+            <h3>JSON</h3>
+            <p>A plain struct is the schema. <code>Json&lt;T&gt;</code> reads the body straight into <code>T</code>, and the same struct is the response. <code>json::from_path</code> on <code>id</code> means a create request must not send it.</p>
             <figure class="listing">
               <pre><code><span class="k">struct</span> User {
   <span class="a">[[= json::from_path]]</span> std::optional&lt;<span class="k">int</span>&gt; id;
@@ -139,15 +139,9 @@
 <span class="k">auto</span> create(Json&lt;User&gt; body) -&gt; Json&lt;User&gt; {
   body-&gt;id = 1;
   <span class="k">return</span> body;
-}
-
-<span class="k">struct</span> HelloRequest {
-  std::string name;                                    <span class="c">// field 1</span>
-  std::optional&lt;std::string&gt; title;                    <span class="c">// field 2</span>
-  [[= proto::field(4)]] std::vector&lt;std::string&gt; tags;  <span class="c">// field 4 (3 was retired)</span>
-};</code></pre>
+}</code></pre>
             </figure>
-            <p class="src"><a href="/guide/v0.5/requests/#json">JSON</a> · <a href="/guide/v0.5/grpc/">gRPC</a></p>
+            <p class="src"><a href="/guide/v0.5/requests/#json">JSON</a></p>
           </article>
 
           <article class="card">
@@ -230,9 +224,15 @@
 
           <article class="card">
             <h3>gRPC and HTTP/2</h3>
-            <p>Unary gRPC methods are functions. Messages are plain structs, and <code>grpc::proto_file</code> prints the <code>.proto</code>, so there isn't a second schema to drift. HTTP/2 is negotiated with ALPN when TLS is on. <code>h2_prior_knowledge</code> accepts h2c on a plain-text port. HTTP/1.1 stays available. Streaming isn't in crocket yet.</p>
+            <p>Unary gRPC methods are functions. Messages are plain structs, and <code>grpc::proto_file</code> prints the <code>.proto</code>, so there isn't a second schema to drift. Field numbers follow declaration order, <code>proto::field</code> pins one when you retire a number, and unknown fields are skipped. HTTP/2 is negotiated with ALPN when TLS is on. <code>h2_prior_knowledge</code> accepts h2c on a plain-text port. HTTP/1.1 stays available. Streaming isn't in crocket yet.</p>
             <figure class="listing">
-              <pre><code>[[= grpc::rpc]]
+              <pre><code><span class="k">struct</span> HelloRequest {
+  std::string name;                                    <span class="c">// field 1</span>
+  std::optional&lt;std::string&gt; title;                    <span class="c">// field 2</span>
+  <span class="a">[[= proto::field(4)]]</span> std::vector&lt;std::string&gt; tags;  <span class="c">// field 4 (3 was retired)</span>
+};
+
+<span class="a">[[= grpc::rpc]]</span>
 <span class="k">auto</span> say_hello(HelloRequest req, Auth&lt;&gt; auth) -&gt; Result&lt;HelloReply&gt; {
   <span class="k">if</span> (req.name.empty())
     <span class="k">return</span> std::unexpected(ApiError::bad_request(<span class="s">"hello.name"</span>, <span class="s">"name is required"</span>));
