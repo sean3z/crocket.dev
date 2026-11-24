@@ -192,13 +192,17 @@ public record NewUser(
     String email,
     @Size(max = 80) String name) {}
 
+private final AtomicInteger nextId =
+    new AtomicInteger(1);
+
 @PostMapping("/users")
 ResponseEntity<User> create(
     @Valid @RequestBody NewUser body) {
+  var id = nextId.getAndIncrement();
   var user = new User(
-      1, body.email(), body.name());
+      id, body.email(), body.name());
   return ResponseEntity
-      .created(URI.create("/users/1"))
+      .created(URI.create("/users/" + id))
       .body(user);
 }
 ```
@@ -213,9 +217,10 @@ struct User {
 
 [[= http::post("/users")]]
 auto create(Json<User> body) -> Created<User> {
+  static std::atomic<int> next_id{1};
   User user = *body;
-  user.id = 1;
-  return {user, "/users/1"};
+  user.id = next_id++;
+  return {user, "/users/" + std::to_string(*user.id)};
 }
 ```
 

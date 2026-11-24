@@ -368,7 +368,8 @@ struct User {
 
 [[= http::post("/users")]]
 auto create(Json<User> body) -> Json<User> {
-  body->id = 1;
+  static std::atomic<int> next_id{1};
+  body->id = next_id++;
   return body;
 }
 ```
@@ -693,7 +694,8 @@ LocalClient client(app);
 
 auto res = client.post("/users").bearer("alice").json(R"({"email":"a@example.com"})").dispatch();
 assert(res.status == 201);
-assert(*res.headers.get("location") == "/users/1");
+auto user = http::json<User>(res).value();
+assert(*res.headers.get("location") == "/users/" + std::to_string(*user.id));
 
 auto bad = client.get("/hello/Ada/400").dispatch();
 assert(bad.status == 404 && bad.error_code == "path.invalid");
@@ -1165,6 +1167,7 @@ Express won't check the body. You do, or you add a library. crocket decodes JSON
 :::pair Express | crocket
 
 ```js
+let nextId = 1;
 app.post("/users", (req, res) => {
   const email = req.body?.email;
   const name = req.body?.name ?? null;
@@ -1175,9 +1178,10 @@ app.post("/users", (req, res) => {
       error: "email is not valid",
     });
   }
+  const user = { id: nextId++, email, name };
   res.status(201)
-    .location("/users/1")
-    .json({ id: 1, email, name });
+    .location(`/users/${user.id}`)
+    .json(user);
 });
 ```
 
@@ -1191,9 +1195,10 @@ struct User {
 
 [[= http::post("/users")]]
 auto create(Json<User> body) -> Created<User> {
+  static std::atomic<int> next_id{1};
   User user = *body;
-  user.id = 1;
-  return {user, "/users/1"};
+  user.id = next_id++;
+  return {user, "/users/" + std::to_string(*user.id)};
 }
 ```
 
@@ -1668,13 +1673,17 @@ public record NewUser(
     String email,
     @Size(max = 80) String name) {}
 
+private final AtomicInteger nextId =
+    new AtomicInteger(1);
+
 @PostMapping("/users")
 ResponseEntity<User> create(
     @Valid @RequestBody NewUser body) {
+  var id = nextId.getAndIncrement();
   var user = new User(
-      1, body.email(), body.name());
+      id, body.email(), body.name());
   return ResponseEntity
-      .created(URI.create("/users/1"))
+      .created(URI.create("/users/" + id))
       .body(user);
 }
 ```
@@ -1689,9 +1698,10 @@ struct User {
 
 [[= http::post("/users")]]
 auto create(Json<User> body) -> Created<User> {
+  static std::atomic<int> next_id{1};
   User user = *body;
-  user.id = 1;
-  return {user, "/users/1"};
+  user.id = next_id++;
+  return {user, "/users/" + std::to_string(*user.id)};
 }
 ```
 

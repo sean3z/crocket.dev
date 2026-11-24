@@ -12,7 +12,8 @@ LocalClient client(app);
 
 auto res = client.post("/users").bearer("alice").json(R"({"email":"a@example.com"})").dispatch();
 assert(res.status == 201);
-assert(*res.headers.get("location") == "/users/1");
+auto user = http::json<User>(res).value();
+assert(*res.headers.get("location") == "/users/" + std::to_string(*user.id));
 
 auto bad = client.get("/hello/Ada/400").dispatch();
 assert(bad.status == 404 && bad.error_code == "path.invalid");

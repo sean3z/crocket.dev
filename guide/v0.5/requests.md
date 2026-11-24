@@ -92,7 +92,8 @@ struct User {
 
 [[= http::post("/users")]]
 auto create(Json<User> body) -> Json<User> {
-  body->id = 1;
+  static std::atomic<int> next_id{1};
+  body->id = next_id++;
   return body;
 }
 ```
