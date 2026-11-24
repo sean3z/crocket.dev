@@ -76,32 +76,22 @@
   <span class="a">[[= json::min(1)]]</span> <span class="k">int</span> qty;
 };
 
-<span class="k">struct</span> <span class="t">Orders</span> {
-  std::mutex mu;
-  <span class="k">int</span> next_id = <span class="n">1</span>;
-  std::map&lt;<span class="k">int</span>, <span class="t">Order</span>&gt; by_id;
-} orders;
-
 <span class="k">namespace</span> api {
 
 <span class="a">[[= http::post(&quot;/orders&quot;)]]</span>
 <span class="k">auto</span> create(<span class="t">Json</span>&lt;<span class="t">Order</span>&gt; body) -&gt; <span class="t">Created</span>&lt;<span class="t">Order</span>&gt; {
   <span class="t">Order</span> order = *body;
-  {
-    std::lock_guard lock(orders.mu);
-    order.id = orders.next_id++;
-    orders.by_id[*order.id] = order;
-  }
+  order.id = <span class="n">1</span>;
   <span class="k">return</span> {order, <span class="s">&quot;/orders/&quot;</span> + std::to_string(*order.id)};
 }
 
 <span class="a">[[= http::get(&quot;/orders/{id}&quot;), = auth::require(&quot;orders&quot;)]]</span>
 <span class="k">auto</span> order(<span class="k">int</span> id) -&gt; <span class="t">Result</span>&lt;<span class="t">Order</span>&gt; {
-  std::lock_guard lock(orders.mu);
-  <span class="k">if</span> (<span class="k">auto</span> it = orders.by_id.find(id); it != orders.by_id.end())
-    <span class="k">return</span> it-&gt;second;
-  <span class="k">return</span> std::unexpected(
-      <span class="t">ApiError</span>::not_found(<span class="s">&quot;no such order&quot;</span>));
+  <span class="k">if</span> (id != <span class="n">1</span>) {
+    <span class="k">return</span> std::unexpected(
+        <span class="t">ApiError</span>::not_found(<span class="s">&quot;no such order&quot;</span>));
+  }
+  <span class="k">return</span> <span class="t">Order</span>{<span class="n">1</span>, <span class="s">&quot;WIDGET&quot;</span>, <span class="n">2</span>};
 }
 
 }  <span class="c">// namespace api</span>

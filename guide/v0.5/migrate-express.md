@@ -160,7 +160,6 @@ Express won't check the body. You do, or you add a library. crocket decodes JSON
 :::pair Express | crocket
 
 ```js
-let nextId = 1;
 app.post("/users", (req, res) => {
   const email = req.body?.email;
   const name = req.body?.name ?? null;
@@ -171,10 +170,9 @@ app.post("/users", (req, res) => {
       error: "email is not valid",
     });
   }
-  const user = { id: nextId++, email, name };
   res.status(201)
-    .location(`/users/${user.id}`)
-    .json(user);
+    .location("/users/1")
+    .json({ id: 1, email, name });
 });
 ```
 
@@ -188,9 +186,8 @@ struct User {
 
 [[= http::post("/users")]]
 auto create(Json<User> body) -> Created<User> {
-  static std::atomic<int> next_id{1};
   User user = *body;
-  user.id = next_id++;
+  user.id = 1;
   return {user, "/users/" + std::to_string(*user.id)};
 }
 ```

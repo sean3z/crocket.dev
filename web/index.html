@@ -137,8 +137,7 @@
 
 [[= http::post(<span class="s">"/users"</span>)]]
 <span class="k">auto</span> create(Json&lt;User&gt; body) -&gt; Json&lt;User&gt; {
-  <span class="k">static</span> std::atomic&lt;<span class="k">int</span>&gt; next_id{1};
-  body-&gt;id = next_id++;
+  body-&gt;id = 1;
   <span class="k">return</span> body;
 }</code></pre>
             </figure>
