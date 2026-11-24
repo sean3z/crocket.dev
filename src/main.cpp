@@ -79,15 +79,18 @@ struct HtmlNotFound {
 // Figures are the ones printed in "Where the cycles go" for the Heroes CRUD
 // rig: crocket 35.2k req/s and 21 MB peak, against one rival per response.
 // Rocket's peak is 22 MB, so that line is "vs 22 MB" with no extra claim.
+// Rocket's 17.4k is its rocket_db_pools default, which adds a SELECT 1 per
+// checkout. The note links the post's database section for the equal-pool gap.
 struct Rival {
   std::string_view id;
   std::string_view rate;    // already includes "vs "
   std::string_view memory;  // already includes "vs "
-  std::string_view note;    // empty when the post has no short caveat
+  std::string_view note;    // empty when the post has no short caveat; may hold a link
 };
 
 constexpr Rival kRivals[] = {
-    {"rocket", "vs Rocket's 17.4k", "vs 22 MB", ""},
+    {"rocket", "vs Rocket's 17.4k", "vs 22 MB",
+     R"(Rocket on its default pool. About 1.5× with its health check off (<a href="https://rambling.hashnode.dev/where-the-cycles-go-c-26-rust-java-and-node-on-one-crud-api-d400dd228d21#database-cpu-per-request">why</a>).)"},
     {"spring", "vs Spring Boot's 8.4k", "vs Spring Boot's 471 MB", "JVM ran untuned."},
     {"node", "vs Node.js (Fastify)'s 6.6k", "vs Node.js (Fastify)'s 216 MB", "Single Node process."},
 };
