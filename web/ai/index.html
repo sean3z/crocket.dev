@@ -71,8 +71,8 @@
             <figure class="listing">
               <header><span>cpp</span></header>
               <pre><code><span class="k">struct</span> <span class="t">Order</span> {
-  <span class="a">[[= json::from_path]]</span> std::<span class="t">optional</span>&lt;<span class="k">int</span>&gt; id;
-  <span class="a">[[= json::min_len(1), = json::max_len(80)]]</span> std::<span class="t">string</span> sku;
+  std::<span class="t">optional</span>&lt;<span class="k">int</span>&gt; id;
+  std::<span class="t">string</span> sku;
   <span class="a">[[= json::min(1)]]</span> <span class="k">int</span> qty;
 };
 
@@ -87,19 +87,13 @@
 
 <span class="a">[[= http::get(&quot;/orders/{id}&quot;), = auth::require(&quot;orders&quot;)]]</span>
 <span class="k">auto</span> order(<span class="k">int</span> id) -&gt; <span class="t">Result</span>&lt;<span class="t">Order</span>&gt; {
-  <span class="k">if</span> (id != <span class="n">1</span>) {
-    <span class="k">return</span> std::unexpected(
-        <span class="t">ApiError</span>::not_found(<span class="s">&quot;no such order&quot;</span>));
-  }
-  <span class="k">return</span> <span class="t">Order</span>{<span class="n">1</span>, <span class="s">&quot;WIDGET&quot;</span>, <span class="n">2</span>};
+  <span class="k">return</span> <span class="t">Order</span>{id, <span class="s">&quot;WIDGET&quot;</span>, <span class="n">2</span>};
 }
 
 }  <span class="c">// namespace api</span>
 
 <span class="k">auto</span> make_app() -&gt; <span class="t">Crocket</span> {
-  <span class="t">Config</span> cfg;
-  cfg.server.port = <span class="n">8080</span>;
-  <span class="k">return</span> build(cfg)
+  <span class="k">return</span> build(<span class="t">Config</span>::from_env())
       .manage(auth::<span class="t">Jwt</span>::oidc(<span class="s">&quot;https://login.example.com/&quot;</span>, <span class="s">&quot;orders&quot;</span>))
       .attach(<span class="t">Logger</span>{})
       .attach(<span class="t">Metrics</span>{})

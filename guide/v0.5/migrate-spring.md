@@ -119,30 +119,22 @@ auto main() -> int {
 
 ```java
 @GetMapping("/users/{id}")
-ResponseEntity<User> userById(
-    @PathVariable int id) {
-  if (id != 1) {
-    return ResponseEntity
-        .notFound().build();
-  }
-  return ResponseEntity.ok(new User(
-      1, "ada@example.com", "Ada"));
+User userById(@PathVariable int id) {
+  return new User(
+      id, "ada@example.com", "Ada");
 }
 ```
 
 ```cpp
 [[= http::get("/users/{id}")]]
 auto user_by_id(int id) -> Result<User> {
-  if (id != 1) {
-    return std::unexpected(ApiError::not_found("no such user"));
-  }
-  return User{1, "ada@example.com", "Ada"};
+  return User{id, "ada@example.com", "Ada"};
 }
 ```
 
 :::
 
-Spring's 404 from `notFound().build()` has an empty body. crocket's `GET /users/9` is problem details, `application/problem+json`, with `code` `not_found` and detail `no such user`. Same status, different body. `GET /users/nope` matches the route, the capture doesn't parse, and the function doesn't run. That body is 404 `path.invalid` with detail `not found`. Spring raises `TypeMismatchException` before `userById` runs, so that case is not the method's empty body.
+`GET /users/nope` matches the route, the capture doesn't parse, and the function doesn't run. That body is 404 `path.invalid` with detail `not found`. Spring raises `TypeMismatchException` before `userById` runs, so that case is not the method's empty body.
 
 ## Query parameters
 
@@ -292,7 +284,7 @@ CORS is `.attach(Cors::allow_origins({"https://app.example.com"}))`. That's the 
 
 ## Errors
 
-`@ControllerAdvice` and `@ExceptionHandler` are how Spring turns an exception into a body. crocket handlers return the error instead of throwing it. `std::unexpected(ApiError::not_found("no such user"))` is the 404 above.
+`@ControllerAdvice` and `@ExceptionHandler` are how Spring turns an exception into a body. crocket handlers return the error instead of throwing it. `return std::unexpected(ApiError::not_found("no such user"));` is a 404 with a problem-details body.
 
 An exception you didn't catch is 500 `internal`. The client doesn't get `what()`, except on the dev profile, where the detail is included. There's no `@ResponseStatus(HttpStatus.CONFLICT)` on an exception type. Build the `ApiError` with the status you want: `not_found`, `bad_request`, `unprocessable`.
 

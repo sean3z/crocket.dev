@@ -93,14 +93,8 @@ auto main() -> int {
 
 ```js
 app.get("/users/:id", (req, res) => {
-  const id = Number(req.params.id);
-  if (id !== 1) {
-    return res.status(404).json({
-      error: "no such user",
-    });
-  }
   res.json({
-    id: 1,
+    id: Number(req.params.id),
     email: "ada@example.com",
     name: "Ada",
   });
@@ -110,18 +104,13 @@ app.get("/users/:id", (req, res) => {
 ```cpp
 [[= http::get("/users/{id}")]]
 auto user_by_id(int id) -> Result<User> {
-  if (id != 1) {
-    return std::unexpected(ApiError::not_found("no such user"));
-  }
-  return User{1, "ada@example.com", "Ada"};
+  return User{id, "ada@example.com", "Ada"};
 }
 ```
 
 :::
 
-A missing user is 404 in both. Express picks the JSON. crocket writes a problem-details body (`application/problem+json`). `GET /users/9` comes back with `code` `not_found` and detail `no such user`. The status matches. The body doesn't.
-
-Express still runs the handler for `GET /users/nope`. `Number("nope")` is `NaN`, and `!== 1` sends the same 404 JSON.
+Express still runs the handler for `GET /users/nope`, and `Number("nope")` is `NaN`. crocket never calls `user_by_id` with a bad `id`.
 
 ## Query parameters
 
@@ -257,7 +246,7 @@ CORS is the same idea. `.attach(Cors::allow_origins({"https://app.example.com"})
 
 Express error middleware is `(err, req, res, next)`, and it has to take all four arguments. A rejected promise from an async handler is passed to that middleware. crocket doesn't have that chain. Return `std::unexpected(ApiError::...)` from a `Result<T>`, or let the extractor fail. A throw the handler didn't catch is 500 `internal`, and `what()` stays out of the body unless you're on the dev profile.
 
-The 404 in `user_by_id` is the pattern. `ApiError::not_found`, `bad_request`, and `unprocessable` are the helpers. Codes are stable strings like `not_found` and `json.validation`, not whatever message you happened to send.
+`return std::unexpected(ApiError::not_found("no such user"));` is a 404 with a problem-details body. `ApiError::not_found`, `bad_request`, and `unprocessable` are the helpers. Codes are stable strings like `not_found` and `json.validation`, not whatever message you happened to send.
 
 ## Auth
 
