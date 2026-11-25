@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>crocket benchmarks</title>
+  <meta name="description" content="A production-track comparison of crocket 0.5.2, Rocket 0.5.4, Axum 0.8.9, Drogon 1.9.14, Fastify 5.12.8, Spring Boot 3.5.16, and FastAPI 0.165.0 on JSON, a single database query, and plaintext, after TechEmpower's Framework Benchmarks were archived in March 2026.">
+  <meta name="theme-color" content="#f4f0e6">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="alternate" type="text/plain" href="/llms.txt">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/benchmarks/bench.css">
+  <script src="/theme.js"></script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap top">
+      <a class="brand" href="/">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path class="arc" d="M6 23c5.5-11 11-12 20-6"/>
+          <circle class="dot" cx="25" cy="16.2" r="2.1"/>
+        </svg>
+        crocket
+      </a>
+      <nav class="nav" aria-label="Site">
+        <a href="/#features">Features</a>
+        <a href="/guide/">Guide</a>
+        <a href="/ai/">AI</a>
+        <a href="/benchmarks/" aria-current="page">Benchmarks</a>
+        <a href="https://github.com/sean3z/crocket/releases/tag/0.5.2">0.5.2</a>
+        <a href="https://todo.crocket.dev">Demo</a>
+        <a href="https://github.com/sean3z/crocket">GitHub</a>
+        <button type="button" id="theme" aria-pressed="false">Dark mode</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="content">
+    <section class="hero page-hero">
+      <div class="wrap">
+        <p class="kicker">Nov 25, 2026</p>
+        <h1>Benchmarks</h1>
+        <p class="tagline">How crocket holds up<br>with the production bits left on</p>
+        <p class="lede">TechEmpower's Framework Benchmarks were archived in March 2026, and the old result pages aren't up anymore</p>
+        <p class="lede">I wanted a comparison I could point at with the boring production bits still on: a JSON access log, a request id, a Prometheus histogram, timeouts, and health routes. Here's crocket against Rocket, Axum, Drogon, Fastify, Spring Boot, and FastAPI, on JSON, a single database query, and plaintext</p>
+        <p class="lede">Further down I also ran a graceful drain, slow clients, oversized posts, connection churn, a ten-minute memory soak, and a contract test</p>
+      </div>
+    </section>
+
+    <section class="section" id="results">
+      <div class="wrap wrap-wide">
+        <h2>Results</h2>
+        <p class="intro">Max req/s is the headline, but it isn't the whole story. CPU per request, latency at a shared rate, and memory are in the table below</p>
+        <div class="tabs">
+          <input class="tab-input" type="radio" name="bench-test" id="test-json" checked><input class="tab-input" type="radio" name="bench-test" id="test-db"><input class="tab-input" type="radio" name="bench-test" id="test-plaintext">
+          <div class="tab-bar" role="tablist" aria-label="Benchmark test">
+            <label class="tab" for="test-json">JSON</label><label class="tab" for="test-db">Single query</label><label class="tab" for="test-plaintext">Plaintext</label>
+          </div>
+          <div class="tab-panels">
+            <section class="tab-panel" id="panel-json" role="tabpanel" aria-labelledby="test-json">
+<p class="test-blurb">Each request encodes {&quot;message&quot;:&quot;Hello, World!&quot;} as JSON, and that string is not cached. Same shape as the old TechEmpower JSON test</p>
+<figure class="bars"><div class="visually-hidden">JSON, max requests per second</div>
+<div class="bar-row"><p class="bar-name">crocket<span class="ver">0.5.2</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill is-crocket" x="0" y="0" width="100.00" height="1"></rect></svg></div><p class="bar-n">90,800<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Drogon<span class="ver">1.9.14</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="88.02" height="1"></rect></svg></div><p class="bar-n">79,919<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Axum<span class="ver">0.8.9</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="79.36" height="1"></rect></svg></div><p class="bar-n">72,061<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Rocket<span class="ver">0.5.4</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="60.83" height="1"></rect></svg></div><p class="bar-n">55,230<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Fastify<span class="ver">5.12.8</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="27.85" height="1"></rect></svg></div><p class="bar-n">25,285<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Spring Boot<span class="ver">3.5.16</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="15.45" height="1"></rect></svg></div><p class="bar-n">14,027<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">FastAPI<span class="ver">0.165.0</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="6.51" height="1"></rect></svg></div><p class="bar-n">5,909<span class="unit">req/s</span></p></div>
+</figure>
+<div class="table-wrap">
+<table class="results" data-test="json">
+<caption>Latency is at 10,000 req/s. If a framework couldn't hold that rate, the table says so instead of showing a queueing delay as latency. Max req/s is the median of three 30-second runs after warmup</caption>
+<thead><tr>
+<th data-sort="name" data-type="text">Framework</th>
+<th class="num" data-sort="maxRps" data-type="num" aria-sort="descending">Max req/s<span class="sort-ind" aria-hidden="true">↓</span></th>
+<th class="num" data-sort="cpuUsPerReq" data-type="num">CPU µs/req<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="p50Ms" data-type="num">p50<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="p99Ms" data-type="num">p99<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="peakRssMb" data-type="num">Peak RSS<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="idleRssMb" data-type="num">Idle RSS<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="coldStartMs" data-type="num">Cold start<span class="sort-ind" aria-hidden="true"></span></th>
+</tr></thead><tbody>
+<tr class="is-crocket" data-name="crocket" data-max-rps="90800" data-cpu-us-per-req="35" data-p50-ms="1.04" data-p99-ms="1.97" data-peak-rss-mb="34" data-idle-rss-mb="15" data-cold-start-ms="335"><th scope="row">crocket<span class="ver">0.5.2 · C++26</span></th><td class="num">90,800</td><td class="num">35</td><td class="num">1.04 ms</td><td class="num">1.97 ms</td><td class="num">34 MB</td><td class="num">15 MB</td><td class="num">335 ms</td></tr>
+<tr data-name="Drogon" data-max-rps="79919" data-cpu-us-per-req="42" data-p50-ms="1.03" data-p99-ms="2.0" data-peak-rss-mb="18" data-idle-rss-mb="16" data-cold-start-ms="219"><th scope="row">Drogon<span class="ver">1.9.14 · C++20</span></th><td class="num">79,919</td><td class="num">42</td><td class="num">1.03 ms</td><td class="num">2.00 ms</td><td class="num">18 MB</td><td class="num">16 MB</td><td class="num">219 ms</td></tr>
+<tr data-name="Axum" data-max-rps="72061" data-cpu-us-per-req="42" data-p50-ms="1.05" data-p99-ms="1.99" data-peak-rss-mb="31" data-idle-rss-mb="9" data-cold-start-ms="293"><th scope="row">Axum<span class="ver">0.8.9 · Rust</span></th><td class="num">72,061</td><td class="num">42</td><td class="num">1.05 ms</td><td class="num">1.99 ms</td><td class="num">31 MB</td><td class="num">9 MB</td><td class="num">293 ms</td></tr>
+<tr data-name="Rocket" data-max-rps="55230" data-cpu-us-per-req="60" data-p50-ms="1.07" data-p99-ms="2.01" data-peak-rss-mb="16" data-idle-rss-mb="11" data-cold-start-ms="204"><th scope="row">Rocket<span class="ver">0.5.4 · Rust</span></th><td class="num">55,230</td><td class="num">60</td><td class="num">1.07 ms</td><td class="num">2.01 ms</td><td class="num">16 MB</td><td class="num">11 MB</td><td class="num">204 ms</td></tr>
+<tr data-name="Fastify" data-max-rps="25285" data-cpu-us-per-req="42" data-p50-ms="1.21" data-p99-ms="2.34" data-peak-rss-mb="260" data-idle-rss-mb="84" data-cold-start-ms="381"><th scope="row">Fastify<span class="ver">5.12.8 · Node.js 26</span></th><td class="num">25,285</td><td class="num">42</td><td class="num">1.21 ms</td><td class="num">2.34 ms</td><td class="num">260 MB</td><td class="num">84 MB</td><td class="num">381 ms</td></tr>
+<tr data-name="Spring Boot" data-max-rps="14027" data-cpu-us-per-req="231" data-p50-ms="1.32" data-p99-ms="3.07" data-peak-rss-mb="446" data-idle-rss-mb="240" data-cold-start-ms="4709"><th scope="row">Spring Boot<span class="ver">3.5.16 · Java 25</span></th><td class="num">14,027</td><td class="num">231</td><td class="num">1.32 ms</td><td class="num">3.07 ms</td><td class="num">446 MB</td><td class="num">240 MB</td><td class="num">4,709 ms</td></tr>
+<tr data-name="FastAPI" data-max-rps="5909" data-cpu-us-per-req="616" data-p50-ms="1.58" data-p99-ms="3.76" data-peak-rss-mb="267" data-idle-rss-mb="259" data-cold-start-ms="1120"><th scope="row">FastAPI<span class="ver">0.165.0 · Python 3.13</span></th><td class="num">5,909</td><td class="num">616</td><td class="num">1.58 ms<span class="held-rate">at 3,500 req/s</span></td><td class="num">3.76 ms<span class="held-rate">at 3,500 req/s</span></td><td class="num">267 MB</td><td class="num">259 MB</td><td class="num">1,120 ms</td></tr>
+</tbody></table></div>
+<p class="table-note">FastAPI tops out around 6,000 req/s on these 4 vCPUs, so at the shared 10,000 (or 4,000 for the query test) requests just queue up. Those wouldn&#x27;t be fair p50 or p99 figures, which is why the table flags them. The numbers you see there are from a rate it can hold, about 60% of its max: 3,500 req/s for JSON, 3,600 for plaintext, and 2,400 for the single query. I also ran crocket at those same rates, and its p99 stayed around 2.12 milliseconds</p>
+<p class="table-note">Cold start is container start to the first 200 on /db. That&#x27;s the number you feel when a new pod comes up during autoscaling or a deploy. Spring Boot takes about 4–5 seconds here; crocket is around 330 milliseconds</p>
+<p class="test-note">This is the HTTP and JSON encoder, no database. Crocket and Drogon stay out in front, and the gap down to Spring Boot and FastAPI is wide</p>
+</section><section class="tab-panel" id="panel-db" role="tabpanel" aria-labelledby="test-db">
+<p class="test-blurb">Each request fetches one random row from a 10,000-row World table and returns it as JSON. Same shape as the old TechEmpower single-query test</p>
+<figure class="bars"><div class="visually-hidden">Single query, max requests per second</div>
+<div class="bar-row"><p class="bar-name">Drogon<span class="ver">1.9.14</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="100.00" height="1"></rect></svg></div><p class="bar-n">49,232<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">crocket<span class="ver">0.5.2</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill is-crocket" x="0" y="0" width="92.32" height="1"></rect></svg></div><p class="bar-n">45,453<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Axum<span class="ver">0.8.9</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="81.01" height="1"></rect></svg></div><p class="bar-n">39,882<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Rocket<span class="ver">0.5.4</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="62.00" height="1"></rect></svg></div><p class="bar-n">30,524<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Fastify<span class="ver">5.12.8</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="25.45" height="1"></rect></svg></div><p class="bar-n">12,532<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Spring Boot<span class="ver">3.5.16</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="21.46" height="1"></rect></svg></div><p class="bar-n">10,567<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">FastAPI<span class="ver">0.165.0</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="7.98" height="1"></rect></svg></div><p class="bar-n">3,930<span class="unit">req/s</span></p></div>
+</figure>
+<div class="table-wrap">
+<table class="results" data-test="db">
+<caption>Latency is at 4,000 req/s. If a framework couldn't hold that rate, the table says so instead of showing a queueing delay as latency. Max req/s is the median of three 30-second runs after warmup</caption>
+<thead><tr>
+<th data-sort="name" data-type="text">Framework</th>
+<th class="num" data-sort="maxRps" data-type="num" aria-sort="descending">Max req/s<span class="sort-ind" aria-hidden="true">↓</span></th>
+<th class="num" data-sort="cpuUsPerReq" data-type="num">CPU µs/req<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="p50Ms" data-type="num">p50<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="p99Ms" data-type="num">p99<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="peakRssMb" data-type="num">Peak RSS<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="idleRssMb" data-type="num">Idle RSS<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="coldStartMs" data-type="num">Cold start<span class="sort-ind" aria-hidden="true"></span></th>
+</tr></thead><tbody>
+<tr data-name="Drogon" data-max-rps="49232" data-cpu-us-per-req="75" data-p50-ms="1.27" data-p99-ms="2.27" data-peak-rss-mb="201" data-idle-rss-mb="16" data-cold-start-ms="219"><th scope="row">Drogon<span class="ver">1.9.14 · C++20</span></th><td class="num">49,232</td><td class="num">75</td><td class="num">1.27 ms</td><td class="num">2.27 ms</td><td class="num">201 MB</td><td class="num">16 MB</td><td class="num">219 ms</td></tr>
+<tr class="is-crocket" data-name="crocket" data-max-rps="45453" data-cpu-us-per-req="71" data-p50-ms="1.32" data-p99-ms="2.38" data-peak-rss-mb="32" data-idle-rss-mb="15" data-cold-start-ms="331"><th scope="row">crocket<span class="ver">0.5.2 · C++26</span></th><td class="num">45,453</td><td class="num">71</td><td class="num">1.32 ms</td><td class="num">2.38 ms</td><td class="num">32 MB</td><td class="num">15 MB</td><td class="num">331 ms</td></tr>
+<tr data-name="Axum" data-max-rps="39882" data-cpu-us-per-req="84" data-p50-ms="1.27" data-p99-ms="2.3" data-peak-rss-mb="29" data-idle-rss-mb="9" data-cold-start-ms="293"><th scope="row">Axum<span class="ver">0.8.9 · Rust</span></th><td class="num">39,882</td><td class="num">84</td><td class="num">1.27 ms</td><td class="num">2.30 ms</td><td class="num">29 MB</td><td class="num">9 MB</td><td class="num">293 ms</td></tr>
+<tr data-name="Rocket" data-max-rps="30524" data-cpu-us-per-req="111" data-p50-ms="1.31" data-p99-ms="2.34" data-peak-rss-mb="21" data-idle-rss-mb="11" data-cold-start-ms="204"><th scope="row">Rocket<span class="ver">0.5.4 · Rust</span></th><td class="num">30,524</td><td class="num">111</td><td class="num">1.31 ms</td><td class="num">2.34 ms</td><td class="num">21 MB</td><td class="num">11 MB</td><td class="num">204 ms</td></tr>
+<tr data-name="Fastify" data-max-rps="12532" data-cpu-us-per-req="85" data-p50-ms="1.66" data-p99-ms="4.34" data-peak-rss-mb="164" data-idle-rss-mb="84" data-cold-start-ms="381"><th scope="row">Fastify<span class="ver">5.12.8 · Node.js 26</span></th><td class="num">12,532</td><td class="num">85</td><td class="num">1.66 ms</td><td class="num">4.34 ms</td><td class="num">164 MB</td><td class="num">84 MB</td><td class="num">381 ms</td></tr>
+<tr data-name="Spring Boot" data-max-rps="10567" data-cpu-us-per-req="311" data-p50-ms="1.46" data-p99-ms="2.69" data-peak-rss-mb="449" data-idle-rss-mb="240" data-cold-start-ms="4709"><th scope="row">Spring Boot<span class="ver">3.5.16 · Java 25</span></th><td class="num">10,567</td><td class="num">311</td><td class="num">1.46 ms</td><td class="num">2.69 ms</td><td class="num">449 MB</td><td class="num">240 MB</td><td class="num">4,709 ms</td></tr>
+<tr data-name="FastAPI" data-max-rps="3930" data-cpu-us-per-req="944" data-p50-ms="3.88" data-p99-ms="20.08" data-peak-rss-mb="270" data-idle-rss-mb="259" data-cold-start-ms="1120"><th scope="row">FastAPI<span class="ver">0.165.0 · Python 3.13</span></th><td class="num">3,930</td><td class="num">944</td><td class="num">3.88 ms<span class="held-rate">at 2,400 req/s</span></td><td class="num">20.08 ms<span class="held-rate">at 2,400 req/s</span></td><td class="num">270 MB</td><td class="num">259 MB</td><td class="num">1,120 ms</td></tr>
+</tbody></table></div>
+<p class="table-note">FastAPI tops out around 6,000 req/s on these 4 vCPUs, so at the shared 10,000 (or 4,000 for the query test) requests just queue up. Those wouldn&#x27;t be fair p50 or p99 figures, which is why the table flags them. The numbers you see there are from a rate it can hold, about 60% of its max: 3,500 req/s for JSON, 3,600 for plaintext, and 2,400 for the single query. I also ran crocket at those same rates, and its p99 stayed around 2.56 milliseconds</p>
+<p class="table-note">Cold start is container start to the first 200 on /db. That&#x27;s the number you feel when a new pod comes up during autoscaling or a deploy. Spring Boot takes about 4–5 seconds here; crocket is around 330 milliseconds</p>
+<p class="test-note">One random row per request. Drogon does come out ahead of crocket here, though it also uses a lot more memory under that load</p>
+</section><section class="tab-panel" id="panel-plaintext" role="tabpanel" aria-labelledby="test-plaintext">
+<p class="test-blurb">Each request returns a small Hello, World! text response, which mostly stresses the HTTP pipeline. Same shape as the old TechEmpower plaintext test</p>
+<figure class="bars"><div class="visually-hidden">Plaintext, max requests per second</div>
+<div class="bar-row"><p class="bar-name">crocket<span class="ver">0.5.2</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill is-crocket" x="0" y="0" width="100.00" height="1"></rect></svg></div><p class="bar-n">102,479<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Drogon<span class="ver">1.9.14</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="88.28" height="1"></rect></svg></div><p class="bar-n">90,471<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Axum<span class="ver">0.8.9</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="71.04" height="1"></rect></svg></div><p class="bar-n">72,800<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Rocket<span class="ver">0.5.4</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="55.75" height="1"></rect></svg></div><p class="bar-n">57,136<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Fastify<span class="ver">5.12.8</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="22.83" height="1"></rect></svg></div><p class="bar-n">23,394<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Spring Boot<span class="ver">3.5.16</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="16.38" height="1"></rect></svg></div><p class="bar-n">16,781<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">FastAPI<span class="ver">0.165.0</span></p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="5.93" height="1"></rect></svg></div><p class="bar-n">6,082<span class="unit">req/s</span></p></div>
+</figure>
+<div class="table-wrap">
+<table class="results" data-test="plaintext">
+<caption>Latency is at 10,000 req/s. If a framework couldn't hold that rate, the table says so instead of showing a queueing delay as latency. Max req/s is the median of three 30-second runs after warmup</caption>
+<thead><tr>
+<th data-sort="name" data-type="text">Framework</th>
+<th class="num" data-sort="maxRps" data-type="num" aria-sort="descending">Max req/s<span class="sort-ind" aria-hidden="true">↓</span></th>
+<th class="num" data-sort="cpuUsPerReq" data-type="num">CPU µs/req<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="p50Ms" data-type="num">p50<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="p99Ms" data-type="num">p99<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="peakRssMb" data-type="num">Peak RSS<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="idleRssMb" data-type="num">Idle RSS<span class="sort-ind" aria-hidden="true"></span></th>
+<th class="num" data-sort="coldStartMs" data-type="num">Cold start<span class="sort-ind" aria-hidden="true"></span></th>
+</tr></thead><tbody>
+<tr class="is-crocket" data-name="crocket" data-max-rps="102479" data-cpu-us-per-req="31" data-p50-ms="1.05" data-p99-ms="2.01" data-peak-rss-mb="32" data-idle-rss-mb="15" data-cold-start-ms="335"><th scope="row">crocket<span class="ver">0.5.2 · C++26</span></th><td class="num">102,479</td><td class="num">31</td><td class="num">1.05 ms</td><td class="num">2.01 ms</td><td class="num">32 MB</td><td class="num">15 MB</td><td class="num">335 ms</td></tr>
+<tr data-name="Drogon" data-max-rps="90471" data-cpu-us-per-req="35" data-p50-ms="1.02" data-p99-ms="1.99" data-peak-rss-mb="201" data-idle-rss-mb="16" data-cold-start-ms="219"><th scope="row">Drogon<span class="ver">1.9.14 · C++20</span></th><td class="num">90,471</td><td class="num">35</td><td class="num">1.02 ms</td><td class="num">1.99 ms</td><td class="num">201 MB</td><td class="num">16 MB</td><td class="num">219 ms</td></tr>
+<tr data-name="Axum" data-max-rps="72800" data-cpu-us-per-req="42" data-p50-ms="1.06" data-p99-ms="2.0" data-peak-rss-mb="33" data-idle-rss-mb="9" data-cold-start-ms="293"><th scope="row">Axum<span class="ver">0.8.9 · Rust</span></th><td class="num">72,800</td><td class="num">42</td><td class="num">1.06 ms</td><td class="num">2.00 ms</td><td class="num">33 MB</td><td class="num">9 MB</td><td class="num">293 ms</td></tr>
+<tr data-name="Rocket" data-max-rps="57136" data-cpu-us-per-req="58" data-p50-ms="1.06" data-p99-ms="2.02" data-peak-rss-mb="20" data-idle-rss-mb="11" data-cold-start-ms="204"><th scope="row">Rocket<span class="ver">0.5.4 · Rust</span></th><td class="num">57,136</td><td class="num">58</td><td class="num">1.06 ms</td><td class="num">2.02 ms</td><td class="num">20 MB</td><td class="num">11 MB</td><td class="num">204 ms</td></tr>
+<tr data-name="Fastify" data-max-rps="23394" data-cpu-us-per-req="44" data-p50-ms="1.23" data-p99-ms="2.47" data-peak-rss-mb="389" data-idle-rss-mb="84" data-cold-start-ms="405"><th scope="row">Fastify<span class="ver">5.12.8 · Node.js 26</span></th><td class="num">23,394</td><td class="num">44</td><td class="num">1.23 ms</td><td class="num">2.47 ms</td><td class="num">389 MB</td><td class="num">84 MB</td><td class="num">405 ms</td></tr>
+<tr data-name="Spring Boot" data-max-rps="16781" data-cpu-us-per-req="192" data-p50-ms="1.59" data-p99-ms="4.13" data-peak-rss-mb="430" data-idle-rss-mb="240" data-cold-start-ms="4709"><th scope="row">Spring Boot<span class="ver">3.5.16 · Java 25</span></th><td class="num">16,781</td><td class="num">192</td><td class="num">1.59 ms</td><td class="num">4.13 ms</td><td class="num">430 MB</td><td class="num">240 MB</td><td class="num">4,709 ms</td></tr>
+<tr data-name="FastAPI" data-max-rps="6082" data-cpu-us-per-req="592" data-p50-ms="1.73" data-p99-ms="4.7" data-peak-rss-mb="270" data-idle-rss-mb="259" data-cold-start-ms="1120"><th scope="row">FastAPI<span class="ver">0.165.0 · Python 3.13</span></th><td class="num">6,082</td><td class="num">592</td><td class="num">1.73 ms<span class="held-rate">at 3,600 req/s</span></td><td class="num">4.70 ms<span class="held-rate">at 3,600 req/s</span></td><td class="num">270 MB</td><td class="num">259 MB</td><td class="num">1,120 ms</td></tr>
+</tbody></table></div>
+<p class="table-note">FastAPI tops out around 6,000 req/s on these 4 vCPUs, so at the shared 10,000 (or 4,000 for the query test) requests just queue up. Those wouldn&#x27;t be fair p50 or p99 figures, which is why the table flags them. The numbers you see there are from a rate it can hold, about 60% of its max: 3,500 req/s for JSON, 3,600 for plaintext, and 2,400 for the single query. I also ran crocket at those same rates, and its p99 stayed around 2.06 milliseconds</p>
+<p class="table-note">Cold start is container start to the first 200 on /db. That&#x27;s the number you feel when a new pod comes up during autoscaling or a deploy. Spring Boot takes about 4–5 seconds here; crocket is around 330 milliseconds</p>
+<p class="test-note">The smallest response, so this is mostly the HTTP pipeline. Crocket&#x27;s lead is widest here</p>
+</section>
+          </div>
+        </div>
+        <div id="coming-note"></div>
+      </div>
+    </section>
+
+    <section class="section" id="prod">
+<div class="wrap wrap-wide">
+<h2>Production behavior</h2>
+<p class="intro">Throughput is one thing. These are the tests I care about when a deploy lands, a client misbehaves, or a body is bigger than you meant to allow</p>
+<p class="coming">Rocket, Axum, Fastify, Spring Boot, and FastAPI are coming in the next run</p>
+<article class="prod-block" id="prod-drain">
+<h3>Graceful drain</h3>
+<p class="test-blurb">I sent SIGTERM while /json traffic was still in flight, then brought the container back up. This is whether a deploy drops the requests already in progress</p>
+<div class="table-wrap"><table class="results prod-table">
+<caption>Load ran for 40 seconds. Stop is SIGTERM to the process exiting. Restart is container start back to a 200</caption>
+<thead><tr><th>Framework</th><th class="num">OK</th><th class="num">Errors</th><th class="num">Stop</th><th class="num">Restart</th></tr></thead><tbody>
+<tr class="is-crocket"><th scope="row">crocket</th><td class="num">41,940</td><td class="num">3,387</td><td class="num">1 s</td><td class="num">4 s</td></tr>
+<tr><th scope="row">Drogon</th><td class="num">70,267</td><td class="num">2,458</td><td class="num">0 s</td><td class="num">3 s</td></tr>
+</tbody></table></div>
+<p class="test-note">During the cut, Drogon had 2,458 errors and crocket had 3,387, and Drogon also got more successful requests through in those 40 seconds. Coming back up, Drogon was ready in about 3 seconds, and crocket took about 4</p>
+</article>
+<article class="prod-block" id="prod-slow">
+<h3>Slow clients</h3>
+<p class="test-blurb">Sixteen clients trickled incomplete headers for about 25 seconds, while healthy GET /json traffic kept going. I wanted to see if a slow connection can tie the server up</p>
+<div class="table-wrap"><table class="results prod-table">
+<caption>Median close is how long the slow connections stayed open. Healthy traffic is GET /json while they were hanging</caption>
+<thead><tr><th>Framework</th><th class="num">Median close</th><th class="num">Still open at 25s</th><th class="num">Healthy p99</th><th class="num">Healthy errors</th></tr></thead><tbody>
+<tr class="is-crocket"><th scope="row">crocket</th><td class="num">10.02 s</td><td class="num">0 of 16</td><td class="num">1.80 ms</td><td class="num">0</td></tr>
+<tr><th scope="row">Drogon</th><td class="num">25.05 s</td><td class="num">16 of 16</td><td class="num">1.90 ms</td><td class="num">0</td></tr>
+</tbody></table></div>
+<p class="test-note">Crocket closed the slow connections right at the 10 second timeout. Drogon left all 16 open for the whole 25 seconds, so there&#x27;s no request timeout in play there. Healthy traffic stayed clean on both</p>
+</article>
+<article class="prod-block" id="prod-oversize">
+<h3>Oversized bodies</h3>
+<p class="test-blurb">A 10 MB and a 100 MB POST to /echo. Without a cap, a body like that can run a process out of memory</p>
+<div class="table-wrap"><table class="results prod-table">
+<caption>A 413 is a clean rejection. A reset means the connection dropped instead</caption>
+<thead><tr><th>Framework</th><th>10 MB</th><th class="num">Time</th><th>100 MB</th><th class="num">Time</th></tr></thead><tbody>
+<tr class="is-crocket"><th scope="row">crocket</th><td class="verdict is-rejected">413</td><td class="num">33.5 ms</td><td class="verdict is-reset">URLError: &lt;urlopen error [Errno 32] Broken pipe&gt;</td><td class="num">36.2 ms</td></tr>
+<tr><th scope="row">Drogon</th><td class="verdict is-rejected">413</td><td class="num">35.1 ms</td><td class="verdict is-rejected">413</td><td class="num">315.9 ms</td></tr>
+</tbody></table></div>
+<p class="test-note">Both rejected a 10 MB post with a 413. Drogon did the same for 100 MB; crocket dropped that connection instead of sending a clean 413</p>
+</article>
+<article class="prod-block" id="prod-churn">
+<h3>Connection churn</h3>
+<p class="test-blurb">Same JSON test, but every request opens a new connection. That&#x27;s closer to a client that doesn&#x27;t keep-alive, or a proxy that churns</p>
+<figure class="bars"><div class="visually-hidden">Connection-churn max requests per second</div>
+<div class="bar-row"><p class="bar-name">crocket</p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill is-crocket" x="0" y="0" width="100.00" height="1"></rect></svg></div><p class="bar-n">749<span class="unit">req/s</span></p></div>
+<div class="bar-row"><p class="bar-name">Drogon</p><div class="bar-track"><svg class="bar-svg" viewBox="0 0 100 1" preserveAspectRatio="none" aria-hidden="true"><rect class="bar-fill" x="0" y="0" width="62.75" height="1"></rect></svg></div><p class="bar-n">470<span class="unit">req/s</span></p></div>
+</figure>
+<div class="table-wrap"><table class="results prod-table">
+<caption>Median of three 20 second runs at an unreachable rate, with Connection: close. Range is the spread of those three</caption>
+<thead><tr><th>Framework</th><th class="num">Max req/s</th><th class="num">Range</th><th class="num">p99</th><th class="num">Peak RSS</th></tr></thead><tbody>
+<tr class="is-crocket"><th scope="row">crocket</th><td class="num">749</td><td class="num">415–10,617</td><td class="num">19,760.00 ms</td><td class="num">30 MB</td></tr>
+<tr><th scope="row">Drogon</th><td class="num">470</td><td class="num">413–6,920</td><td class="num">19,760.00 ms</td><td class="num">176 MB</td></tr>
+</tbody></table></div>
+<p class="test-note">Without keep-alive, throughput falls hard, as you&#x27;d expect. The three runs also jumped around a lot on both, from a few hundred req/s to several thousand, so I&#x27;m treating this as a first look, not a ranking</p>
+</article>
+<article class="prod-block" id="prod-soak">
+<h3>Memory soak</h3>
+<p class="test-blurb">Ten minutes at 3,500 req/s, with RSS sampled every 5 seconds. I wanted to see if memory sits still or keeps climbing</p>
+<figure class="soak-chart">
+<div class="visually-hidden">RSS over a 10 minute soak at 3,500 req/s, in megabytes</div>
+<svg class="soak-svg" viewBox="0 0 640 248" role="img" aria-label="RSS over ten minutes">
+<line class="soak-axis" x1="44" y1="16" x2="44" y2="220" />
+<line class="soak-axis" x1="44" y1="220" x2="620" y2="220" />
+<line class="soak-grid" x1="44" y1="220.0" x2="620" y2="220.0" />
+<text class="soak-label" x="36" y="224.0" text-anchor="end">0</text>
+<line class="soak-grid" x1="44" y1="118.0" x2="620" y2="118.0" />
+<text class="soak-label" x="36" y="122.0" text-anchor="end">10</text>
+<line class="soak-grid" x1="44" y1="16.0" x2="620" y2="16.0" />
+<text class="soak-label" x="36" y="20.0" text-anchor="end">19</text>
+<text class="soak-label" x="44" y="238" text-anchor="start">0 s</text>
+<text class="soak-label" x="332.0" y="238" text-anchor="middle">time</text>
+<text class="soak-label" x="620" y="238" text-anchor="end">598 s</text>
+<text class="soak-label" x="12" y="22" text-anchor="start">MB</text>
+<polyline class="soak-line series-crocket is-crocket" fill="none" points="44.0,53.6 48.8,37.9 53.6,37.9 58.4,37.9 63.3,37.9 68.1,37.9 72.9,37.9 77.7,37.9 82.5,37.9 87.3,37.9 92.2,37.9 97.0,37.9 101.8,37.9 106.6,37.9 111.4,37.9 116.2,37.9 121.1,37.9 125.9,37.9 130.7,37.9 136.5,37.9 141.3,37.9 146.1,37.9 150.9,37.9 155.7,37.9 160.5,37.9 165.4,37.9 170.2,37.9 175.0,37.9 179.8,37.9 184.6,37.9 189.4,37.9 194.3,37.9 199.1,37.9 203.9,37.9 208.7,37.9 213.5,37.9 218.3,37.9 223.2,37.9 228.0,37.9 232.8,37.9 237.6,37.9 242.4,37.9 247.2,37.9 252.1,37.9 256.9,37.9 261.7,37.9 266.5,37.9 271.3,37.9 276.1,37.9 280.9,37.9 285.8,37.9 290.6,37.9 295.4,37.9 300.2,37.9 305.0,37.9 309.8,37.9 314.7,37.9 319.5,37.9 324.3,37.9 329.1,37.9 333.9,37.9 338.7,37.9 343.6,37.9 348.4,37.9 353.2,37.9 359.0,37.9 363.8,37.9 368.6,37.9 373.4,37.9 378.2,37.9 383.1,37.9 387.9,37.9 392.7,37.9 397.5,37.9 402.3,37.9 407.1,37.9 411.9,37.9 416.8,37.9 421.6,37.9 426.4,37.9 431.2,37.9 436.0,37.9 440.8,37.9 445.7,37.9 450.5,37.9 455.3,37.9 460.1,37.9 464.9,37.9 469.7,37.9 474.6,37.9 479.4,37.9 484.2,37.9 489.0,37.9 493.8,37.9 498.6,37.9 503.5,37.9 508.3,37.9 513.1,37.9 517.9,37.9 522.7,37.9 527.5,37.9 532.3,37.9 537.2,37.9 542.0,37.9 546.8,37.9 551.6,37.9 556.4,37.9 561.2,37.9 566.1,37.9 570.9,37.9 575.7,37.9 580.5,37.9 585.3,37.9 591.1,37.9 595.9,37.9 600.7,37.9 605.6,37.9 610.4,37.9 615.2,37.9 620.0,37.9" />
+<polyline class="soak-line series-drogon" fill="none" points="44.0,61.0 48.8,49.4 53.6,49.4 58.4,48.4 63.3,48.4 68.1,48.4 72.9,48.4 77.7,47.3 83.5,47.3 88.3,47.3 93.1,47.3 97.9,46.3 102.8,46.3 107.6,46.3 112.4,45.2 117.2,45.2 122.0,45.2 126.8,45.2 131.7,45.2 136.5,45.2 141.3,45.2 146.1,45.2 150.9,45.2 155.7,45.2 160.5,45.2 165.4,45.2 170.2,45.2 175.0,45.2 179.8,45.2 184.6,45.2 189.4,45.2 194.3,45.2 199.1,45.2 203.9,45.2 208.7,45.2 213.5,45.2 218.3,45.2 223.2,45.2 228.0,45.2 232.8,45.2 237.6,45.2 242.4,45.2 247.2,45.2 252.1,45.2 256.9,45.2 261.7,45.2 266.5,45.2 271.3,45.2 276.1,45.2 280.9,45.2 285.8,45.2 290.6,45.2 295.4,45.2 300.2,45.2 305.0,45.2 309.8,45.2 314.7,45.2 319.5,45.2 324.3,45.2 330.1,45.2 334.9,45.2 339.7,45.2 344.5,45.2 349.3,45.2 354.2,45.2 359.0,45.2 363.8,45.2 368.6,45.2 373.4,45.2 378.2,45.2 383.1,45.2 387.9,45.2 392.7,45.2 397.5,45.2 402.3,45.2 407.1,45.2 411.9,45.2 416.8,45.2 421.6,45.2 426.4,45.2 431.2,45.2 436.0,45.2 440.8,45.2 445.7,45.2 450.5,45.2 455.3,45.2 460.1,45.2 464.9,45.2 469.7,45.2 474.6,45.2 479.4,45.2 484.2,45.2 489.0,45.2 493.8,45.2 498.6,45.2 503.5,45.2 508.3,45.2 513.1,45.2 517.9,45.2 522.7,45.2 527.5,45.2 532.3,45.2 537.2,45.2 542.0,45.2 546.8,45.2 551.6,45.2 556.4,45.2 561.2,45.2 566.1,45.2 570.9,45.2 576.7,45.2 581.5,45.2 586.3,45.2 591.1,45.2 595.9,45.2 600.7,45.2 605.6,45.2 610.4,45.2 615.2,45.2 620.0,45.2" />
+</svg>
+<ul class="soak-legend">
+<li class="series-crocket"><span class="swatch" aria-hidden="true"></span>crocket</li>
+<li class="series-drogon"><span class="swatch" aria-hidden="true"></span>Drogon</li>
+</ul></figure>
+<div class="table-wrap"><table class="results prod-table">
+<caption>RSS at the start and end of a 10 minute run at 3,500 req/s. Held rate is what wrk2 actually achieved</caption>
+<thead><tr><th>Framework</th><th class="num">Start RSS</th><th class="num">End RSS</th><th class="num">Change</th><th class="num">Held rate</th><th class="num">p99</th></tr></thead><tbody>
+<tr class="is-crocket"><th scope="row">crocket</th><td class="num">16 MB</td><td class="num">17 MB</td><td class="num">+1.5 MB</td><td class="num">3,500 req/s</td><td class="num">1.91 ms</td></tr>
+<tr><th scope="row">Drogon</th><td class="num">15 MB</td><td class="num">17 MB</td><td class="num">+1.5 MB</td><td class="num">3,500 req/s</td><td class="num">1.94 ms</td></tr>
+</tbody></table></div>
+<p class="test-note">Both held 3,500 req/s for the full ten minutes, and RSS only moved about a megabyte and a half. That&#x27;s basically flat</p>
+</article>
+<article class="prod-block" id="prod-contract">
+<h3>Contract, on POST /echo</h3>
+<p class="test-blurb">POST /echo with a name and a quantity, then a wrong type, a missing field, an extra field, and broken JSON. This is what a client actually gets back, using each framework&#x27;s default</p>
+<div class="table-wrap"><table class="results prod-table">
+<caption>Each column is one POST body. Rejected means a 4xx. Accepted means the handler took it</caption>
+<thead><tr><th>Framework</th>
+<th>Valid body</th>
+<th>Wrong type</th>
+<th>Missing field</th>
+<th>Extra field</th>
+<th>Malformed JSON</th>
+</tr></thead><tbody>
+<tr class="is-crocket"><th scope="row">crocket</th>
+<td class="verdict is-ok">200</td>
+<td class="verdict is-rejected">rejected · 422</td>
+<td class="verdict is-rejected">rejected · 422</td>
+<td class="verdict is-accepted">accepted · 200</td>
+<td class="verdict is-rejected">rejected · 422</td>
+</tr>
+<tr><th scope="row">Drogon</th>
+<td class="verdict is-ok">200</td>
+<td class="verdict is-accepted">accepted · 200</td>
+<td class="verdict is-accepted">accepted · 200</td>
+<td class="verdict is-accepted">accepted · 200</td>
+<td class="verdict is-rejected">rejected · 400</td>
+</tr>
+</tbody></table></div>
+<p class="test-note">Crocket rejected a wrong type, a missing field, and broken JSON, and it ignored an extra field, which is the usual default unless you turn that off. Drogon accepted anything that parsed as a JSON object, and only the malformed body got a 400</p>
+</article>
+</div></section>
+
+    <section class="section" id="parity">
+      <div class="wrap">
+        <h2>The production bits people miss</h2>
+        <p class="intro">These are the boring ones, and they're the reason this isn't a stripped-down "hello world" comparison. Here's why each one matters, then what was already built in and what I had to add</p>
+        <ol class="checklist">
+<li><p class="check-name">Structured JSON logging</p><p class="check-why">When something breaks at 2 a.m., you want one line per request you can grep, not a pile of unstructured text</p></li>
+<li><p class="check-name">Metrics, as a Prometheus histogram</p><p class="check-why">Averages hide the pain. A histogram tells you if p99 just fell off a cliff</p></li>
+<li><p class="check-name">Request timeout</p><p class="check-why">A stuck handler shouldn&#x27;t hold a connection forever, or one slow query takes the pod down with it</p></li>
+<li><p class="check-name">Request and correlation id</p><p class="check-why">When a client says it failed, you need a shared id that shows up in their ticket and in your logs</p></li>
+<li><p class="check-name">Health and readiness routes</p><p class="check-why">The load balancer has to know when a pod can take traffic, and when it should stop getting any</p></li>
+<li><p class="check-name">Graceful shutdown and drain</p><p class="check-why">A deploy shouldn&#x27;t drop the requests already in flight. SIGTERM should finish what&#x27;s in progress, then exit</p></li>
+<li><p class="check-name">Body size limits</p><p class="check-why">Without a cap, a single oversized post can run a process out of memory</p></li>
+<li><p class="check-name">Input and schema validation</p><p class="check-why">The API should reject a bad body with a clear error, not guess, and not 500</p></li>
+</ol>
+<div class="parity-grid">
+<article class="card"><h3>crocket 0.5.2</h3><p class="src">C++26</p><dl class="parity-dl"><div class="parity-row is-built-in"><dt>Structured JSON logging</dt><dd><span class="parity-state">Built in</span> Logger, one JSON line per request</dd></div><div class="parity-row is-built-in"><dt>Metrics, as a Prometheus histogram</dt><dd><span class="parity-state">Built in</span> Metrics, a Prometheus histogram at /metrics</dd></div><div class="parity-row is-built-in"><dt>Request timeout</dt><dd><span class="parity-state">Built in</span> CROCKET_REQUEST_TIMEOUT, 10 seconds here</dd></div><div class="parity-row is-built-in"><dt>Request and correlation id</dt><dd><span class="parity-state">Built in</span> x-request-id is on every response</dd></div><div class="parity-row is-built-in"><dt>Health and readiness routes</dt><dd><span class="parity-state">Built in</span> /healthz and /readyz, with a pool SELECT 1</dd></div><div class="parity-row is-built-in"><dt>Graceful shutdown and drain</dt><dd><span class="parity-state">Built in</span> SIGTERM drains in-flight requests, then exits</dd></div><div class="parity-row is-built-in"><dt>Body size limits</dt><dd><span class="parity-state">Built in</span> A max body size in Config</dd></div><div class="parity-row is-built-in"><dt>Input and schema validation</dt><dd><span class="parity-state">Built in</span> The request struct is the schema. No extra package</dd></div></dl></article>
+<article class="card"><h3>Rocket 0.5.4</h3><p class="src">Rust</p><dl class="parity-dl"><div class="parity-row is-added"><dt>Structured JSON logging</dt><dd><span class="parity-state">Added</span> tracing-subscriber JSON, via a fairing</dd></div><div class="parity-row is-added"><dt>Metrics, as a Prometheus histogram</dt><dd><span class="parity-state">Added</span> rocket_prometheus, a histogram at /metrics</dd></div><div class="parity-row is-added"><dt>Request timeout</dt><dd><span class="parity-state">Added</span> A 10 second tokio timeout around the query only. There&#x27;s no request-level timeout</dd></div><div class="parity-row is-added"><dt>Request and correlation id</dt><dd><span class="parity-state">Added</span> A request-id fairing that sets x-request-id</dd></div><div class="parity-row is-added"><dt>Health and readiness routes</dt><dd><span class="parity-state">Added</span> /healthz and /readyz routes</dd></div><div class="parity-row is-missing"><dt>Graceful shutdown and drain</dt><dd><span class="parity-state">Not in this app</span> Nothing extra was wired for a drain on SIGTERM</dd></div><div class="parity-row is-missing"><dt>Body size limits</dt><dd><span class="parity-state">Not in this app</span> No cap was set in this app</dd></div><div class="parity-row is-built-in"><dt>Input and schema validation</dt><dd><span class="parity-state">Built in</span> serde on the struct, already in play for JSON</dd></div></dl></article>
+<article class="card"><h3>Axum 0.8.9</h3><p class="src">Rust</p><dl class="parity-dl"><div class="parity-row is-added"><dt>Structured JSON logging</dt><dd><span class="parity-state">Added</span> tracing-subscriber JSON, from a middleware</dd></div><div class="parity-row is-added"><dt>Metrics, as a Prometheus histogram</dt><dd><span class="parity-state">Added</span> metrics-exporter-prometheus, a histogram at /metrics</dd></div><div class="parity-row is-added"><dt>Request timeout</dt><dd><span class="parity-state">Added</span> tower-http&#x27;s TimeoutLayer, 10 seconds</dd></div><div class="parity-row is-added"><dt>Request and correlation id</dt><dd><span class="parity-state">Added</span> tower-http SetRequestId and PropagateRequestId</dd></div><div class="parity-row is-added"><dt>Health and readiness routes</dt><dd><span class="parity-state">Added</span> /healthz and /readyz routes</dd></div><div class="parity-row is-missing"><dt>Graceful shutdown and drain</dt><dd><span class="parity-state">Not in this app</span> with_graceful_shutdown wasn&#x27;t used</dd></div><div class="parity-row is-added"><dt>Body size limits</dt><dd><span class="parity-state">Added</span> tower-http RequestBodyLimitLayer, 1 MB</dd></div><div class="parity-row is-built-in"><dt>Input and schema validation</dt><dd><span class="parity-state">Built in</span> serde on the struct</dd></div></dl></article>
+<article class="card"><h3>Drogon 1.9.14</h3><p class="src">C++20</p><dl class="parity-dl"><div class="parity-row is-added"><dt>Structured JSON logging</dt><dd><span class="parity-state">Added</span> A pre-sending advice hook that writes one JSON line</dd></div><div class="parity-row is-added"><dt>Metrics, as a Prometheus histogram</dt><dd><span class="parity-state">Added</span> The PromExporter plugin, plus a histogram per route</dd></div><div class="parity-row is-added"><dt>Request timeout</dt><dd><span class="parity-state">Added</span> A 10 second timeout on the database client, not a request timeout</dd></div><div class="parity-row is-added"><dt>Request and correlation id</dt><dd><span class="parity-state">Added</span> A pre-routing hook that sets x-request-id</dd></div><div class="parity-row is-added"><dt>Health and readiness routes</dt><dd><span class="parity-state">Added</span> /healthz and /readyz handlers</dd></div><div class="parity-row is-missing"><dt>Graceful shutdown and drain</dt><dd><span class="parity-state">Not in this app</span> Nothing extra was wired for a drain on SIGTERM</dd></div><div class="parity-row is-added"><dt>Body size limits</dt><dd><span class="parity-state">Added</span> setClientMaxBodySize, 1 MB</dd></div><div class="parity-row is-missing"><dt>Input and schema validation</dt><dd><span class="parity-state">Not in this app</span> The POST handler accepts any JSON object. There&#x27;s no schema in this app</dd></div></dl></article>
+<article class="card"><h3>Fastify 5.12.8</h3><p class="src">Node.js 26</p><dl class="parity-dl"><div class="parity-row is-built-in"><dt>Structured JSON logging</dt><dd><span class="parity-state">Built in</span> pino, configured for one JSON line per request</dd></div><div class="parity-row is-added"><dt>Metrics, as a Prometheus histogram</dt><dd><span class="parity-state">Added</span> prom-client, a histogram at /metrics</dd></div><div class="parity-row is-built-in"><dt>Request timeout</dt><dd><span class="parity-state">Built in</span> requestTimeout and connectionTimeout, set to 10 seconds</dd></div><div class="parity-row is-built-in"><dt>Request and correlation id</dt><dd><span class="parity-state">Built in</span> requestIdHeader, plus a hook that echoes x-request-id</dd></div><div class="parity-row is-added"><dt>Health and readiness routes</dt><dd><span class="parity-state">Added</span> /healthz and /readyz routes</dd></div><div class="parity-row is-missing"><dt>Graceful shutdown and drain</dt><dd><span class="parity-state">Not in this app</span> No close hook was added for a drain on SIGTERM</dd></div><div class="parity-row is-built-in"><dt>Body size limits</dt><dd><span class="parity-state">Built in</span> bodyLimit, set to 1 MB</dd></div><div class="parity-row is-built-in"><dt>Input and schema validation</dt><dd><span class="parity-state">Built in</span> Ajv, once a schema is declared. The POST /echo route has one</dd></div></dl></article>
+<article class="card"><h3>Spring Boot 3.5.16</h3><p class="src">Java 25</p><dl class="parity-dl"><div class="parity-row is-built-in"><dt>Structured JSON logging</dt><dd><span class="parity-state">Built in</span> Structured ECS JSON on the console, already there</dd></div><div class="parity-row is-added"><dt>Metrics, as a Prometheus histogram</dt><dd><span class="parity-state">Added</span> Actuator and Micrometer, a histogram at /metrics</dd></div><div class="parity-row is-added"><dt>Request timeout</dt><dd><span class="parity-state">Added</span> Tomcat connection and MVC async timeouts, plus a 10 second query timeout</dd></div><div class="parity-row is-added"><dt>Request and correlation id</dt><dd><span class="parity-state">Added</span> A filter that sets x-request-id</dd></div><div class="parity-row is-added"><dt>Health and readiness routes</dt><dd><span class="parity-state">Added</span> Actuator liveness and readiness, including the database</dd></div><div class="parity-row is-missing"><dt>Graceful shutdown and drain</dt><dd><span class="parity-state">Not in this app</span> server.shutdown=graceful wasn&#x27;t set</dd></div><div class="parity-row is-missing"><dt>Body size limits</dt><dd><span class="parity-state">Not in this app</span> No cap was set in this app</dd></div><div class="parity-row is-missing"><dt>Input and schema validation</dt><dd><span class="parity-state">Not in this app</span> Jackson is here. Bean Validation isn&#x27;t, so a missing field can still be accepted</dd></div></dl></article>
+<article class="card"><h3>FastAPI 0.165.0</h3><p class="src">Python 3.13</p><dl class="parity-dl"><div class="parity-row is-added"><dt>Structured JSON logging</dt><dd><span class="parity-state">Added</span> python-json-logger, from a middleware</dd></div><div class="parity-row is-added"><dt>Metrics, as a Prometheus histogram</dt><dd><span class="parity-state">Added</span> prometheus-fastapi-instrumentator, a histogram at /metrics</dd></div><div class="parity-row is-added"><dt>Request timeout</dt><dd><span class="parity-state">Added</span> An asyncio 10 second middleware, plus asyncpg command_timeout</dd></div><div class="parity-row is-added"><dt>Request and correlation id</dt><dd><span class="parity-state">Added</span> asgi-correlation-id, for x-request-id</dd></div><div class="parity-row is-added"><dt>Health and readiness routes</dt><dd><span class="parity-state">Added</span> /healthz and /readyz routes</dd></div><div class="parity-row is-built-in"><dt>Graceful shutdown and drain</dt><dd><span class="parity-state">Built in</span> uvicorn&#x27;s graceful shutdown, from the server, not from FastAPI itself</dd></div><div class="parity-row is-built-in"><dt>Body size limits</dt><dd><span class="parity-state">Built in</span> Starlette&#x27;s default body limit</dd></div><div class="parity-row is-built-in"><dt>Input and schema validation</dt><dd><span class="parity-state">Built in</span> Pydantic, which FastAPI uses by default</dd></div></dl></article>
+</div>
+      </div>
+    </section>
+
+    <section class="section" id="caveats">
+      <div class="wrap">
+        <h2>A few things to keep in mind</h2>
+        <ul class="caveats"><li>The load generator was a 4 vCPU droplet, same size as the app. At crocket&#x27;s max it was only around half busy (JSON about 50%, plaintext about 55%), so I wouldn&#x27;t call those numbers client-pegged, though a larger generator could still move them</li><li>Drogon does beat crocket on the database test, 49,232 req/s against 45,453, and that&#x27;s real. It also used about 201 MB of RSS under that load, against 32 MB for crocket</li><li>FastAPI couldn&#x27;t hold the shared rate on any of the three tests, so a p99 at that rate would just be queueing. The table keeps that flag, and shows latency at a rate it can hold instead, about 60% of its max. It ran four uvicorn workers, one per core</li><li>Fastify runs as a single Node process, by design, so it tops out around one core. CPU per request is the fairer comparison there</li><li>Spring Boot needs a one-line property to expose histogram buckets at /metrics. That setting is on for these numbers</li></ul>
+      </div>
+    </section>
+
+    <section class="section" id="methodology">
+      <div class="wrap">
+        <h2>How this was measured</h2>
+        <p class="intro">Every framework ran on the same DigitalOcean c-4 size. The original JSON, query, and plaintext numbers are from NYC1. When I came back for the drain, soak, and contract tests, that c-4 size wasn&#x27;t available there, so those ran on the same size in SFO2</p>
+        <ul class="method-facts">
+          <li><strong>Three droplets.</strong> The app, Postgres 16, and wrk2 each got their own 4 vCPU box. DigitalOcean assigns either an Intel Xeon Platinum 8280 or 8358 to that size, and these boxes were 8280s in both regions</li>
+          <li><strong>Load.</strong> wrk2 ran <code>-t4 -c128</code>, HTTP/1.1 keep-alive. Every measured throughput run followed a 60 second warmup at 20,000 req/s</li>
+          <li><strong>Max req/s.</strong> The median of three 30 second runs at an unreachable rate. That's a throughput number, not a latency one</li>
+          <li><strong>Common rate.</strong> Latency is the median of three 30 second runs at a fixed rate: 10,000 req/s for JSON and plaintext, and 4,000 req/s for the single query test. Those figures are coordinated-omission corrected, so a delayed response counts as late. FastAPI couldn't hold those rates, so the table also shows its latency at a rate it can sustain, after a 60 second warmup at that same rate</li>
+          <li><strong>CPU µs/req.</strong> The app's user plus system CPU, divided by requests per second, at max. That's the fairer comparison when one framework is a single process</li>
+          <li><strong>Memory and start.</strong> Peak RSS is under load, idle RSS is after boot with no traffic, and cold start is container start to the first 200 on <code>/db</code></li>
+          <li><strong>Graceful drain.</strong> 40 seconds of GET /json, then SIGTERM mid-way, then a restart. Errors during the cut are the ones that didn't drain</li>
+          <li><strong>Slow clients.</strong> 16 connections trickled incomplete headers for about 25 seconds, while healthy GET /json traffic kept going</li>
+          <li><strong>Oversized bodies.</strong> A 10 MB and a 100 MB POST to <code>/echo</code></li>
+          <li><strong>Connection churn.</strong> The JSON test again, with <code>Connection: close</code>, so every request opens a new connection. Median of three 20 second runs</li>
+          <li><strong>Memory soak.</strong> Ten minutes at 3,500 req/s, with RSS sampled every 5 seconds</li>
+          <li><strong>Contract.</strong> POST <code>/echo</code> with a valid body, a wrong type, a missing field, an extra field, and malformed JSON. Each framework uses its idiomatic default</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="source">
+      <div class="wrap">
+        <h2>Source</h2>
+        <p class="repo-note">The rig and every app's source will be at <a href="https://github.com/sean3z/crocket-bench">github.com/sean3z/crocket-bench</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>Served by crocket. <a href="/llms.txt">llms.txt</a> for assistants. <a href="https://github.com/sean3z/crocket/blob/0.5.2/LICENSE">MIT</a> · Built with ❤️ and a little AI help</p>
+    </div>
+  </footer>
+  <script src="/benchmarks/render.js"></script>
+</body>
+</html>

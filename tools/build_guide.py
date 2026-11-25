@@ -22,6 +22,8 @@ FINGERPRINTS = {
     "/style.css": ROOT / "web" / "style.css",
     "/theme.js": ROOT / "web" / "theme.js",
     "/ai/exchange.js": ROOT / "web" / "ai" / "exchange.js",
+    "/benchmarks/bench.css": ROOT / "web" / "benchmarks" / "bench.css",
+    "/benchmarks/render.js": ROOT / "web" / "benchmarks" / "render.js",
 }
 
 # This site's repository. Edit links point at these files, not at sean3z/crocket.
@@ -835,6 +837,7 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical):
         <a href="/#features">Features</a>
         <a href="/guide/" aria-current="page">Guide</a>
         <a href="/ai/">AI</a>
+        <a href="/benchmarks/">Benchmarks</a>
         <a href="https://github.com/sean3z/crocket/releases/tag/{RELEASE}">{RELEASE}</a>
         <a href="https://todo.crocket.dev">Demo</a>
         <a href="https://github.com/sean3z/crocket">GitHub</a>
@@ -925,6 +928,7 @@ def check_links(pages):
         ROOT / "web" / "index.html",
         ROOT / "web" / "404.html",
         ROOT / "web" / "ai" / "index.html",
+        ROOT / "web" / "benchmarks" / "index.html",
     ):
         if extra.exists():
             known[extra] = collect_ids(extra.read_text(encoding="utf-8"))
@@ -969,6 +973,8 @@ def url_to_file(url):
             return WEB / rel / "index.html"
         return WEB / rel
     candidate = ROOT / "web" / path
+    if candidate.is_dir():
+        return candidate / "index.html"
     return candidate
 
 
@@ -1091,6 +1097,7 @@ def main():
         ROOT / "web" / "404.html": HASHED / "404.html",
         ROOT / "web" / "teapot.html": HASHED / "teapot.html",
         ROOT / "web" / "ai" / "index.html": HASHED / "ai" / "index.html",
+        ROOT / "web" / "benchmarks" / "index.html": HASHED / "benchmarks" / "index.html",
     }
     for src, dest in hashed_pages.items():
         dest.parent.mkdir(parents=True, exist_ok=True)

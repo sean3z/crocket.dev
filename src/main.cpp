@@ -62,6 +62,18 @@ static constexpr unsigned char llms_txt[] = {
 static constexpr unsigned char llms_full_txt[] = {
 #embed "../web/llms-full.txt"
 };
+static constexpr unsigned char benchmarks_html[] = {
+#embed "../src/hashed/benchmarks/index.html"
+};
+static constexpr unsigned char benchmarks_css[] = {
+#embed "../web/benchmarks/bench.css"
+};
+static constexpr unsigned char benchmarks_js[] = {
+#embed "../web/benchmarks/render.js"
+};
+static constexpr unsigned char benchmarks_data[] = {
+#embed "../web/benchmarks/data.json"
+};
 
 // A browser navigation asks for HTML. Other 404s (a missing favicon, curl with
 // no Accept) keep crocket's problem+json body.
@@ -173,6 +185,10 @@ files site_files() {
       asset("ai/exchange.js", ai_js),
       asset("llms.txt", llms_txt),
       asset("llms-full.txt", llms_full_txt),
+      asset("benchmarks/index.html", benchmarks_html),
+      asset("benchmarks/bench.css", benchmarks_css),
+      asset("benchmarks/render.js", benchmarks_js),
+      asset("benchmarks/data.json", benchmarks_data),
   };
   // HTML stays no-cache (and nested guide HTML misses these globs, so it
   // gets the files default, which is also no-cache). CSS and JS stay
@@ -181,6 +197,10 @@ files site_files() {
       {"*.html", "no-cache"},
       {"ai/*.html", "no-cache"},
       {"ai/*.js", "public, max-age=3600"},
+      {"benchmarks/*.html", "no-cache"},
+      {"benchmarks/*.css", "public, max-age=3600"},
+      {"benchmarks/*.js", "public, max-age=3600"},
+      {"benchmarks/*.json", "no-cache"},
       {"*.css", "public, max-age=3600"},
       {"*.js", "public, max-age=3600"},
       {"*.svg", "public, max-age=86400"},
@@ -188,6 +208,7 @@ files site_files() {
   web.headers = {
       {"*.html", {{"content-security-policy", kCsp}}},
       {"ai/*.html", {{"content-security-policy", kCsp}}},
+      {"benchmarks/*.html", {{"content-security-policy", kCsp}}},
   };
   // Nested guide pages need their own globs: * does not cross '/'.
   site_assets::add_guide(web.assets, web.headers, kCsp);

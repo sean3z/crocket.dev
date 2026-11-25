@@ -1,0 +1,2226 @@
+{
+  "run": {
+    "id": "run-1",
+    "ids": [
+      "run-1"
+    ],
+    "title": "November 2026",
+    "date": "2026-11-25",
+    "dateDisplay": "Nov 25, 2026",
+    "track": "production",
+    "lineup": "crocket 0.5.2, Rocket 0.5.4, Axum 0.8.9, Drogon 1.9.14, Fastify 5.12.8, Spring Boot 3.5.16, and FastAPI 0.165.0",
+    "lineupShort": "crocket against Rocket, Axum, Drogon, Fastify, Spring Boot, and FastAPI"
+  },
+  "hardware": {
+    "provider": "DigitalOcean",
+    "size": "CPU-Optimized, 4 vCPU (c-4)",
+    "region": "NYC1",
+    "appCpu": "Intel Xeon Platinum 8280",
+    "loadgenCpu": "Intel Xeon Platinum 8280",
+    "postgres": "16.16",
+    "postgresOwnDroplet": true,
+    "wrk2": "-t4 -c128",
+    "protocol": "HTTP/1.1 keep-alive",
+    "warmup": "60 s at 20,000 req/s",
+    "measured": "median of 3 \u00d7 30 s"
+  },
+  "repo": {
+    "url": "https://github.com/sean3z/crocket-bench",
+    "public": false
+  },
+  "coming": [],
+  "frameworks": [
+    {
+      "id": "crocket",
+      "name": "crocket",
+      "version": "0.5.2",
+      "language": "C++26",
+      "highlight": true,
+      "had": "Logger, Metrics, request timeouts, /healthz, /readyz, and x-request-id are built in",
+      "added": "nothing"
+    },
+    {
+      "id": "rocket",
+      "name": "Rocket",
+      "version": "0.5.4",
+      "language": "Rust",
+      "highlight": false,
+      "had": "There's no built-in request timeout, and no Prometheus histogram",
+      "added": "rocket_prometheus, a JSON access-log fairing, a request-id fairing, health and ready routes, and a 10 second timeout around the query"
+    },
+    {
+      "id": "axum",
+      "name": "Axum",
+      "version": "0.8.9",
+      "language": "Rust",
+      "highlight": false,
+      "had": "These bits aren't built in, though official tower-http layers cover some of them",
+      "added": "a Prometheus histogram, a JSON access-log middleware, tower-http's request-id and 10 second timeout layers, and health and ready routes"
+    },
+    {
+      "id": "drogon",
+      "name": "Drogon",
+      "version": "1.9.14",
+      "language": "C++20",
+      "highlight": false,
+      "had": "A Prometheus plugin and request advice hooks are available",
+      "added": "a histogram at /metrics, a JSON access log and request-id hook, health and ready routes, and a 10 second database timeout"
+    },
+    {
+      "id": "fastify",
+      "name": "Fastify",
+      "version": "5.12.8",
+      "language": "Node.js 26",
+      "highlight": false,
+      "had": "pino logging, request-id headers, and timeouts were already there",
+      "added": "prom-client for the histogram, plus health routes and a request-id hook"
+    },
+    {
+      "id": "spring",
+      "name": "Spring Boot",
+      "version": "3.5.16",
+      "language": "Java 25",
+      "highlight": false,
+      "had": "Structured logging is built in",
+      "added": "Actuator and Micrometer for metrics and probes, plus a filter for the request id and the JSON access log"
+    },
+    {
+      "id": "fastapi",
+      "name": "FastAPI",
+      "version": "0.165.0",
+      "language": "Python 3.13",
+      "highlight": false,
+      "had": "These bits aren't built in",
+      "added": "prometheus-fastapi-instrumentator for the histogram, asgi-correlation-id for the request id, a JSON access-log and 10 second timeout middleware, and health and ready routes"
+    }
+  ],
+  "tests": [
+    {
+      "id": "json",
+      "name": "JSON",
+      "blurb": "Each request encodes {\"message\":\"Hello, World!\"} as JSON, and that string is not cached. Same shape as the old TechEmpower JSON test",
+      "pendingNote": "No results for this test yet",
+      "commonRate": 10000,
+      "status": "complete",
+      "note": "This is the HTTP and JSON encoder, no database. Crocket and Drogon stay out in front, and the gap down to Spring Boot and FastAPI is wide"
+    },
+    {
+      "id": "db",
+      "name": "Single query",
+      "blurb": "Each request fetches one random row from a 10,000-row World table and returns it as JSON. Same shape as the old TechEmpower single-query test",
+      "pendingNote": "No results for this test yet",
+      "commonRate": 4000,
+      "status": "complete",
+      "note": "One random row per request. Drogon does come out ahead of crocket here, though it also uses a lot more memory under that load"
+    },
+    {
+      "id": "plaintext",
+      "name": "Plaintext",
+      "blurb": "Each request returns a small Hello, World! text response, which mostly stresses the HTTP pipeline. Same shape as the old TechEmpower plaintext test",
+      "pendingNote": "No results for this test yet",
+      "commonRate": 10000,
+      "status": "complete",
+      "note": "The smallest response, so this is mostly the HTTP pipeline. Crocket's lead is widest here"
+    }
+  ],
+  "results": [
+    {
+      "run": "run-1",
+      "test": "json",
+      "framework": "crocket",
+      "maxRps": 90800,
+      "maxRpsRange": [
+        87528,
+        98631
+      ],
+      "cpuUsPerReq": 35,
+      "appCoresAtMax": 3.18,
+      "commonRate": 10000,
+      "p50Ms": 1.04,
+      "p99Ms": 1.97,
+      "p999Ms": 2.22,
+      "peakRssMb": 34,
+      "idleRssMb": 15,
+      "coldStartMs": 335,
+      "lgCpuPct": 49.6,
+      "errors": 0,
+      "flags": [],
+      "heldRate": 3500,
+      "heldReqS": 3465,
+      "heldP50Ms": 1.12,
+      "heldP99Ms": 2.12,
+      "heldP999Ms": 2.34
+    },
+    {
+      "run": "run-1",
+      "test": "db",
+      "framework": "crocket",
+      "maxRps": 45453,
+      "maxRpsRange": [
+        45407,
+        46037
+      ],
+      "cpuUsPerReq": 71,
+      "appCoresAtMax": 3.22,
+      "commonRate": 4000,
+      "p50Ms": 1.32,
+      "p99Ms": 2.38,
+      "p999Ms": 3.37,
+      "peakRssMb": 32,
+      "idleRssMb": 15,
+      "coldStartMs": 331,
+      "lgCpuPct": null,
+      "errors": 0,
+      "flags": [],
+      "heldRate": 2400,
+      "heldReqS": 2396,
+      "heldP50Ms": 1.48,
+      "heldP99Ms": 2.56,
+      "heldP999Ms": 2.8
+    },
+    {
+      "run": "run-1",
+      "test": "json",
+      "framework": "fastify",
+      "maxRps": 25285,
+      "maxRpsRange": [
+        21675,
+        25402
+      ],
+      "cpuUsPerReq": 42,
+      "appCoresAtMax": 1.05,
+      "commonRate": 10000,
+      "p50Ms": 1.21,
+      "p99Ms": 2.34,
+      "p999Ms": 2.69,
+      "peakRssMb": 260,
+      "idleRssMb": 84,
+      "coldStartMs": 381,
+      "lgCpuPct": null,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "db",
+      "framework": "fastify",
+      "maxRps": 12532,
+      "maxRpsRange": [
+        12454,
+        12598
+      ],
+      "cpuUsPerReq": 85,
+      "appCoresAtMax": 1.06,
+      "commonRate": 4000,
+      "p50Ms": 1.66,
+      "p99Ms": 4.34,
+      "p999Ms": 5.09,
+      "peakRssMb": 164,
+      "idleRssMb": 84,
+      "coldStartMs": 381,
+      "lgCpuPct": null,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "json",
+      "framework": "spring",
+      "maxRps": 14027,
+      "maxRpsRange": [
+        13985,
+        14288
+      ],
+      "cpuUsPerReq": 231,
+      "appCoresAtMax": 3.23,
+      "commonRate": 10000,
+      "p50Ms": 1.32,
+      "p99Ms": 3.07,
+      "p999Ms": 5.19,
+      "peakRssMb": 446,
+      "idleRssMb": 240,
+      "coldStartMs": 4709,
+      "lgCpuPct": 18.9,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "db",
+      "framework": "spring",
+      "maxRps": 10567,
+      "maxRpsRange": [
+        10465,
+        10668
+      ],
+      "cpuUsPerReq": 311,
+      "appCoresAtMax": 3.27,
+      "commonRate": 4000,
+      "p50Ms": 1.46,
+      "p99Ms": 2.69,
+      "p999Ms": 4.07,
+      "peakRssMb": 449,
+      "idleRssMb": 240,
+      "coldStartMs": 4709,
+      "lgCpuPct": 13.8,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "json",
+      "framework": "rocket",
+      "maxRps": 55230,
+      "maxRpsRange": [
+        53517,
+        56641
+      ],
+      "cpuUsPerReq": 60,
+      "appCoresAtMax": 3.33,
+      "commonRate": 10000,
+      "p50Ms": 1.07,
+      "p99Ms": 2.01,
+      "p999Ms": 2.34,
+      "peakRssMb": 16,
+      "idleRssMb": 11,
+      "coldStartMs": 204,
+      "lgCpuPct": 36.4,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "db",
+      "framework": "rocket",
+      "maxRps": 30524,
+      "maxRpsRange": [
+        30375,
+        30854
+      ],
+      "cpuUsPerReq": 111,
+      "appCoresAtMax": 3.4,
+      "commonRate": 4000,
+      "p50Ms": 1.31,
+      "p99Ms": 2.34,
+      "p999Ms": 2.61,
+      "peakRssMb": 21,
+      "idleRssMb": 11,
+      "coldStartMs": 204,
+      "lgCpuPct": 23.0,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "plaintext",
+      "framework": "rocket",
+      "maxRps": 57136,
+      "maxRpsRange": [
+        53255,
+        58307
+      ],
+      "cpuUsPerReq": 58,
+      "appCoresAtMax": 3.32,
+      "commonRate": 10000,
+      "p50Ms": 1.06,
+      "p99Ms": 2.02,
+      "p999Ms": 2.34,
+      "peakRssMb": 20,
+      "idleRssMb": 11,
+      "coldStartMs": 204,
+      "lgCpuPct": 37.4,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "json",
+      "framework": "axum",
+      "maxRps": 72061,
+      "maxRpsRange": [
+        71778,
+        72126
+      ],
+      "cpuUsPerReq": 42,
+      "appCoresAtMax": 3.03,
+      "commonRate": 10000,
+      "p50Ms": 1.05,
+      "p99Ms": 1.99,
+      "p999Ms": 2.31,
+      "peakRssMb": 31,
+      "idleRssMb": 9,
+      "coldStartMs": 293,
+      "lgCpuPct": 44.0,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "db",
+      "framework": "axum",
+      "maxRps": 39882,
+      "maxRpsRange": [
+        39839,
+        40089
+      ],
+      "cpuUsPerReq": 84,
+      "appCoresAtMax": 3.35,
+      "commonRate": 4000,
+      "p50Ms": 1.27,
+      "p99Ms": 2.3,
+      "p999Ms": 2.61,
+      "peakRssMb": 29,
+      "idleRssMb": 9,
+      "coldStartMs": 293,
+      "lgCpuPct": 27.8,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "plaintext",
+      "framework": "axum",
+      "maxRps": 72800,
+      "maxRpsRange": [
+        70695,
+        73820
+      ],
+      "cpuUsPerReq": 42,
+      "appCoresAtMax": 3.05,
+      "commonRate": 10000,
+      "p50Ms": 1.06,
+      "p99Ms": 2.0,
+      "p999Ms": 2.31,
+      "peakRssMb": 33,
+      "idleRssMb": 9,
+      "coldStartMs": 293,
+      "lgCpuPct": 44.2,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "json",
+      "framework": "drogon",
+      "maxRps": 79919,
+      "maxRpsRange": [
+        79890,
+        80437
+      ],
+      "cpuUsPerReq": 42,
+      "appCoresAtMax": 3.37,
+      "commonRate": 10000,
+      "p50Ms": 1.03,
+      "p99Ms": 2.0,
+      "p999Ms": 2.35,
+      "peakRssMb": 18,
+      "idleRssMb": 16,
+      "coldStartMs": 219,
+      "lgCpuPct": 47.1,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "db",
+      "framework": "drogon",
+      "maxRps": 49232,
+      "maxRpsRange": [
+        49188,
+        50868
+      ],
+      "cpuUsPerReq": 75,
+      "appCoresAtMax": 3.71,
+      "commonRate": 4000,
+      "p50Ms": 1.27,
+      "p99Ms": 2.27,
+      "p999Ms": 2.57,
+      "peakRssMb": 201,
+      "idleRssMb": 16,
+      "coldStartMs": 219,
+      "lgCpuPct": 32.4,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "plaintext",
+      "framework": "drogon",
+      "maxRps": 90471,
+      "maxRpsRange": [
+        89800,
+        90731
+      ],
+      "cpuUsPerReq": 35,
+      "appCoresAtMax": 3.21,
+      "commonRate": 10000,
+      "p50Ms": 1.02,
+      "p99Ms": 1.99,
+      "p999Ms": 2.27,
+      "peakRssMb": 201,
+      "idleRssMb": 16,
+      "coldStartMs": 219,
+      "lgCpuPct": 51.3,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "plaintext",
+      "framework": "crocket",
+      "maxRps": 102479,
+      "maxRpsRange": [
+        97521,
+        108194
+      ],
+      "cpuUsPerReq": 31,
+      "appCoresAtMax": 3.15,
+      "commonRate": 10000,
+      "p50Ms": 1.05,
+      "p99Ms": 2.01,
+      "p999Ms": 2.24,
+      "peakRssMb": 32,
+      "idleRssMb": 15,
+      "coldStartMs": 335,
+      "lgCpuPct": 54.9,
+      "errors": 0,
+      "flags": [],
+      "heldRate": 3600,
+      "heldReqS": 3593,
+      "heldP50Ms": 1.05,
+      "heldP99Ms": 2.06,
+      "heldP999Ms": 2.3
+    },
+    {
+      "run": "run-1",
+      "test": "json",
+      "framework": "fastapi",
+      "maxRps": 5909,
+      "maxRpsRange": [
+        5826,
+        5922
+      ],
+      "cpuUsPerReq": 616,
+      "appCoresAtMax": 3.62,
+      "commonRate": 10000,
+      "p50Ms": 7100.0,
+      "p99Ms": 15340.0,
+      "p999Ms": 15660.0,
+      "peakRssMb": 267,
+      "idleRssMb": 259,
+      "coldStartMs": 1120,
+      "lgCpuPct": 7.4,
+      "errors": 0,
+      "flags": [
+        "couldnt-hold-rate"
+      ],
+      "heldRate": 3500,
+      "heldReqS": 3493,
+      "heldP50Ms": 1.58,
+      "heldP99Ms": 3.76,
+      "heldP999Ms": 8.86
+    },
+    {
+      "run": "run-1",
+      "test": "db",
+      "framework": "fastapi",
+      "maxRps": 3930,
+      "maxRpsRange": [
+        3930,
+        3936
+      ],
+      "cpuUsPerReq": 944,
+      "appCoresAtMax": 3.71,
+      "commonRate": 4000,
+      "p50Ms": 321.71,
+      "p99Ms": 3240.0,
+      "p999Ms": 3485.0,
+      "peakRssMb": 270,
+      "idleRssMb": 259,
+      "coldStartMs": 1120,
+      "lgCpuPct": 5.4,
+      "errors": 0,
+      "flags": [
+        "couldnt-hold-rate"
+      ],
+      "heldRate": 2400,
+      "heldReqS": 2376,
+      "heldP50Ms": 3.88,
+      "heldP99Ms": 20.08,
+      "heldP999Ms": 36.61
+    },
+    {
+      "run": "run-1",
+      "test": "plaintext",
+      "framework": "fastapi",
+      "maxRps": 6082,
+      "maxRpsRange": [
+        6076,
+        6098
+      ],
+      "cpuUsPerReq": 592,
+      "appCoresAtMax": 3.6,
+      "commonRate": 10000,
+      "p50Ms": 7170.0,
+      "p99Ms": 13510.0,
+      "p999Ms": 13740.0,
+      "peakRssMb": 270,
+      "idleRssMb": 259,
+      "coldStartMs": 1120,
+      "lgCpuPct": 8.0,
+      "errors": 0,
+      "flags": [
+        "couldnt-hold-rate"
+      ],
+      "heldRate": 3600,
+      "heldReqS": 3592,
+      "heldP50Ms": 1.73,
+      "heldP99Ms": 4.7,
+      "heldP999Ms": 10.8
+    },
+    {
+      "run": "run-1",
+      "test": "plaintext",
+      "framework": "fastify",
+      "maxRps": 23394,
+      "maxRpsRange": [
+        21337,
+        24118
+      ],
+      "cpuUsPerReq": 44,
+      "appCoresAtMax": 1.04,
+      "commonRate": 10000,
+      "p50Ms": 1.23,
+      "p99Ms": 2.47,
+      "p999Ms": 3.05,
+      "peakRssMb": 389,
+      "idleRssMb": 84,
+      "coldStartMs": 405,
+      "lgCpuPct": 17.7,
+      "errors": 0,
+      "flags": []
+    },
+    {
+      "run": "run-1",
+      "test": "plaintext",
+      "framework": "spring",
+      "maxRps": 16781,
+      "maxRpsRange": [
+        16720,
+        16842
+      ],
+      "cpuUsPerReq": 192,
+      "appCoresAtMax": 3.22,
+      "commonRate": 10000,
+      "p50Ms": 1.59,
+      "p99Ms": 4.13,
+      "p999Ms": 5.86,
+      "peakRssMb": 430,
+      "idleRssMb": 240,
+      "coldStartMs": 4709,
+      "lgCpuPct": 13.4,
+      "errors": 0,
+      "flags": []
+    }
+  ],
+  "caveats": [
+    {
+      "id": "loadgen",
+      "text": "The load generator was a 4 vCPU droplet, same size as the app. At crocket's max it was only around half busy (JSON about 50%, plaintext about 55%), so I wouldn't call those numbers client-pegged, though a larger generator could still move them"
+    },
+    {
+      "id": "drogon-db",
+      "text": "Drogon does beat crocket on the database test, 49,232 req/s against 45,453, and that's real. It also used about 201 MB of RSS under that load, against 32 MB for crocket"
+    },
+    {
+      "id": "fastapi-rate",
+      "text": "FastAPI couldn't hold the shared rate on any of the three tests, so a p99 at that rate would just be queueing. The table keeps that flag, and shows latency at a rate it can hold instead, about 60% of its max. It ran four uvicorn workers, one per core"
+    },
+    {
+      "id": "fastify-single-process",
+      "text": "Fastify runs as a single Node process, by design, so it tops out around one core. CPU per request is the fairer comparison there"
+    },
+    {
+      "id": "spring-histogram",
+      "text": "Spring Boot needs a one-line property to expose histogram buckets at /metrics. That setting is on for these numbers"
+    }
+  ],
+  "notes": {
+    "fastapiHeld": "FastAPI tops out around 6,000 req/s on these 4 vCPUs, so at the shared 10,000 (or 4,000 for the query test) requests just queue up. Those wouldn't be fair p50 or p99 figures, which is why the table flags them. The numbers you see there are from a rate it can hold, about 60% of its max: 3,500 req/s for JSON, 3,600 for plaintext, and 2,400 for the single query",
+    "coldStart": "Cold start is container start to the first 200 on /db. That's the number you feel when a new pod comes up during autoscaling or a deploy. Spring Boot takes about 4\u20135 seconds here; crocket is around 330 milliseconds"
+  },
+  "prod": {
+    "contract": [
+      {
+        "framework": "crocket",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 28.677120999873296,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8694040000136738,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.7193110000116576,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.7604340000852972,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8090040000752197,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 0,
+          "medianCloseS": 10.02,
+          "healthyOk": 485,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.36,
+          "healthyP99Ms": 1.8,
+          "closeS": [
+            10.03,
+            10.03,
+            10.03,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 33.5,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "reset",
+            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "status": null,
+            "ms": 36.2,
+            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "bytes": 104857591
+          }
+        }
+      },
+      {
+        "framework": "drogon",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 40.500073000202974,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 1.0859079998226662,
+            "error": null
+          },
+          "missing": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.8896290000848239,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.9543699998175725,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 0.9815339999477146,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 16,
+          "medianCloseS": 25.05,
+          "healthyOk": 483,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.57,
+          "healthyP99Ms": 1.9,
+          "closeS": [
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 35.1,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 315.9,
+            "error": null,
+            "bytes": 104857591
+          }
+        }
+      }
+    ],
+    "slow": [
+      {
+        "framework": "crocket",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 28.677120999873296,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8694040000136738,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.7193110000116576,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.7604340000852972,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8090040000752197,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 0,
+          "medianCloseS": 10.02,
+          "healthyOk": 485,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.36,
+          "healthyP99Ms": 1.8,
+          "closeS": [
+            10.03,
+            10.03,
+            10.03,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 33.5,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "reset",
+            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "status": null,
+            "ms": 36.2,
+            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "bytes": 104857591
+          }
+        }
+      },
+      {
+        "framework": "drogon",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 40.500073000202974,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 1.0859079998226662,
+            "error": null
+          },
+          "missing": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.8896290000848239,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.9543699998175725,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 0.9815339999477146,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 16,
+          "medianCloseS": 25.05,
+          "healthyOk": 483,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.57,
+          "healthyP99Ms": 1.9,
+          "closeS": [
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 35.1,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 315.9,
+            "error": null,
+            "bytes": 104857591
+          }
+        }
+      }
+    ],
+    "oversize": [
+      {
+        "framework": "crocket",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 28.677120999873296,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8694040000136738,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.7193110000116576,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.7604340000852972,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8090040000752197,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 0,
+          "medianCloseS": 10.02,
+          "healthyOk": 485,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.36,
+          "healthyP99Ms": 1.8,
+          "closeS": [
+            10.03,
+            10.03,
+            10.03,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 33.5,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "reset",
+            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "status": null,
+            "ms": 36.2,
+            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "bytes": 104857591
+          }
+        }
+      },
+      {
+        "framework": "drogon",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 40.500073000202974,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 1.0859079998226662,
+            "error": null
+          },
+          "missing": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.8896290000848239,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.9543699998175725,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 0.9815339999477146,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 16,
+          "medianCloseS": 25.05,
+          "healthyOk": 483,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.57,
+          "healthyP99Ms": 1.9,
+          "closeS": [
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 35.1,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 315.9,
+            "error": null,
+            "bytes": 104857591
+          }
+        }
+      }
+    ],
+    "drain": [
+      {
+        "framework": "crocket",
+        "ok": 41940,
+        "err": 3387,
+        "seconds": 40.0,
+        "by": {
+          "200": 41940,
+          "ConnectionResetError": 1,
+          "URLError": 3386
+        },
+        "stopS": 1,
+        "restartS": 4
+      },
+      {
+        "framework": "drogon",
+        "ok": 70267,
+        "err": 2458,
+        "seconds": 40.0,
+        "by": {
+          "200": 70267,
+          "ConnectionResetError": 1,
+          "URLError": 2457
+        },
+        "stopS": 0,
+        "restartS": 3
+      }
+    ],
+    "soak": [
+      {
+        "framework": "crocket",
+        "series": [
+          {
+            "t": 0,
+            "mb": 15.8
+          },
+          {
+            "t": 5,
+            "mb": 17.3
+          },
+          {
+            "t": 10,
+            "mb": 17.3
+          },
+          {
+            "t": 15,
+            "mb": 17.3
+          },
+          {
+            "t": 20,
+            "mb": 17.3
+          },
+          {
+            "t": 25,
+            "mb": 17.3
+          },
+          {
+            "t": 30,
+            "mb": 17.3
+          },
+          {
+            "t": 35,
+            "mb": 17.3
+          },
+          {
+            "t": 40,
+            "mb": 17.3
+          },
+          {
+            "t": 45,
+            "mb": 17.3
+          },
+          {
+            "t": 50,
+            "mb": 17.3
+          },
+          {
+            "t": 55,
+            "mb": 17.3
+          },
+          {
+            "t": 60,
+            "mb": 17.3
+          },
+          {
+            "t": 65,
+            "mb": 17.3
+          },
+          {
+            "t": 70,
+            "mb": 17.3
+          },
+          {
+            "t": 75,
+            "mb": 17.3
+          },
+          {
+            "t": 80,
+            "mb": 17.3
+          },
+          {
+            "t": 85,
+            "mb": 17.3
+          },
+          {
+            "t": 90,
+            "mb": 17.3
+          },
+          {
+            "t": 96,
+            "mb": 17.3
+          },
+          {
+            "t": 101,
+            "mb": 17.3
+          },
+          {
+            "t": 106,
+            "mb": 17.3
+          },
+          {
+            "t": 111,
+            "mb": 17.3
+          },
+          {
+            "t": 116,
+            "mb": 17.3
+          },
+          {
+            "t": 121,
+            "mb": 17.3
+          },
+          {
+            "t": 126,
+            "mb": 17.3
+          },
+          {
+            "t": 131,
+            "mb": 17.3
+          },
+          {
+            "t": 136,
+            "mb": 17.3
+          },
+          {
+            "t": 141,
+            "mb": 17.3
+          },
+          {
+            "t": 146,
+            "mb": 17.3
+          },
+          {
+            "t": 151,
+            "mb": 17.3
+          },
+          {
+            "t": 156,
+            "mb": 17.3
+          },
+          {
+            "t": 161,
+            "mb": 17.3
+          },
+          {
+            "t": 166,
+            "mb": 17.3
+          },
+          {
+            "t": 171,
+            "mb": 17.3
+          },
+          {
+            "t": 176,
+            "mb": 17.3
+          },
+          {
+            "t": 181,
+            "mb": 17.3
+          },
+          {
+            "t": 186,
+            "mb": 17.3
+          },
+          {
+            "t": 191,
+            "mb": 17.3
+          },
+          {
+            "t": 196,
+            "mb": 17.3
+          },
+          {
+            "t": 201,
+            "mb": 17.3
+          },
+          {
+            "t": 206,
+            "mb": 17.3
+          },
+          {
+            "t": 211,
+            "mb": 17.3
+          },
+          {
+            "t": 216,
+            "mb": 17.3
+          },
+          {
+            "t": 221,
+            "mb": 17.3
+          },
+          {
+            "t": 226,
+            "mb": 17.3
+          },
+          {
+            "t": 231,
+            "mb": 17.3
+          },
+          {
+            "t": 236,
+            "mb": 17.3
+          },
+          {
+            "t": 241,
+            "mb": 17.3
+          },
+          {
+            "t": 246,
+            "mb": 17.3
+          },
+          {
+            "t": 251,
+            "mb": 17.3
+          },
+          {
+            "t": 256,
+            "mb": 17.3
+          },
+          {
+            "t": 261,
+            "mb": 17.3
+          },
+          {
+            "t": 266,
+            "mb": 17.3
+          },
+          {
+            "t": 271,
+            "mb": 17.3
+          },
+          {
+            "t": 276,
+            "mb": 17.3
+          },
+          {
+            "t": 281,
+            "mb": 17.3
+          },
+          {
+            "t": 286,
+            "mb": 17.3
+          },
+          {
+            "t": 291,
+            "mb": 17.3
+          },
+          {
+            "t": 296,
+            "mb": 17.3
+          },
+          {
+            "t": 301,
+            "mb": 17.3
+          },
+          {
+            "t": 306,
+            "mb": 17.3
+          },
+          {
+            "t": 311,
+            "mb": 17.3
+          },
+          {
+            "t": 316,
+            "mb": 17.3
+          },
+          {
+            "t": 321,
+            "mb": 17.3
+          },
+          {
+            "t": 327,
+            "mb": 17.3
+          },
+          {
+            "t": 332,
+            "mb": 17.3
+          },
+          {
+            "t": 337,
+            "mb": 17.3
+          },
+          {
+            "t": 342,
+            "mb": 17.3
+          },
+          {
+            "t": 347,
+            "mb": 17.3
+          },
+          {
+            "t": 352,
+            "mb": 17.3
+          },
+          {
+            "t": 357,
+            "mb": 17.3
+          },
+          {
+            "t": 362,
+            "mb": 17.3
+          },
+          {
+            "t": 367,
+            "mb": 17.3
+          },
+          {
+            "t": 372,
+            "mb": 17.3
+          },
+          {
+            "t": 377,
+            "mb": 17.3
+          },
+          {
+            "t": 382,
+            "mb": 17.3
+          },
+          {
+            "t": 387,
+            "mb": 17.3
+          },
+          {
+            "t": 392,
+            "mb": 17.3
+          },
+          {
+            "t": 397,
+            "mb": 17.3
+          },
+          {
+            "t": 402,
+            "mb": 17.3
+          },
+          {
+            "t": 407,
+            "mb": 17.3
+          },
+          {
+            "t": 412,
+            "mb": 17.3
+          },
+          {
+            "t": 417,
+            "mb": 17.3
+          },
+          {
+            "t": 422,
+            "mb": 17.3
+          },
+          {
+            "t": 427,
+            "mb": 17.3
+          },
+          {
+            "t": 432,
+            "mb": 17.3
+          },
+          {
+            "t": 437,
+            "mb": 17.3
+          },
+          {
+            "t": 442,
+            "mb": 17.3
+          },
+          {
+            "t": 447,
+            "mb": 17.3
+          },
+          {
+            "t": 452,
+            "mb": 17.3
+          },
+          {
+            "t": 457,
+            "mb": 17.3
+          },
+          {
+            "t": 462,
+            "mb": 17.3
+          },
+          {
+            "t": 467,
+            "mb": 17.3
+          },
+          {
+            "t": 472,
+            "mb": 17.3
+          },
+          {
+            "t": 477,
+            "mb": 17.3
+          },
+          {
+            "t": 482,
+            "mb": 17.3
+          },
+          {
+            "t": 487,
+            "mb": 17.3
+          },
+          {
+            "t": 492,
+            "mb": 17.3
+          },
+          {
+            "t": 497,
+            "mb": 17.3
+          },
+          {
+            "t": 502,
+            "mb": 17.3
+          },
+          {
+            "t": 507,
+            "mb": 17.3
+          },
+          {
+            "t": 512,
+            "mb": 17.3
+          },
+          {
+            "t": 517,
+            "mb": 17.3
+          },
+          {
+            "t": 522,
+            "mb": 17.3
+          },
+          {
+            "t": 527,
+            "mb": 17.3
+          },
+          {
+            "t": 532,
+            "mb": 17.3
+          },
+          {
+            "t": 537,
+            "mb": 17.3
+          },
+          {
+            "t": 542,
+            "mb": 17.3
+          },
+          {
+            "t": 547,
+            "mb": 17.3
+          },
+          {
+            "t": 552,
+            "mb": 17.3
+          },
+          {
+            "t": 557,
+            "mb": 17.3
+          },
+          {
+            "t": 562,
+            "mb": 17.3
+          },
+          {
+            "t": 568,
+            "mb": 17.3
+          },
+          {
+            "t": 573,
+            "mb": 17.3
+          },
+          {
+            "t": 578,
+            "mb": 17.3
+          },
+          {
+            "t": 583,
+            "mb": 17.3
+          },
+          {
+            "t": 588,
+            "mb": 17.3
+          },
+          {
+            "t": 593,
+            "mb": 17.3
+          },
+          {
+            "t": 598,
+            "mb": 17.3
+          }
+        ],
+        "startMb": 15.8,
+        "endMb": 17.3,
+        "peakMb": 17.3,
+        "deltaMb": 1.5,
+        "samples": 120,
+        "reqS": 3499.65,
+        "p99Ms": 1.91,
+        "p50Ms": 0.95,
+        "non2xx": 0,
+        "socketErrors": 0,
+        "requests": 2099789
+      },
+      {
+        "framework": "drogon",
+        "series": [
+          {
+            "t": 0,
+            "mb": 15.1
+          },
+          {
+            "t": 5,
+            "mb": 16.2
+          },
+          {
+            "t": 10,
+            "mb": 16.2
+          },
+          {
+            "t": 15,
+            "mb": 16.3
+          },
+          {
+            "t": 20,
+            "mb": 16.3
+          },
+          {
+            "t": 25,
+            "mb": 16.3
+          },
+          {
+            "t": 30,
+            "mb": 16.3
+          },
+          {
+            "t": 35,
+            "mb": 16.4
+          },
+          {
+            "t": 41,
+            "mb": 16.4
+          },
+          {
+            "t": 46,
+            "mb": 16.4
+          },
+          {
+            "t": 51,
+            "mb": 16.4
+          },
+          {
+            "t": 56,
+            "mb": 16.5
+          },
+          {
+            "t": 61,
+            "mb": 16.5
+          },
+          {
+            "t": 66,
+            "mb": 16.5
+          },
+          {
+            "t": 71,
+            "mb": 16.6
+          },
+          {
+            "t": 76,
+            "mb": 16.6
+          },
+          {
+            "t": 81,
+            "mb": 16.6
+          },
+          {
+            "t": 86,
+            "mb": 16.6
+          },
+          {
+            "t": 91,
+            "mb": 16.6
+          },
+          {
+            "t": 96,
+            "mb": 16.6
+          },
+          {
+            "t": 101,
+            "mb": 16.6
+          },
+          {
+            "t": 106,
+            "mb": 16.6
+          },
+          {
+            "t": 111,
+            "mb": 16.6
+          },
+          {
+            "t": 116,
+            "mb": 16.6
+          },
+          {
+            "t": 121,
+            "mb": 16.6
+          },
+          {
+            "t": 126,
+            "mb": 16.6
+          },
+          {
+            "t": 131,
+            "mb": 16.6
+          },
+          {
+            "t": 136,
+            "mb": 16.6
+          },
+          {
+            "t": 141,
+            "mb": 16.6
+          },
+          {
+            "t": 146,
+            "mb": 16.6
+          },
+          {
+            "t": 151,
+            "mb": 16.6
+          },
+          {
+            "t": 156,
+            "mb": 16.6
+          },
+          {
+            "t": 161,
+            "mb": 16.6
+          },
+          {
+            "t": 166,
+            "mb": 16.6
+          },
+          {
+            "t": 171,
+            "mb": 16.6
+          },
+          {
+            "t": 176,
+            "mb": 16.6
+          },
+          {
+            "t": 181,
+            "mb": 16.6
+          },
+          {
+            "t": 186,
+            "mb": 16.6
+          },
+          {
+            "t": 191,
+            "mb": 16.6
+          },
+          {
+            "t": 196,
+            "mb": 16.6
+          },
+          {
+            "t": 201,
+            "mb": 16.6
+          },
+          {
+            "t": 206,
+            "mb": 16.6
+          },
+          {
+            "t": 211,
+            "mb": 16.6
+          },
+          {
+            "t": 216,
+            "mb": 16.6
+          },
+          {
+            "t": 221,
+            "mb": 16.6
+          },
+          {
+            "t": 226,
+            "mb": 16.6
+          },
+          {
+            "t": 231,
+            "mb": 16.6
+          },
+          {
+            "t": 236,
+            "mb": 16.6
+          },
+          {
+            "t": 241,
+            "mb": 16.6
+          },
+          {
+            "t": 246,
+            "mb": 16.6
+          },
+          {
+            "t": 251,
+            "mb": 16.6
+          },
+          {
+            "t": 256,
+            "mb": 16.6
+          },
+          {
+            "t": 261,
+            "mb": 16.6
+          },
+          {
+            "t": 266,
+            "mb": 16.6
+          },
+          {
+            "t": 271,
+            "mb": 16.6
+          },
+          {
+            "t": 276,
+            "mb": 16.6
+          },
+          {
+            "t": 281,
+            "mb": 16.6
+          },
+          {
+            "t": 286,
+            "mb": 16.6
+          },
+          {
+            "t": 291,
+            "mb": 16.6
+          },
+          {
+            "t": 297,
+            "mb": 16.6
+          },
+          {
+            "t": 302,
+            "mb": 16.6
+          },
+          {
+            "t": 307,
+            "mb": 16.6
+          },
+          {
+            "t": 312,
+            "mb": 16.6
+          },
+          {
+            "t": 317,
+            "mb": 16.6
+          },
+          {
+            "t": 322,
+            "mb": 16.6
+          },
+          {
+            "t": 327,
+            "mb": 16.6
+          },
+          {
+            "t": 332,
+            "mb": 16.6
+          },
+          {
+            "t": 337,
+            "mb": 16.6
+          },
+          {
+            "t": 342,
+            "mb": 16.6
+          },
+          {
+            "t": 347,
+            "mb": 16.6
+          },
+          {
+            "t": 352,
+            "mb": 16.6
+          },
+          {
+            "t": 357,
+            "mb": 16.6
+          },
+          {
+            "t": 362,
+            "mb": 16.6
+          },
+          {
+            "t": 367,
+            "mb": 16.6
+          },
+          {
+            "t": 372,
+            "mb": 16.6
+          },
+          {
+            "t": 377,
+            "mb": 16.6
+          },
+          {
+            "t": 382,
+            "mb": 16.6
+          },
+          {
+            "t": 387,
+            "mb": 16.6
+          },
+          {
+            "t": 392,
+            "mb": 16.6
+          },
+          {
+            "t": 397,
+            "mb": 16.6
+          },
+          {
+            "t": 402,
+            "mb": 16.6
+          },
+          {
+            "t": 407,
+            "mb": 16.6
+          },
+          {
+            "t": 412,
+            "mb": 16.6
+          },
+          {
+            "t": 417,
+            "mb": 16.6
+          },
+          {
+            "t": 422,
+            "mb": 16.6
+          },
+          {
+            "t": 427,
+            "mb": 16.6
+          },
+          {
+            "t": 432,
+            "mb": 16.6
+          },
+          {
+            "t": 437,
+            "mb": 16.6
+          },
+          {
+            "t": 442,
+            "mb": 16.6
+          },
+          {
+            "t": 447,
+            "mb": 16.6
+          },
+          {
+            "t": 452,
+            "mb": 16.6
+          },
+          {
+            "t": 457,
+            "mb": 16.6
+          },
+          {
+            "t": 462,
+            "mb": 16.6
+          },
+          {
+            "t": 467,
+            "mb": 16.6
+          },
+          {
+            "t": 472,
+            "mb": 16.6
+          },
+          {
+            "t": 477,
+            "mb": 16.6
+          },
+          {
+            "t": 482,
+            "mb": 16.6
+          },
+          {
+            "t": 487,
+            "mb": 16.6
+          },
+          {
+            "t": 492,
+            "mb": 16.6
+          },
+          {
+            "t": 497,
+            "mb": 16.6
+          },
+          {
+            "t": 502,
+            "mb": 16.6
+          },
+          {
+            "t": 507,
+            "mb": 16.6
+          },
+          {
+            "t": 512,
+            "mb": 16.6
+          },
+          {
+            "t": 517,
+            "mb": 16.6
+          },
+          {
+            "t": 522,
+            "mb": 16.6
+          },
+          {
+            "t": 527,
+            "mb": 16.6
+          },
+          {
+            "t": 532,
+            "mb": 16.6
+          },
+          {
+            "t": 537,
+            "mb": 16.6
+          },
+          {
+            "t": 542,
+            "mb": 16.6
+          },
+          {
+            "t": 547,
+            "mb": 16.6
+          },
+          {
+            "t": 553,
+            "mb": 16.6
+          },
+          {
+            "t": 558,
+            "mb": 16.6
+          },
+          {
+            "t": 563,
+            "mb": 16.6
+          },
+          {
+            "t": 568,
+            "mb": 16.6
+          },
+          {
+            "t": 573,
+            "mb": 16.6
+          },
+          {
+            "t": 578,
+            "mb": 16.6
+          },
+          {
+            "t": 583,
+            "mb": 16.6
+          },
+          {
+            "t": 588,
+            "mb": 16.6
+          },
+          {
+            "t": 593,
+            "mb": 16.6
+          },
+          {
+            "t": 598,
+            "mb": 16.6
+          }
+        ],
+        "startMb": 15.1,
+        "endMb": 16.6,
+        "peakMb": 16.6,
+        "deltaMb": 1.5,
+        "samples": 120,
+        "reqS": 3499.64,
+        "p99Ms": 1.94,
+        "p50Ms": 0.96,
+        "non2xx": 0,
+        "socketErrors": 0,
+        "requests": 2099788
+      }
+    ],
+    "churn": [
+      {
+        "framework": "crocket",
+        "maxRps": 749,
+        "maxRpsRange": [
+          415,
+          10617
+        ],
+        "p99Ms": 19760.0,
+        "peakRssMb": 30,
+        "non2xx": 0,
+        "socketErrors": 0
+      },
+      {
+        "framework": "drogon",
+        "maxRps": 470,
+        "maxRpsRange": [
+          413,
+          6920
+        ],
+        "p99Ms": 19760.0,
+        "peakRssMb": 176,
+        "non2xx": 0,
+        "socketErrors": 0
+      }
+    ],
+    "coming": [
+      "rocket",
+      "axum",
+      "fastify",
+      "spring",
+      "fastapi"
+    ]
+  },
+  "hardwareNote": "The original JSON, query, and plaintext numbers are from NYC1. When I came back for the drain, soak, and contract tests, that c-4 size wasn't available there, so those ran on the same size in SFO2"
+}
