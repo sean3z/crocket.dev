@@ -25,6 +25,8 @@ It is the largest of:
 
 Each input is capped at 1. The window is the time since the previous scrape of that `/metrics`, so scrape each pod from one Prometheus. Two scrapers would each see half windows. The pool share is read at scrape time. Taking the largest input means the first resource to run out drives it. Target about 0.7, to leave headroom for spikes.
 
+**Scrape each pod directly, not through the load balancer.** Each scrape through a load balancer lands on a different pod. You'd get a random pod's saturation, and the window would no longer be the time since that pod's last scrape. On Kubernetes, Prometheus pod discovery already scrapes each pod directly. On ECS, run the [AWS Distro for OpenTelemetry](https://aws-otel.github.io/docs/getting-started/container-insights/ecs-prometheus) collector as a sidecar that scrapes `localhost:8000/metrics` in each task.
+
 CPU percent misleads for crocket, whose time is mostly kernel I/O. `crocket_worker_busy_ratio` counts handler time directly.
 
 Handlers crocket places on the event loop (async ones, or fast plain functions) never use a worker, so an app that runs entirely on the loops shows up in event loop lag rather than in the busy ratio.

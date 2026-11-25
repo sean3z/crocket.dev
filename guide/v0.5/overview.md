@@ -77,6 +77,10 @@ Network I/O runs on one event loop per physical core. Hyperthreads of a core don
 
 Adaptive placement is on by default. A plain route moves onto the event loops after 1,000 runs in a row under 100 microseconds, and back to workers when it turns out to block there (one run over 50 ms, or 8 over 1 ms within a second). `CROCKET_ADAPTIVE_PLACEMENT=false` keeps plain functions on workers.
 
+A handler on the event loop skips the handoff to a worker and back, so it's the fastest kind. While a `Task` waits on a `co_await`, the loop keeps serving other connections. The cost is that blocking a loop stalls every connection on it, which is why a `Task` must await instead of block. A task that holds its loop for more than 10 ms is named once in a `warn` log line, so a synchronous call that slipped in gets found.
+
+Adaptive placement gives plain functions the same speedup without rewriting them as `Task`. Both moves are logged, and a route that takes `State<Pool<T>>` never moves, because a pool checkout is quick until the pool runs dry.
+
 ## When things fail
 
 - At compile time, when the types say so: a capture with no matching parameter, an unknown extractor, a return type that is not a responder.
