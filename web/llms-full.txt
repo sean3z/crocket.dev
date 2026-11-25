@@ -291,7 +291,16 @@ Each `{capture}` binds to the parameter with the same name. The parameter's type
 
 Paths are split on `/` before they are decoded, so a capture can hold any character. `/hello/a%2Fb/36` calls `hello` with `name` equal to `a/b`. Dot segments are removed first and never climb above `/`. A path that decodes to a NUL byte is 400.
 
-A capture that doesn't match a parameter is a compile error:
+A capture that doesn't match a parameter is a compile error. Here the parameter was renamed to `years`, but the path still says `{age}`:
+
+```cpp
+namespace bad {
+[[= http::get("/hello/{name}/{age}")]]
+auto hello(std::string_view name, std::uint8_t years) -> std::string {
+  return std::format("Hello, {} year old named {}!", years, name);
+}
+}
+```
 
 ```text
 error: static assertion failed: crocket: handler bad::hello [GET /hello/{name}/{age}]:
