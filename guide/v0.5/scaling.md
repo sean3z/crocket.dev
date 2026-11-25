@@ -6,11 +6,11 @@
 
 | What you see | What it means | What to do |
 | --- | --- | --- |
-| Busy ratio or queue wait is high | Workers are full | Add pods |
-| Event loop lag is high on an app that runs only on the loops | The loops are late. That can be a handler holding a loop, or CPU throttling from container limits. | Add pods, and check for CPU throttling |
-| The pool input is pinned at 1.0 and the database is near its limit | More pods will not help | Scale the database. Compare `crocket_db_pool_wait_seconds` with the database's own CPU. |
-| Shed, abandoned, or 504s are rising | Requests were shed, abandoned, or returned 504 | You scaled too late |
 | `crocket_saturation` is steady and well under 0.7 | There is still headroom | No need to scale |
+| `crocket_saturation` near or above 0.7, driven by `crocket_worker_busy_ratio` approaching 1 or mean `crocket_request_queue_wait_seconds` approaching 25 ms | Workers are full | Add pods |
+| Mean `crocket_event_loop_lag_seconds` approaching 50 ms, on an app that runs only on the loops | The loops are late | Add pods, and check for CPU throttling |
+| `crocket_saturation` at 1.0 from the pool input (in use / `crocket_db_pool_size` = 1.0), with `crocket_db_pool_wait_seconds` rising and database CPU near its limit | More pods will not help | Scale the database |
+| `crocket_requests_shed_total` or `crocket_requests_abandoned_total` increasing, or 504s in `crocket_http_requests_total` | You scaled too late | You scaled too late |
 
 ## What it measures
 
