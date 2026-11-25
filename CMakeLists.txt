@@ -34,10 +34,11 @@ set(HASHED_HTML
   "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/index.html"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/404.html"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/teapot.html"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/ai/index.html")
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/ai/index.html"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/benchmarks/index.html")
 add_custom_command(
     OUTPUT "${GUIDE_CPP}" "${LLMS_FULL}" ${HASHED_HTML}
-    COMMAND bash -c "python3 tools/build_guide.py || { test -s web/llms-full.txt && test -s src/guide_assets.cpp && test -s src/hashed/index.html && test -s src/hashed/404.html && test -s src/hashed/teapot.html && test -s src/hashed/ai/index.html; }"
+    COMMAND bash -c "python3 tools/build_guide.py || { test -s web/llms-full.txt && test -s src/guide_assets.cpp && test -s src/hashed/index.html && test -s src/hashed/404.html && test -s src/hashed/teapot.html && test -s src/hashed/ai/index.html && test -s src/hashed/benchmarks/index.html; }"
     DEPENDS
       "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_guide.py"
       "${CMAKE_CURRENT_SOURCE_DIR}/web/llms.txt"
@@ -48,6 +49,10 @@ add_custom_command(
       "${CMAKE_CURRENT_SOURCE_DIR}/web/404.html"
       "${CMAKE_CURRENT_SOURCE_DIR}/web/teapot.html"
       "${CMAKE_CURRENT_SOURCE_DIR}/web/ai/index.html"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/benchmarks/index.html"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/benchmarks/bench.css"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/benchmarks/render.js"
+      "${CMAKE_CURRENT_SOURCE_DIR}/web/benchmarks/data.json"
       "${CMAKE_CURRENT_SOURCE_DIR}/data/parity-sizes.json"
       "${CMAKE_CURRENT_SOURCE_DIR}/data/benchmarks.json"
       ${GUIDE_MD}
