@@ -864,7 +864,7 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical):
   </div>
   <footer class="site-footer">
     <div class="wrap">
-      <p>Served by crocket. This guide was checked against the <a href="https://github.com/sean3z/crocket/releases/tag/{RELEASE}">{RELEASE}</a> release. <a href="/llms.txt">llms.txt</a> for assistants. Built with help from AI tools. Every claim is benchmarked and reviewed by me.</p>
+      <p>Served by crocket. This guide was checked against the <a href="https://github.com/sean3z/crocket/releases/tag/{RELEASE}">{RELEASE}</a> release. <a href="/llms.txt">llms.txt</a> for assistants. Built with ❤️ and a little AI help</p>
       <p><a href="https://github.com/sean3z/crocket/blob/{RELEASE}/LICENSE">MIT</a></p>
     </div>
   </footer>
