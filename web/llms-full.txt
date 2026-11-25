@@ -940,7 +940,7 @@ assert(grpc::read_reply<HelloReply>(res)->message == "Hello, Ada");
 
 The release profile listens on `0.0.0.0:8000`. Put a proxy in front of it for TLS if you don't want crocket to terminate TLS itself. `launch({.tls_cert = ..., .tls_key = ...})` or `CROCKET_TLS_CERT` and `CROCKET_TLS_KEY` turn on HTTPS, and HTTP/2 is negotiated with ALPN when `server.http2` is true (the default).
 
-On SIGINT or SIGTERM, crocket stops accepting, drains in-flight requests for `timeouts.drain` (10 seconds unless you change it), runs `on_shutdown`, and then destroys managed state. With TLS on, it reloads the certificate and key on SIGHUP and when either file changes and then stays the same for a second. A certificate that does not load, or does not match its key, is logged and the previous one stays in use.
+With TLS on, it reloads the certificate and key on SIGHUP and when either file changes and then stays the same for a second. A certificate that does not load, or does not match its key, is logged and the previous one stays in use.
 
 ## Docker
 
@@ -970,13 +970,34 @@ Linking with `-Wl,--gc-sections` drops the parts of h2o a program never calls, a
 
 ## Kubernetes
 
-Use `/healthz` for liveness and `/readyz` for readiness. `/readyz` turns 503 as soon as the drain starts, and while a managed pool or the database is down.
-
-Set `CROCKET_EVENT_LOOPS` to the CPU limit. crocket counts the CPUs in its affinity mask, which a CPU quota doesn't change. A `preStop` sleep keeps the pod serving until the Service has stopped sending it new connections. Keep `terminationGracePeriodSeconds` above that sleep, plus the drain, plus your slowest request.
+Use `/healthz` for liveness and `/readyz` for readiness. `/readyz` turns 503 as soon as the drain starts, and while a managed pool or the database is down. Set `CROCKET_EVENT_LOOPS` to the CPU limit. crocket counts the CPUs in its affinity mask, which a CPU quota doesn't change.
 
 A Service named `crocket` makes Kubernetes inject `CROCKET_PORT=tcp://...`, which crocket refuses to start with. Set `enableServiceLinks: false`, or name the Service something else.
 
 The hello image does not attach `Metrics`. Your app does, if you want `/metrics`. Scrape each pod directly. Two scrapers would each see half of the counters. How to read `crocket_saturation`, and when more pods won't help, is in [Scaling](/guide/v0.5/scaling/).
+
+## Graceful shutdown
+
+On SIGINT or SIGTERM, `/readyz` turns 503 `server.draining`, and crocket stops accepting. In-flight requests are answered with `Connection: close` and drained for up to `timeouts.drain` (`CROCKET_DRAIN_TIMEOUT`, 10 seconds by default, 1 second in the dev profile). Then `on_shutdown` runs, in reverse attach order, and managed state is destroyed in reverse `manage` order.
+
+A `preStop` sleep keeps the pod serving until the Service has stopped sending it new connections. Keep `terminationGracePeriodSeconds` above that sleep, plus the drain, plus your slowest request. With a 5 second `preStop` and a 10 second drain, `terminationGracePeriodSeconds: 30` leaves 15 seconds for the slowest request:
+
+```yaml
+spec:
+  terminationGracePeriodSeconds: 30  # > preStop + drain + slowest request
+  containers:
+    - name: hello
+      env:
+        - name: CROCKET_DRAIN_TIMEOUT
+          value: 10s
+      readinessProbe:
+        httpGet: {path: /readyz, port: http}
+      lifecycle:
+        preStop:
+          exec: {command: ["sleep", "5"]}
+```
+
+During a rollout, `crocket_http_requests_in_flight` is how many requests the leaving pod is still handling. `crocket_requests_abandoned_total` counts requests dropped while waiting for a worker, and 504s in `crocket_http_requests_total` are deadlines that expired.
 
 ## The wire engine
 
