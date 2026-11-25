@@ -53,7 +53,7 @@ The default policy blocks a browser page from loading its own scripts and styles
 
 `Logger` writes one line per request: request and trace ids, method, route template (never the raw path), handler, status, error code, duration, bytes, protocol, client, user agent, and the authenticated subject. `Authorization`, `Proxy-Authorization`, and `Cookie` are removed from log lines. Field names that look like credentials are redacted, and `-` and `_` count as the same character, so `X-Api-Key` matches `api_key`.
 
-`Metrics` serves Prometheus text at `GET /metrics`, labeled by route template. The series include `crocket_http_requests_total`, a duration histogram, in-flight requests, extractor failures, connections, worker gauges, and `crocket_build_info{version,commit,compiler,hostname}`. `crocket_saturation` (0 to 1) combines the capacity signals for an HPA or KEDA target. Scrape each pod from one Prometheus. Two scrapers would each see half of a counter that is not shared.
+`Metrics` serves Prometheus text at `GET /metrics`, labeled by route template. The series include `crocket_http_requests_total`, a duration histogram, in-flight requests, extractor failures, connections, worker gauges, and `crocket_build_info{version,commit,compiler,hostname}`. `crocket_saturation` (0 to 1) combines the capacity signals for an HPA or KEDA target; see [Scaling](/guide/v0.5/scaling/). Scrape each pod from one Prometheus. Two scrapers would each see half of a counter that is not shared.
 
 `CROCKET_METRICS_LABELS` adds labels. A Kubernetes Service named `crocket` injects `CROCKET_PORT=tcp://...`, which crocket refuses to start with. Set `enableServiceLinks: false`, or name the Service something else.
 

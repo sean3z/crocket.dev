@@ -68,6 +68,7 @@ CHAPTERS = [
     ("openapi", "OpenAPI", "openapi.md"),
     ("grpc", "gRPC", "grpc.md"),
     ("deploying", "Deploying", "deploying.md"),
+    ("scaling", "Scaling", "scaling.md"),
     ("migrate-express", "From Express", "migrate-express.md"),
     ("migrate-spring", "From Spring Boot", "migrate-spring.md"),
 ]

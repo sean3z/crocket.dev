@@ -38,7 +38,7 @@ Set `CROCKET_EVENT_LOOPS` to the CPU limit. crocket counts the CPUs in its affin
 
 A Service named `crocket` makes Kubernetes inject `CROCKET_PORT=tcp://...`, which crocket refuses to start with. Set `enableServiceLinks: false`, or name the Service something else.
 
-The hello image does not attach `Metrics`. Your app does, if you want `/metrics`. Scrape each pod directly. Two scrapers would each see half of the counters.
+The hello image does not attach `Metrics`. Your app does, if you want `/metrics`. Scrape each pod directly. Two scrapers would each see half of the counters. How to read `crocket_saturation`, and when more pods won't help, is in [Scaling](/guide/v0.5/scaling/).
 
 ## The wire engine
 

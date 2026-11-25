@@ -665,7 +665,7 @@ The default policy blocks a browser page from loading its own scripts and styles
 
 `Logger` writes one line per request: request and trace ids, method, route template (never the raw path), handler, status, error code, duration, bytes, protocol, client, user agent, and the authenticated subject. `Authorization`, `Proxy-Authorization`, and `Cookie` are removed from log lines. Field names that look like credentials are redacted, and `-` and `_` count as the same character, so `X-Api-Key` matches `api_key`.
 
-`Metrics` serves Prometheus text at `GET /metrics`, labeled by route template. The series include `crocket_http_requests_total`, a duration histogram, in-flight requests, extractor failures, connections, worker gauges, and `crocket_build_info{version,commit,compiler,hostname}`. `crocket_saturation` (0 to 1) combines the capacity signals for an HPA or KEDA target. Scrape each pod from one Prometheus. Two scrapers would each see half of a counter that is not shared.
+`Metrics` serves Prometheus text at `GET /metrics`, labeled by route template. The series include `crocket_http_requests_total`, a duration histogram, in-flight requests, extractor failures, connections, worker gauges, and `crocket_build_info{version,commit,compiler,hostname}`. `crocket_saturation` (0 to 1) combines the capacity signals for an HPA or KEDA target; see [Scaling](/guide/v0.5/scaling/). Scrape each pod from one Prometheus. Two scrapers would each see half of a counter that is not shared.
 
 `CROCKET_METRICS_LABELS` adds labels. A Kubernetes Service named `crocket` injects `CROCKET_PORT=tcp://...`, which crocket refuses to start with. Set `enableServiceLinks: false`, or name the Service something else.
 
@@ -976,7 +976,7 @@ Set `CROCKET_EVENT_LOOPS` to the CPU limit. crocket counts the CPUs in its affin
 
 A Service named `crocket` makes Kubernetes inject `CROCKET_PORT=tcp://...`, which crocket refuses to start with. Set `enableServiceLinks: false`, or name the Service something else.
 
-The hello image does not attach `Metrics`. Your app does, if you want `/metrics`. Scrape each pod directly. Two scrapers would each see half of the counters.
+The hello image does not attach `Metrics`. Your app does, if you want `/metrics`. Scrape each pod directly. Two scrapers would each see half of the counters. How to read `crocket_saturation`, and when more pods won't help, is in [Scaling](/guide/v0.5/scaling/).
 
 ## The wire engine
 
@@ -1001,6 +1001,88 @@ crocket uses semantic versioning. While it is on 0.x, a minor bump may break the
 `0.5.0` was tagged by mistake and then removed. There is no `0.5.0` to use. The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.2"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
 
 The release notes are the [changelog](https://github.com/sean3z/crocket/blob/0.5.2/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).
+
+
+# Scaling
+
+`crocket_saturation` is one 0..1 gauge that says how close this instance is to its ceiling. Point an HPA or KEDA at it. Attach the `Metrics` fairing to serve it at `GET /metrics`.
+
+## What it measures
+
+It is the largest of:
+
+| Input | Counts as 1.0 at |
+| --- | --- |
+| `crocket_worker_busy_ratio` | every worker busy for the whole window |
+| database pool connections in use / `crocket_db_pool_size` (with `crocket::db`) | every connection checked out |
+| mean `crocket_request_queue_wait_seconds` in the window / 25 ms | 25 ms average wait for a worker |
+| mean `crocket_event_loop_lag_seconds` in the window / 50 ms | loops 50 ms late on average |
+
+Each input is capped at 1. The window is the time since the previous scrape of that `/metrics`, so scrape each pod from one Prometheus. Two scrapers would each see half windows. The pool share is read at scrape time. Taking the largest input means the first resource to run out drives it. Target about 0.7, to leave headroom for spikes.
+
+CPU percent misleads for crocket, whose time is mostly kernel I/O. `crocket_worker_busy_ratio` counts handler time directly.
+
+## When more pods won't help
+
+When the pool input is the one pinned at 1.0 and the database itself is near its limit, more pods will not help: scale the database instead. Compare `crocket_db_pool_wait_seconds` with the database's own CPU before scaling out.
+
+`crocket_requests_shed_total`, `crocket_requests_abandoned_total`, and 504s in `crocket_http_requests_total` say you scaled too late.
+
+Handlers crocket places on the event loop (async ones, or fast plain functions) never use a worker, so an app that runs entirely on the loops shows up in event loop lag rather than in the busy ratio.
+
+## Autoscaling
+
+With [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter), expose it as a pods metric and point an HPA at it:
+
+```yaml
+# prometheus-adapter rules
+rules:
+  - seriesQuery: 'crocket_saturation{namespace!="",pod!=""}'
+    resources: {overrides: {namespace: {resource: namespace}, pod: {resource: pod}}}
+    metricsQuery: 'max_over_time(crocket_saturation{<<.LabelMatchers>>}[1m])'
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: heroes}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: heroes}
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+    - type: Pods
+      pods:
+        metric: {name: crocket_saturation}
+        target: {type: AverageValue, averageValue: "700m"}   # 0.7
+```
+
+Or with [KEDA](https://keda.sh), straight from Prometheus:
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata: {name: heroes}
+spec:
+  scaleTargetRef: {name: heroes}
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.monitoring:9090
+        query: sum(avg_over_time(crocket_saturation{app="heroes"}[1m]))
+        threshold: "0.7"   # per replica: KEDA divides the sum by the target
+```
+
+Useful PromQL alongside it:
+
+```promql
+# Worker busy share over 5 minutes, independent of scrape timing
+sum by (pod) (rate(crocket_worker_busy_seconds_total[5m])) / sum by (pod) (crocket_workers)
+# p95 wait for a worker
+histogram_quantile(0.95, sum by (le) (rate(crocket_request_queue_wait_seconds_bucket[5m])))
+# Already late: requests shed or abandoned per second
+sum(rate(crocket_requests_shed_total[5m])) + sum(rate(crocket_requests_abandoned_total[5m]))
+```
 
 
 # Migrating from Express

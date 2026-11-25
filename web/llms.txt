@@ -20,6 +20,7 @@ The current release is 0.5.2. You need GCC 16.2 or later with `-freflection`. Th
 - [OpenAPI](https://crocket.dev/guide/v0.5/openapi/): The document crocket writes from the handlers.
 - [gRPC](https://crocket.dev/guide/v0.5/grpc/): Unary RPC from the same annotated functions.
 - [Deploying](https://crocket.dev/guide/v0.5/deploying/): Images, health checks, and the drain on SIGTERM.
+- [Scaling](https://crocket.dev/guide/v0.5/scaling/): `crocket_saturation` for HPA or KEDA, and when more pods won't help.
 - [From Express](https://crocket.dev/guide/v0.5/migrate-express/): The users program beside an Express app.
 - [From Spring Boot](https://crocket.dev/guide/v0.5/migrate-spring/): The same users program beside a Spring Boot app.
 
