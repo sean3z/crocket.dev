@@ -998,7 +998,7 @@ crocket uses semantic versioning. While it is on 0.x, a minor bump may break the
 | latest | `main` | Trying what's next |
 | experimental | `X.Y.Z-rc.N` | Testing risky changes |
 
-`0.5.0` was tagged by mistake and then removed. There is no `0.5.0` to use. The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.2"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
+The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.2"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
 
 The release notes are the [changelog](https://github.com/sean3z/crocket/blob/0.5.2/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).
 
