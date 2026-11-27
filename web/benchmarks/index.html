@@ -185,13 +185,13 @@
 <caption>In-flight is how many of the open requests still got a 200 after SIGTERM, across all runs. Exit is SIGTERM to the process gone, median of the runs</caption>
 <thead><tr><th>Framework</th><th class="num">In-flight OK</th><th class="num">Dropped</th><th class="num">Exit</th><th>How it stopped</th></tr></thead><tbody>
 <tr><th scope="row">Rocket</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.40 s</td><td class="verdict is-ok">Exited on its own</td></tr>
-<tr><th scope="row">hyper-express</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.40 s</td><td class="verdict is-ok">Exited on its own</td></tr>
+<tr><th scope="row">hyper-express</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.40 s</td><td class="verdict is-ok">Exited on its own (required auto_close: false + shutdown())</td></tr>
 <tr class="is-crocket"><th scope="row">crocket</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.46 s</td><td class="verdict is-ok">Exited on its own</td></tr>
 <tr><th scope="row">Spring Boot</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.76 s</td><td class="verdict is-ok">Exited on its own</td></tr>
-<tr><th scope="row">FastAPI</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.94 s</td><td class="verdict is-ok">Exited on its own</td></tr>
-<tr><th scope="row">Fastify</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">15.09 s</td><td class="verdict is-accepted">Ignored SIGTERM, killed at 15 s</td></tr>
-<tr><th scope="row">Axum</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">15.18 s</td><td class="verdict is-accepted">Ignored SIGTERM, killed at 15 s</td></tr>
-<tr><th scope="row">Drogon</th><td class="num">0 of 48</td><td class="num">48</td><td class="num">0.07 s</td><td class="verdict is-ok">Exited on its own</td></tr>
+<tr><th scope="row">FastAPI</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.94 s</td><td class="verdict is-ok">Exited on its own (via uvicorn)</td></tr>
+<tr><th scope="row">Fastify</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">15.09 s</td><td class="verdict is-accepted">Ignored SIGTERM, killed at 15 s (no close hook)</td></tr>
+<tr><th scope="row">Axum</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">15.18 s</td><td class="verdict is-accepted">Ignored SIGTERM, killed at 15 s (no with_graceful_shutdown)</td></tr>
+<tr><th scope="row">Drogon</th><td class="num">0 of 48</td><td class="num">48</td><td class="num">0.07 s</td><td class="verdict is-reset">Exited at once, cut all 48 in flight</td></tr>
 </tbody></table></div>
 <p class="test-note">Rocket, hyper-express, crocket, Spring Boot, and FastAPI finished every in-flight request and exited cleanly within a second. Axum and Fastify also answered all 16, but only because they ignored SIGTERM entirely, so the container sat there until it was SIGKILLed at 15 seconds. Drogon exited in about 70 ms and cut all 16. hyper-express needs auto_close turned off, since by default it force-closes every socket on SIGTERM, and with that default it cut all 16 too. Crocket&#x27;s row is a re-run on main, which is queued for 0.5.3, after a shutdown fix</p>
 </article>
