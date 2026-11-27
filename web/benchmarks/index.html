@@ -186,14 +186,14 @@
 <thead><tr><th>Framework</th><th class="num">In-flight OK</th><th class="num">Dropped</th><th class="num">Exit</th><th>How it stopped</th></tr></thead><tbody>
 <tr><th scope="row">Rocket</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.40 s</td><td class="verdict is-ok">Exited on its own</td></tr>
 <tr><th scope="row">hyper-express</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.40 s</td><td class="verdict is-ok">Exited on its own</td></tr>
+<tr class="is-crocket"><th scope="row">crocket</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.46 s</td><td class="verdict is-ok">Exited on its own</td></tr>
 <tr><th scope="row">Spring Boot</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.76 s</td><td class="verdict is-ok">Exited on its own</td></tr>
 <tr><th scope="row">FastAPI</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.94 s</td><td class="verdict is-ok">Exited on its own</td></tr>
-<tr class="is-crocket"><th scope="row">crocket</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">0.49 s</td><td class="verdict is-other">Exited on its own, but crashed in teardown (code 139)</td></tr>
 <tr><th scope="row">Fastify</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">15.09 s</td><td class="verdict is-accepted">Ignored SIGTERM, killed at 15 s</td></tr>
 <tr><th scope="row">Axum</th><td class="num">48 of 48</td><td class="num">0</td><td class="num">15.18 s</td><td class="verdict is-accepted">Ignored SIGTERM, killed at 15 s</td></tr>
 <tr><th scope="row">Drogon</th><td class="num">0 of 48</td><td class="num">48</td><td class="num">0.07 s</td><td class="verdict is-ok">Exited on its own</td></tr>
 </tbody></table></div>
-<p class="test-note">Rocket, hyper-express, Spring Boot, FastAPI, and crocket finished every in-flight request and exited within a second. Crocket&#x27;s process then crashed on its way out, exit code 139 after the last response, which is a bug I need to fix. Axum and Fastify also answered all 16, but only because they ignored SIGTERM entirely, so the container sat there until it was SIGKILLed at 15 seconds. Drogon exited in about 70 ms and cut all 16. hyper-express needs auto_close turned off, since by default it force-closes every socket on SIGTERM, and with that default it cut all 16 too</p>
+<p class="test-note">Rocket, hyper-express, crocket, Spring Boot, and FastAPI finished every in-flight request and exited cleanly within a second. Axum and Fastify also answered all 16, but only because they ignored SIGTERM entirely, so the container sat there until it was SIGKILLed at 15 seconds. Drogon exited in about 70 ms and cut all 16. hyper-express needs auto_close turned off, since by default it force-closes every socket on SIGTERM, and with that default it cut all 16 too. Crocket&#x27;s row is a re-run on main, which is queued for 0.5.3, after a shutdown fix</p>
 </article>
 <article class="prod-block" id="prod-slow">
 <h3>Slow clients</h3>
@@ -218,16 +218,16 @@
 <div class="table-wrap"><table class="results prod-table">
 <caption>A 413 is a clean rejection. A reset means the connection dropped instead</caption>
 <thead><tr><th>Framework</th><th>10 MB</th><th class="num">Time</th><th>100 MB</th><th class="num">Time</th></tr></thead><tbody>
+<tr class="is-crocket"><th scope="row">crocket</th><td class="verdict is-rejected">413</td><td class="num">14.9 ms</td><td class="verdict is-rejected">413</td><td class="num">29.3 ms</td></tr>
 <tr><th scope="row">Drogon</th><td class="verdict is-rejected">413</td><td class="num">35.1 ms</td><td class="verdict is-rejected">413</td><td class="num">315.9 ms</td></tr>
 <tr><th scope="row">Rocket</th><td class="verdict is-rejected">413</td><td class="num">39.9 ms</td><td class="verdict is-rejected">413</td><td class="num">317.2 ms</td></tr>
 <tr><th scope="row">hyper-express</th><td class="verdict is-rejected">413</td><td class="num">46.9 ms</td><td class="verdict is-rejected">413</td><td class="num">326.0 ms</td></tr>
-<tr class="is-crocket"><th scope="row">crocket</th><td class="verdict is-rejected">413</td><td class="num">33.5 ms</td><td class="verdict is-reset">Connection cut</td><td class="num">36.2 ms</td></tr>
 <tr><th scope="row">Axum</th><td class="verdict is-reset">Connection cut</td><td class="num">1.5 ms</td><td class="verdict is-reset">Connection cut</td><td class="num">1.9 ms</td></tr>
 <tr><th scope="row">Fastify</th><td class="verdict is-reset">Connection cut</td><td class="num">2.9 ms</td><td class="verdict is-reset">Connection cut</td><td class="num">2.2 ms</td></tr>
 <tr><th scope="row">Spring Boot</th><td class="verdict is-accepted">200</td><td class="num">55.6 ms</td><td class="verdict is-accepted">200</td><td class="num">334.8 ms</td></tr>
 <tr><th scope="row">FastAPI</th><td class="verdict is-accepted">200</td><td class="num">81.7 ms</td><td class="verdict is-accepted">200</td><td class="num">639.6 ms</td></tr>
 </tbody></table></div>
-<p class="test-note">Rocket, Drogon, and hyper-express sent a clean 413 for both sizes. Crocket sent a 413 for 10 MB and dropped the 100 MB connection. Axum and Fastify enforced their 1 MB cap by cutting the connection, so the client never saw a status. Spring Boot and FastAPI accepted both bodies with a 200, since neither app set a cap</p>
+<p class="test-note">Crocket, Rocket, Drogon, and hyper-express sent a clean 413 for both sizes. Axum and Fastify enforced their 1 MB cap by cutting the connection, so the client never saw a status. Spring Boot and FastAPI accepted both bodies with a 200, since neither app set a cap. Crocket&#x27;s row is a local re-run on main, queued for 0.5.3, which now reads past the rest of the body before answering instead of cutting the connection. That run was over loopback, so its times aren&#x27;t comparable to the droplet rows</p>
 </article>
 <article class="prod-block" id="prod-churn">
 <h3>Connection churn</h3>
@@ -447,7 +447,7 @@
     <section class="section" id="methodology">
       <div class="wrap">
         <h2>How this was measured</h2>
-        <p class="intro">Every framework ran on the same DigitalOcean c-4 size. The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn&#x27;t available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker</p>
+        <p class="intro">Every framework ran on the same DigitalOcean c-4 size. The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn&#x27;t available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker. Crocket&#x27;s drain and oversized-body rows were re-run locally on main, which is queued for 0.5.3, while every throughput number is still 0.5.2</p>
         <ul class="method-facts">
           <li><strong>Three droplets.</strong> The app, Postgres 16, and wrk2 each got their own 4 vCPU box. DigitalOcean assigns either an Intel Xeon Platinum 8280 or 8358 to that size, and these boxes were 8280s in both regions</li>
           <li><strong>Load.</strong> wrk2 ran <code>-t4 -c128</code>, HTTP/1.1 keep-alive. Every measured throughput run followed a 60 second warmup at 20,000 req/s</li>

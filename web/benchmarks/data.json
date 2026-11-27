@@ -886,16 +886,16 @@
             "verdict": "rejected",
             "label": "413",
             "status": 413,
-            "ms": 33.5,
+            "ms": 14.9,
             "error": null,
             "bytes": 10485751
           },
           "100mb": {
-            "verdict": "reset",
-            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "status": null,
-            "ms": 36.2,
-            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 29.3,
+            "error": null,
             "bytes": 104857591
           }
         }
@@ -1568,16 +1568,16 @@
             "verdict": "rejected",
             "label": "413",
             "status": 413,
-            "ms": 33.5,
+            "ms": 14.9,
             "error": null,
             "bytes": 10485751
           },
           "100mb": {
-            "verdict": "reset",
-            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "status": null,
-            "ms": 36.2,
-            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 29.3,
+            "error": null,
             "bytes": 104857591
           }
         }
@@ -2095,6 +2095,91 @@
     ],
     "oversize": [
       {
+        "framework": "crocket",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 28.677120999873296,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8694040000136738,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.7193110000116576,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.7604340000852972,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8090040000752197,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 0,
+          "medianCloseS": 10.02,
+          "healthyOk": 485,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.36,
+          "healthyP99Ms": 1.8,
+          "closeS": [
+            10.03,
+            10.03,
+            10.03,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 14.9,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 29.3,
+            "error": null,
+            "bytes": 104857591
+          }
+        }
+      },
+      {
         "framework": "drogon",
         "contract": {
           "ok": {
@@ -2345,91 +2430,6 @@
             "status": 413,
             "ms": 326.0,
             "error": null,
-            "bytes": 104857591
-          }
-        }
-      },
-      {
-        "framework": "crocket",
-        "contract": {
-          "ok": {
-            "verdict": "ok",
-            "label": "200",
-            "status": 200,
-            "ms": 28.677120999873296,
-            "error": null
-          },
-          "wrong_type": {
-            "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 0.8694040000136738,
-            "error": null
-          },
-          "missing": {
-            "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 0.7193110000116576,
-            "error": null
-          },
-          "extra": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 0.7604340000852972,
-            "error": null
-          },
-          "malformed": {
-            "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 0.8090040000752197,
-            "error": null
-          }
-        },
-        "slow": {
-          "opened": 16,
-          "stillOpen": 0,
-          "medianCloseS": 10.02,
-          "healthyOk": 485,
-          "healthyErr": 0,
-          "healthyP50Ms": 1.36,
-          "healthyP99Ms": 1.8,
-          "closeS": [
-            10.03,
-            10.03,
-            10.03,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02
-          ]
-        },
-        "oversize": {
-          "10mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 33.5,
-            "error": null,
-            "bytes": 10485751
-          },
-          "100mb": {
-            "verdict": "reset",
-            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "status": null,
-            "ms": 36.2,
-            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
             "bytes": 104857591
           }
         }
@@ -2807,6 +2807,21 @@
         ]
       },
       {
+        "framework": "crocket",
+        "runs": 3,
+        "perRun": 16,
+        "ok": 48,
+        "total": 48,
+        "dropped": 0,
+        "cleanRuns": 3,
+        "exitS": 0.46,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "0"
+        ]
+      },
+      {
         "framework": "spring",
         "runs": 3,
         "perRun": 16,
@@ -2834,21 +2849,6 @@
         "termAfterMs": 150,
         "exitCodes": [
           "0"
-        ]
-      },
-      {
-        "framework": "crocket",
-        "runs": 3,
-        "perRun": 16,
-        "ok": 48,
-        "total": 48,
-        "dropped": 0,
-        "cleanRuns": 3,
-        "exitS": 0.49,
-        "graceS": 15.0,
-        "termAfterMs": 150,
-        "exitCodes": [
-          "139"
         ]
       },
       {
@@ -6971,5 +6971,5 @@
     ],
     "coming": []
   },
-  "hardwareNote": "The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn't available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker"
+  "hardwareNote": "The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn't available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker. Crocket's drain and oversized-body rows were re-run locally on main, which is queued for 0.5.3, while every throughput number is still 0.5.2"
 }
