@@ -1,13 +1,13 @@
 # crocket guide v0.5
 
-Generated from `guide/v0.5`, in the same order as the guide. The samples match the `0.5.2` release.
+Generated from `guide/v0.5`, in the same order as the guide. The samples match the `0.5.3` release.
 
 
 # Introduction
 
 crocket is a C++ web framework in the same spirit as [Rocket](https://rocket.rs). It's not a port. Handlers are functions. Path captures and extractors are arguments. The return value is the response. You declare a route with a C++26 annotation, and `reflect_routes` discovers it. The wire layer is [h2o](https://github.com/h2o/h2o): HTTP/1.1, HTTP/2, and TLS.
 
-This guide describes that model. The code samples match the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release, which is the tree this site was checked against.
+This guide describes that model. The code samples match the [0.5.3](https://github.com/sean3z/crocket/releases/tag/0.5.3) release, which is the tree this site was checked against.
 
 ## What you write
 
@@ -69,7 +69,7 @@ A small program you can build once GCC 16.2 is on your `PATH`. The [getting star
 
 ## CMake
 
-`0.5.2` is the current stable release.
+`0.5.3` is the current stable release.
 
 ```cmake
 cmake_minimum_required(VERSION 3.28)
@@ -78,7 +78,7 @@ project(hello_app CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 0.5.2)
+  GIT_TAG 0.5.3)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(hello_app main.cpp)
@@ -158,7 +158,7 @@ docker run --rm -p 8000:8000 ghcr.io/sean3z/crocket-hello:stable
 curl localhost:8000/hello/Rocketeer/42
 ```
 
-That prints `Hello, 42 year old named Rocketeer!`. Pin `:0.5.2` when you deploy it. `:stable` tracks the stable release. `:latest` tracks `main`.
+That prints `Hello, 42 year old named Rocketeer!`. Pin `:0.5.3` when you deploy it. `:stable` tracks the stable release. `:latest` tracks `main`.
 
 The same route, compiled in the browser, is on [Compiler Explorer](https://godbolt.org/z/Gdes8Kbdq) (GCC 16.2, `-std=c++26 -freflection`). That sketch is `examples/godbolt.cpp`. It has no h2o.
 
@@ -959,7 +959,7 @@ With TLS on, it reloads the certificate and key on SIGHUP and when either file c
 
 Published images:
 
-- `ghcr.io/sean3z/crocket-hello`, tagged `:0.5.2`, `:0.5`, and `:stable` for the stable release, and `:latest` for `main`. Pin `:0.5.2` in anything you deploy. The tags are signed with Sigstore.
+- `ghcr.io/sean3z/crocket-hello`, tagged `:0.5.3`, `:0.5`, and `:stable` for the stable release, and `:latest` for `main`. Pin `:0.5.3` in anything you deploy. The tags are signed with Sigstore.
 - `ghcr.io/sean3z/crocket-toolchain:gcc-16.2`, Ubuntu 26.04 with GCC 16.2. `:gcc-16.2-pg` adds libpqxx built with that GCC.
 
 A Dockerfile for the [quickstart](/guide/v0.5/quickstart/) app, in the toolchain image so GCC 16.2's `libstdc++` is there at run time:
@@ -1028,13 +1028,13 @@ crocket uses semantic versioning. While it is on 0.x, a minor bump may break the
 
 | Channel | Git ref | For |
 |---|---|---|
-| stable | the latest `X.Y.Z` tag, now `0.5.2` | Everyone |
+| stable | the latest `X.Y.Z` tag, now `0.5.3` | Everyone |
 | latest | `main` | Trying what's next |
 | experimental | `X.Y.Z-rc.N` | Testing risky changes |
 
-The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.2"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
+The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.3"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
 
-The release notes are the [changelog](https://github.com/sean3z/crocket/blob/0.5.2/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).
+The release notes are the [changelog](https://github.com/sean3z/crocket/blob/0.5.3/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).
 
 
 # Scaling
@@ -1050,7 +1050,7 @@ crocket_saturation = crocket_pod_saturation * (1 - crocket_dependency_saturation
 - `crocket_pod_saturation` is pressure the pod owns: workers busy with real work, requests waiting for a worker, and late event loops.
 - `crocket_dependency_saturation` is pressure from downstream: the database pool, time workers spend blocked on the database, and dependency timeouts.
 
-Each gauge is clamped to 0..1, and so is the product. With a healthy database it equals pod saturation. With a saturated database it goes to 0, so the autoscaler does not add pods onto a database that is already the limit. The three-gauge split ships in 0.5.3. Before that, `crocket_saturation` was the largest of all the inputs below, pool included.
+Each gauge is clamped to 0..1, and so is the product. With a healthy database it equals pod saturation. With a saturated database it goes to 0, so the autoscaler does not add pods onto a database that is already the limit. Before this split, `crocket_saturation` was the largest of all the inputs below, pool included.
 
 ## When to scale
 
@@ -1168,7 +1168,7 @@ You already know the shape: a function per route, a bit of middleware, `listen` 
 
 The Express examples here are Express 5.
 
-The crocket column on this page is written against the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
+The crocket column on this page is written against the [0.5.3](https://github.com/sean3z/crocket/releases/tag/0.5.3) release, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
 
 Every success response below is the same JSON. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}`.
 
@@ -1205,7 +1205,7 @@ project(users CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 0.5.2)
+  GIT_TAG 0.5.3)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)
@@ -1628,7 +1628,7 @@ A `@RestController` method and a crocket handler are doing the same job. The met
 
 The Spring examples here are Spring Boot 3.
 
-The crocket column is written against the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
+The crocket column is written against the [0.5.3](https://github.com/sean3z/crocket/releases/tag/0.5.3) release. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
 
 ## Project and build
 
@@ -1691,7 +1691,7 @@ project(users CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 0.5.2)
+  GIT_TAG 0.5.3)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)

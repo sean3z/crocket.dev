@@ -11,7 +11,7 @@ crocket_saturation = crocket_pod_saturation * (1 - crocket_dependency_saturation
 - `crocket_pod_saturation` is pressure the pod owns: workers busy with real work, requests waiting for a worker, and late event loops.
 - `crocket_dependency_saturation` is pressure from downstream: the database pool, time workers spend blocked on the database, and dependency timeouts.
 
-Each gauge is clamped to 0..1, and so is the product. With a healthy database it equals pod saturation. With a saturated database it goes to 0, so the autoscaler does not add pods onto a database that is already the limit. The three-gauge split ships in 0.5.3. Before that, `crocket_saturation` was the largest of all the inputs below, pool included.
+Each gauge is clamped to 0..1, and so is the product. With a healthy database it equals pod saturation. With a saturated database it goes to 0, so the autoscaler does not add pods onto a database that is already the limit. Before this split, `crocket_saturation` was the largest of all the inputs below, pool included.
 
 ## When to scale
 

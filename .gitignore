@@ -4,4 +4,5 @@ build-*/
 *.o
 src/guide_assets.cpp
 src/hashed/
+src/preview/
 web/guide/

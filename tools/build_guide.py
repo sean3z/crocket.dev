@@ -8,6 +8,7 @@ import hashlib
 import html
 import json
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -16,6 +17,7 @@ GUIDE = ROOT / "guide" / "v0.5"
 WEB = ROOT / "web" / "guide"
 CPP = ROOT / "src" / "guide_assets.cpp"
 HASHED = ROOT / "src" / "hashed"
+PREVIEW = ROOT / "src" / "preview"
 PARITY = ROOT / "data" / "parity-sizes.json"
 BENCH = ROOT / "data" / "benchmarks.json"
 FINGERPRINTS = {
@@ -28,9 +30,26 @@ FINGERPRINTS = {
 
 # This site's repository. Edit links point at these files, not at sean3z/crocket.
 EDIT_BASE = "https://github.com/sean3z/crocket.dev/edit/main"
-RELEASE = "0.5.2"
-COMMIT = "14db8705f1472520fc09c0e0a74938752e75a31e"  # the 0.5.2 tag
-COMMIT_SHORT = "14db870"
+# The patch release this site is pinned to. Guide URLs stay /guide/v0.5/.
+VERSION_FILE = ROOT / "VERSION"
+# Hand-written pages and guide prose use this token. The value lives only in VERSION.
+RELEASE_TOKEN = "@release@"
+
+
+def load_release():
+    if not VERSION_FILE.is_file():
+        sys.exit("missing VERSION")
+    release = VERSION_FILE.read_text(encoding="utf-8").strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", release):
+        sys.exit(f"VERSION must be one X.Y.Z line, got {release!r}")
+    return release
+
+
+RELEASE = load_release()
+
+
+def apply_release(text):
+    return text.replace(RELEASE_TOKEN, RELEASE)
 
 
 def asset_versions():
@@ -927,6 +946,7 @@ def check_links(pages):
     for extra in (
         ROOT / "web" / "index.html",
         ROOT / "web" / "404.html",
+        ROOT / "web" / "teapot.html",
         ROOT / "web" / "ai" / "index.html",
         ROOT / "web" / "benchmarks" / "index.html",
     ):
@@ -936,7 +956,9 @@ def check_links(pages):
     targets = [
         ROOT / "web" / "index.html",
         ROOT / "web" / "404.html",
+        ROOT / "web" / "teapot.html",
         ROOT / "web" / "ai" / "index.html",
+        ROOT / "web" / "benchmarks" / "index.html",
         *pages.keys(),
     ]
     for path in targets:
@@ -1004,7 +1026,7 @@ def write_llms_full():
         f"The samples match the `{RELEASE}` release.\n",
     ]
     for _slug, _nav, filename in CHAPTERS:
-        body = (GUIDE / filename).read_text(encoding="utf-8").rstrip()
+        body = apply_release((GUIDE / filename).read_text(encoding="utf-8").rstrip())
         parts.append("\n\n")
         parts.append(body)
         parts.append("\n")
@@ -1061,7 +1083,7 @@ def main():
     pages = {}
     assets = []
     for index, (slug, _nav, filename) in enumerate(CHAPTERS):
-        md = (GUIDE / filename).read_text(encoding="utf-8")
+        md = apply_release((GUIDE / filename).read_text(encoding="utf-8"))
         title, body, toc, _ids = render_blocks(parse(md))
         if not title:
             sys.exit(f"{filename} needs an h1")
@@ -1101,7 +1123,13 @@ def main():
     }
     for src, dest in hashed_pages.items():
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(bust_assets(src.read_text(encoding="utf-8"), versions), encoding="utf-8")
+        filled = apply_release(bust_assets(src.read_text(encoding="utf-8"), versions))
+        dest.write_text(filled, encoding="utf-8")
+    llms_out = HASHED / "llms.txt"
+    llms_out.write_text(
+        apply_release((ROOT / "web" / "llms.txt").read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
     print(
         "asset fingerprints "
         + " ".join(f"{url}?v={digest}" for url, digest in versions.items())
@@ -1120,7 +1148,92 @@ def main():
         for attrs in scripts:
             if "src=" not in attrs:
                 sys.exit(f"{path} has an inline script")
-    print(f"rendered {len(CHAPTERS)} chapters, {len(assets)} html files")
+    write_preview()
+    audit_release()
+    print(f"rendered {len(CHAPTERS)} chapters, {len(assets)} html files, release {RELEASE}")
+
+
+def write_preview():
+    """Static tree for `python3 -m http.server --directory src/preview`.
+
+    The hand-written pages keep @release@ in git. This copy is what a browser
+    should open, with the same text the binary embeds.
+    """
+    if PREVIEW.exists():
+        shutil.rmtree(PREVIEW)
+    shutil.copytree(ROOT / "web", PREVIEW)
+    for path in PREVIEW.rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in {".html", ".txt"}:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if RELEASE_TOKEN in text:
+            path.write_text(apply_release(text), encoding="utf-8")
+
+
+def audit_release():
+    """VERSION is the only definition of the patch release.
+
+    Guide URLs stay on the v0.5 series. Benchmark charts may still name the
+    crocket build that produced a number. npm's `fresh` package is unrelated.
+    """
+    prior = "0." + "5.2"
+    caveats = (
+        "un" + "released",
+        "queued " + "for",
+        "on " + "main",
+        "main " + "branch",
+        "ships " + "in",
+    )
+    generated_roots = (WEB, HASHED, PREVIEW)
+    # Measured crocket builds, plus the npm package that happens to share a number.
+    # Copies under src/hashed and src/preview keep those same chart labels.
+    literal_ok_files = {
+        VERSION_FILE.resolve(),
+        (ROOT / "web" / "llms-full.txt").resolve(),
+        (ROOT / "web" / "benchmarks" / "data.json").resolve(),
+    }
+    problems = []
+    skip_parts = {".git", "build", ".cache", "__pycache__"}
+
+    def generated(path):
+        resolved = path.resolve()
+        return any(resolved.is_relative_to(root.resolve()) for root in generated_roots)
+
+    for path in ROOT.rglob("*"):
+        if not path.is_file():
+            continue
+        if any(part in skip_parts for part in path.parts):
+            continue
+        if path.suffix.lower() not in {
+            ".md", ".html", ".txt", ".py", ".json", ".cmake", ""
+        } and path.name not in {"CMakeLists.txt", "Dockerfile", "VERSION"}:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        where = path.relative_to(ROOT)
+        if generated(path) or path.name == "llms-full.txt":
+            if RELEASE_TOKEN in text:
+                problems.append(f"{where} still has {RELEASE_TOKEN}")
+        elif RELEASE in text and path.resolve() not in literal_ok_files:
+            problems.append(f"{where} hardcodes {RELEASE}; use {RELEASE_TOKEN} or VERSION")
+        rel = where.as_posix()
+        prior_ok = rel in {
+            "data/parity-sizes.json",
+            "web/benchmarks/data.json",
+            "web/benchmarks/index.html",
+        } or rel.endswith("benchmarks/index.html") or rel.endswith("benchmarks/data.json")
+        if prior in text and not prior_ok:
+            problems.append(f"{where} still names the previous patch release")
+        for needle in caveats:
+            if needle in text and path.name != "build_guide.py":
+                problems.append(f"{where} still has a release caveat ({needle})")
+    quick = WEB / "v0.5" / "quickstart" / "index.html"
+    if quick.is_file() and RELEASE not in quick.read_text(encoding="utf-8"):
+        problems.append("guide quickstart was rendered without the release")
+    if problems:
+        sys.exit("release pin drifted:\n" + "\n".join(problems))
 
 
 if __name__ == "__main__":

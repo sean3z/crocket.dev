@@ -8,7 +8,7 @@ With TLS on, it reloads the certificate and key on SIGHUP and when either file c
 
 Published images:
 
-- `ghcr.io/sean3z/crocket-hello`, tagged `:0.5.2`, `:0.5`, and `:stable` for the stable release, and `:latest` for `main`. Pin `:0.5.2` in anything you deploy. The tags are signed with Sigstore.
+- `ghcr.io/sean3z/crocket-hello`, tagged `:@release@`, `:0.5`, and `:stable` for the stable release, and `:latest` for `main`. Pin `:@release@` in anything you deploy. The tags are signed with Sigstore.
 - `ghcr.io/sean3z/crocket-toolchain:gcc-16.2`, Ubuntu 26.04 with GCC 16.2. `:gcc-16.2-pg` adds libpqxx built with that GCC.
 
 A Dockerfile for the [quickstart](/guide/v0.5/quickstart/) app, in the toolchain image so GCC 16.2's `libstdc++` is there at run time:
@@ -77,10 +77,10 @@ crocket uses semantic versioning. While it is on 0.x, a minor bump may break the
 
 | Channel | Git ref | For |
 |---|---|---|
-| stable | the latest `X.Y.Z` tag, now `0.5.2` | Everyone |
+| stable | the latest `X.Y.Z` tag, now `@release@` | Everyone |
 | latest | `main` | Trying what's next |
 | experimental | `X.Y.Z-rc.N` | Testing risky changes |
 
-The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"0.5.2"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
+The version is in `<crocket/version.hpp>`: `crocket::version::string` (`"@release@"`), and `commit` from git at configure time or from `-DCROCKET_GIT_COMMIT`.
 
-The release notes are the [changelog](https://github.com/sean3z/crocket/blob/0.5.2/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).
+The release notes are the [changelog](https://github.com/sean3z/crocket/blob/@release@/CHANGELOG.md). What's planned on the way to 1.0, including features not in crocket yet, is [issue 37](https://github.com/sean3z/crocket/issues/37).

@@ -4,7 +4,7 @@ A small program you can build once GCC 16.2 is on your `PATH`. The [getting star
 
 ## CMake
 
-`0.5.2` is the current stable release.
+`@release@` is the current stable release.
 
 ```cmake
 cmake_minimum_required(VERSION 3.28)
@@ -13,7 +13,7 @@ project(hello_app CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 0.5.2)
+  GIT_TAG @release@)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(hello_app main.cpp)

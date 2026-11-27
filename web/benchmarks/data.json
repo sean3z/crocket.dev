@@ -8243,7 +8243,7 @@
       "date": "2026-11-27",
       "where": "local Docker",
       "app": "crocket",
-      "crocket": "main at 2bb9f57 (#62 dependency-aware saturation, plus #60 and #61), queued for 0.5.3",
+      "crocket": "0.5.3 (#62 dependency-aware saturation, plus #60 and #61)",
       "image": "bench-crocket-main-sat (app/), FROM ghcr.io/sean3z/crocket-toolchain:gcc-16.2, static libpqxx 7.10",
       "cpus": 4,
       "poolSize": 16,
@@ -8264,5 +8264,5 @@
     },
     "coming": []
   },
-  "hardwareNote": "The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn't available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker. Crocket's drain and oversized-body rows were re-run locally on main, which is queued for 0.5.3, while every throughput number is still 0.5.2"
+  "hardwareNote": "The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn't available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker. The throughput numbers are from crocket 0.5.2"
 }

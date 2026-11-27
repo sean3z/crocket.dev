@@ -4,7 +4,7 @@ You already know the shape: a function per route, a bit of middleware, `listen` 
 
 The Express examples here are Express 5.
 
-The crocket column on this page is written against the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
+The crocket column on this page is written against the [@release@](https://github.com/sean3z/crocket/releases/tag/@release@) release, which is the tree this site is pinned to. The same program is the [Spring Boot](/guide/v0.5/migrate-spring/) column's crocket side.
 
 Every success response below is the same JSON. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}`.
 
@@ -41,7 +41,7 @@ project(users CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 0.5.2)
+  GIT_TAG @release@)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)

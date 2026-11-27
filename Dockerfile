@@ -12,7 +12,9 @@ ENV PATH=/opt/gcc-16.2/bin:$PATH
 WORKDIR /src
 COPY . /src
 
-ARG CROCKET_GIT_COMMIT=14db870
+# Optional. version.hpp uses this when the fetch has no git metadata.
+# Unset, the commit is the one FetchContent checks out for VERSION.
+ARG CROCKET_GIT_COMMIT
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 \
@@ -21,7 +23,7 @@ RUN apt-get update \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_C_COMPILER=/opt/gcc-16.2/bin/gcc-16.2 \
       -DCMAKE_CXX_COMPILER=/opt/gcc-16.2/bin/g++-16.2 \
-      -DCROCKET_GIT_COMMIT=${CROCKET_GIT_COMMIT} \
+      ${CROCKET_GIT_COMMIT:+-DCROCKET_GIT_COMMIT=${CROCKET_GIT_COMMIT}} \
  && cmake --build build --target crocket-site -j 2 \
  && mkdir -p /opt/export/bin /opt/export/lib \
  && install -m755 build/crocket-site /opt/export/bin/crocket-site \
