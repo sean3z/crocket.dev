@@ -560,3 +560,16 @@ thead th[aria-sort="descending"] .sort-ind { color: var(--accent); }
 .scale-legend li { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; }
 .scale-chart .soak-tip { white-space: normal; max-width: min(34rem, 92%); }
 .scale-table td { white-space: nowrap; }
+.scale-callout { fill: var(--accent); font-size: 13.5px; font-weight: 700; font-family: inherit; }
+.scale-callout-ring { fill: none; stroke: var(--accent); stroke-width: 2; }
+.signal-table { --ok: #2f7d32; --amber: #a86400; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .signal-table { --ok: #7fd18b; --amber: #f0b44a; } }
+:root[data-theme="dark"] .signal-table { --ok: #7fd18b; --amber: #f0b44a; }
+.signal-table .signal-state { white-space: nowrap; font-weight: 600; }
+
+.signal-table .signal-state.is-built-in { color: var(--ok); }
+.signal-table .signal-state.is-partial { color: var(--amber); }
+.signal-table .signal-state.is-none { color: var(--muted); }
+.signal-table .signal-detail { color: var(--muted); }
+.signal-table .signal-badge { display: inline-flex; align-items: center; gap: 0.4rem; }
+.signal-table .signal-badge .pm-icon, .signal-table .signal-badge .pm-dash { display: inline-block; margin: 0; flex: none; }
