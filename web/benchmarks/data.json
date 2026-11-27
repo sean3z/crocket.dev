@@ -82,7 +82,7 @@
       "language": "Node.js 24",
       "highlight": false,
       "had": "uWebSockets.js underneath gives a body size cap and an idle-connection timeout",
-      "added": "pino for the JSON access log, prom-client for the histogram, a request-id hook, health and ready routes, a hand-written check on POST /echo, a 10 second timeout around the query, and a SIGTERM drain with auto_close off"
+      "added": "pino for the JSON access log, prom-client for the histogram, a request-id hook, health and ready routes, a hand-written check on POST /echo, and a 10 second timeout around the query"
     },
     {
       "id": "spring",
@@ -2792,21 +2792,6 @@
         ]
       },
       {
-        "framework": "hyperexpress",
-        "runs": 3,
-        "perRun": 16,
-        "ok": 48,
-        "total": 48,
-        "dropped": 0,
-        "cleanRuns": 3,
-        "exitS": 0.4,
-        "graceS": 15.0,
-        "termAfterMs": 150,
-        "exitCodes": [
-          "0"
-        ]
-      },
-      {
         "framework": "crocket",
         "runs": 3,
         "perRun": 16,
@@ -2894,6 +2879,21 @@
         "termAfterMs": 150,
         "exitCodes": [
           "0"
+        ]
+      },
+      {
+        "framework": "hyperexpress",
+        "runs": 3,
+        "perRun": 16,
+        "ok": 0,
+        "total": 48,
+        "dropped": 48,
+        "cleanRuns": 0,
+        "exitS": 15.11,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "137"
         ]
       }
     ],
