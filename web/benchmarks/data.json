@@ -6873,50 +6873,14 @@
     ],
     "churn": [
       {
-        "framework": "fastify",
-        "maxRps": 2431,
+        "framework": "axum",
+        "maxRps": 515,
         "maxRpsRange": [
-          324,
-          2601
-        ],
-        "p99Ms": 19680.0,
-        "peakRssMb": 187,
-        "non2xx": 0,
-        "socketErrors": 0
-      },
-      {
-        "framework": "spring",
-        "maxRps": 975,
-        "maxRpsRange": [
-          829,
-          4189
-        ],
-        "p99Ms": 19740.0,
-        "peakRssMb": 400,
-        "non2xx": 0,
-        "socketErrors": 0
-      },
-      {
-        "framework": "fastapi",
-        "maxRps": 750,
-        "maxRpsRange": [
-          711,
-          2189
-        ],
-        "p99Ms": 19740.0,
-        "peakRssMb": 268,
-        "non2xx": 0,
-        "socketErrors": 0
-      },
-      {
-        "framework": "crocket",
-        "maxRps": 749,
-        "maxRpsRange": [
-          415,
-          10617
+          400,
+          8525
         ],
         "p99Ms": 19760.0,
-        "peakRssMb": 30,
+        "peakRssMb": 16,
         "non2xx": 0,
         "socketErrors": 0
       },
@@ -6933,14 +6897,14 @@
         "socketErrors": 0
       },
       {
-        "framework": "axum",
-        "maxRps": 515,
+        "framework": "crocket",
+        "maxRps": 749,
         "maxRpsRange": [
-          400,
-          8525
+          415,
+          10617
         ],
         "p99Ms": 19760.0,
-        "peakRssMb": 16,
+        "peakRssMb": 30,
         "non2xx": 0,
         "socketErrors": 0
       },
@@ -6953,6 +6917,42 @@
         ],
         "p99Ms": 19760.0,
         "peakRssMb": 176,
+        "non2xx": 0,
+        "socketErrors": 0
+      },
+      {
+        "framework": "fastify",
+        "maxRps": 2431,
+        "maxRpsRange": [
+          324,
+          2601
+        ],
+        "p99Ms": 19680.0,
+        "peakRssMb": 187,
+        "non2xx": 0,
+        "socketErrors": 0
+      },
+      {
+        "framework": "fastapi",
+        "maxRps": 750,
+        "maxRpsRange": [
+          711,
+          2189
+        ],
+        "p99Ms": 19740.0,
+        "peakRssMb": 268,
+        "non2xx": 0,
+        "socketErrors": 0
+      },
+      {
+        "framework": "spring",
+        "maxRps": 975,
+        "maxRpsRange": [
+          829,
+          4189
+        ],
+        "p99Ms": 19740.0,
+        "peakRssMb": 400,
         "non2xx": 0,
         "socketErrors": 0
       },
