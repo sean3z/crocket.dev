@@ -6972,257 +6972,1268 @@
     "scale": [
       {
         "id": "busy-pod",
-        "name": "Busy pod, healthy database",
-        "endpoint": "GET /work",
-        "work": "~15 ms of thread CPU time, then one indexed query against Postgres 16 with no delay",
-        "steps": [
+        "path": "/work",
+        "light": 2,
+        "spike": 20,
+        "spikeAtS": 6,
+        "target": 0.7,
+        "events": [
           {
-            "concurrency": 0,
-            "reqPerS": 0.0,
-            "podCpuPct": 0.09,
-            "podSaturation": 0.004,
-            "dependencySaturation": 0.0,
-            "saturation": 0.004,
-            "saturationMean": 0.004,
-            "workerBusyRatio": 0.0,
-            "p50Ms": null,
-            "p99Ms": null,
-            "requests": 0,
+            "event": "pod2_added",
+            "decidedAtS": 8.0,
+            "readyAtS": 8.23,
+            "joinedAtS": 8.3,
+            "wallClock": "2026-11-27T13:36:09-0500"
+          }
+        ],
+        "reconnectRetries": 0,
+        "requests": 7037,
+        "errors": 0,
+        "series": [
+          {
+            "t_s": 0,
+            "pods": 1,
+            "rps": 121,
+            "p99_ms": 19.2,
+            "pod_cpu_pct": 92.8,
+            "pod_sat": 0.117,
+            "dep_sat": 0.002,
+            "sat": 0.117,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.1172,
+                "dep_sat": 0.0024,
+                "sat": 0.1169
+              }
+            }
           },
           {
-            "concurrency": 2,
-            "reqPerS": 124.6,
-            "podCpuPct": 47.73,
-            "podSaturation": 0.117,
-            "dependencySaturation": 0.003,
-            "saturation": 0.117,
-            "saturationMean": 0.116,
-            "workerBusyRatio": 0.121,
-            "p50Ms": 16.0,
-            "p99Ms": 16.8,
-            "requests": 623,
+            "t_s": 1,
+            "pods": 1,
+            "rps": 122,
+            "p99_ms": 21.9,
+            "pod_cpu_pct": 92.0,
+            "pod_sat": 0.118,
+            "dep_sat": 0.002,
+            "sat": 0.118,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.1185,
+                "dep_sat": 0.0019,
+                "sat": 0.1182
+              }
+            }
           },
           {
-            "concurrency": 4,
-            "reqPerS": 253.6,
-            "podCpuPct": 96.33,
-            "podSaturation": 0.238,
-            "dependencySaturation": 0.004,
-            "saturation": 0.237,
-            "saturationMean": 0.237,
-            "workerBusyRatio": 0.243,
-            "p50Ms": 15.7,
-            "p99Ms": 16.6,
-            "requests": 1268,
+            "t_s": 2,
+            "pods": 1,
+            "rps": 123,
+            "p99_ms": 19.9,
+            "pod_cpu_pct": 93.5,
+            "pod_sat": 0.118,
+            "dep_sat": 0.002,
+            "sat": 0.118,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.1183,
+                "dep_sat": 0.0022,
+                "sat": 0.118
+              }
+            }
           },
           {
-            "concurrency": 8,
-            "reqPerS": 262.6,
-            "podCpuPct": 99.55,
-            "podSaturation": 0.468,
-            "dependencySaturation": 0.007,
-            "saturation": 0.463,
-            "saturationMean": 0.463,
-            "workerBusyRatio": 0.477,
-            "p50Ms": 16.6,
-            "p99Ms": 66.9,
-            "requests": 1313,
+            "t_s": 3,
+            "pods": 1,
+            "rps": 124,
+            "p99_ms": 21.5,
+            "pod_cpu_pct": 93.6,
+            "pod_sat": 0.118,
+            "dep_sat": 0.003,
+            "sat": 0.118,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.1182,
+                "dep_sat": 0.0026,
+                "sat": 0.1179
+              }
+            }
           },
           {
-            "concurrency": 12,
-            "reqPerS": 263.8,
-            "podCpuPct": 100.22,
-            "podSaturation": 0.704,
-            "dependencySaturation": 0.017,
-            "saturation": 0.692,
-            "saturationMean": 0.69,
-            "workerBusyRatio": 0.721,
-            "p50Ms": 30.5,
-            "p99Ms": 84.0,
-            "requests": 1319,
+            "t_s": 4,
+            "pods": 1,
+            "rps": 125,
+            "p99_ms": 16.8,
+            "pod_cpu_pct": 94.5,
+            "pod_sat": 0.118,
+            "dep_sat": 0.002,
+            "sat": 0.117,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.1176,
+                "dep_sat": 0.0024,
+                "sat": 0.1173
+              }
+            }
           },
           {
-            "concurrency": 16,
-            "reqPerS": 264.4,
-            "podCpuPct": 100.27,
-            "podSaturation": 0.953,
-            "dependencySaturation": 0.062,
-            "saturation": 0.897,
-            "saturationMean": 0.889,
-            "workerBusyRatio": 0.985,
-            "p50Ms": 78.0,
-            "p99Ms": 96.2,
-            "requests": 1322,
+            "t_s": 5,
+            "pods": 1,
+            "rps": 125,
+            "p99_ms": 17.3,
+            "pod_cpu_pct": 94.7,
+            "pod_sat": 0.118,
+            "dep_sat": 0.003,
+            "sat": 0.117,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.1178,
+                "dep_sat": 0.0025,
+                "sat": 0.1175
+              }
+            }
           },
           {
-            "concurrency": 24,
-            "reqPerS": 264.0,
-            "podCpuPct": 99.33,
-            "podSaturation": 1.0,
-            "dependencySaturation": 0.062,
-            "saturation": 0.938,
-            "saturationMean": 0.938,
-            "workerBusyRatio": 1.0,
-            "p50Ms": 92.9,
-            "p99Ms": 176.6,
-            "requests": 1320,
+            "t_s": 6,
+            "pods": 1,
+            "rps": 129,
+            "p99_ms": 234.0,
+            "pod_cpu_pct": 100.2,
+            "pod_sat": 1.0,
+            "dep_sat": 0.044,
+            "sat": 0.956,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 1.0,
+                "dep_sat": 0.0436,
+                "sat": 0.9564
+              }
+            }
           },
           {
-            "concurrency": 32,
-            "reqPerS": 264.2,
-            "podCpuPct": 100.26,
-            "podSaturation": 1.0,
-            "dependencySaturation": 0.043,
-            "saturation": 0.957,
-            "saturationMean": 0.95,
-            "workerBusyRatio": 1.0,
-            "p50Ms": 111.4,
-            "p99Ms": 183.4,
-            "requests": 1321,
+            "t_s": 7,
+            "pods": 1,
+            "rps": 128,
+            "p99_ms": 227.2,
+            "pod_cpu_pct": 99.8,
+            "pod_sat": 1.0,
+            "dep_sat": 0.044,
+            "sat": 0.956,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 1.0,
+                "dep_sat": 0.0437,
+                "sat": 0.9563
+              }
+            }
+          },
+          {
+            "t_s": 8,
+            "pods": 2,
+            "rps": 207,
+            "p99_ms": 220.2,
+            "pod_cpu_pct": 79.3,
+            "pod_sat": 0.581,
+            "dep_sat": 0.094,
+            "sat": 0.521,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.7552,
+                "dep_sat": 0.125,
+                "sat": 0.6608
+              },
+              "pod2": {
+                "pod_sat": 0.4059,
+                "dep_sat": 0.0625,
+                "sat": 0.3805
+              }
+            }
+          },
+          {
+            "t_s": 9,
+            "pods": 2,
+            "rps": 261,
+            "p99_ms": 109.7,
+            "pod_cpu_pct": 99.9,
+            "pod_sat": 0.584,
+            "dep_sat": 0.094,
+            "sat": 0.529,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5802,
+                "dep_sat": 0.125,
+                "sat": 0.5077
+              },
+              "pod2": {
+                "pod_sat": 0.5868,
+                "dep_sat": 0.0625,
+                "sat": 0.5501
+              }
+            }
+          },
+          {
+            "t_s": 10,
+            "pods": 2,
+            "rps": 265,
+            "p99_ms": 112.3,
+            "pod_cpu_pct": 100.3,
+            "pod_sat": 0.584,
+            "dep_sat": 0.094,
+            "sat": 0.53,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.6026,
+                "dep_sat": 0.0625,
+                "sat": 0.565
+              },
+              "pod2": {
+                "pod_sat": 0.5657,
+                "dep_sat": 0.125,
+                "sat": 0.495
+              }
+            }
+          },
+          {
+            "t_s": 11,
+            "pods": 2,
+            "rps": 265,
+            "p99_ms": 106.6,
+            "pod_cpu_pct": 100.2,
+            "pod_sat": 0.585,
+            "dep_sat": 0.062,
+            "sat": 0.548,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5828,
+                "dep_sat": 0.0625,
+                "sat": 0.5464
+              },
+              "pod2": {
+                "pod_sat": 0.5863,
+                "dep_sat": 0.0625,
+                "sat": 0.5496
+              }
+            }
+          },
+          {
+            "t_s": 12,
+            "pods": 2,
+            "rps": 263,
+            "p99_ms": 122.4,
+            "pod_cpu_pct": 99.5,
+            "pod_sat": 0.579,
+            "dep_sat": 0.027,
+            "sat": 0.564,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5751,
+                "dep_sat": 0.0274,
+                "sat": 0.5593
+              },
+              "pod2": {
+                "pod_sat": 0.5836,
+                "dep_sat": 0.0263,
+                "sat": 0.5683
+              }
+            }
+          },
+          {
+            "t_s": 13,
+            "pods": 2,
+            "rps": 266,
+            "p99_ms": 104.5,
+            "pod_cpu_pct": 99.7,
+            "pod_sat": 0.583,
+            "dep_sat": 0.027,
+            "sat": 0.568,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5934,
+                "dep_sat": 0.023,
+                "sat": 0.5798
+              },
+              "pod2": {
+                "pod_sat": 0.5733,
+                "dep_sat": 0.0303,
+                "sat": 0.556
+              }
+            }
+          },
+          {
+            "t_s": 14,
+            "pods": 2,
+            "rps": 263,
+            "p99_ms": 102.5,
+            "pod_cpu_pct": 99.9,
+            "pod_sat": 0.585,
+            "dep_sat": 0.077,
+            "sat": 0.54,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5775,
+                "dep_sat": 0.0296,
+                "sat": 0.5604
+              },
+              "pod2": {
+                "pod_sat": 0.5928,
+                "dep_sat": 0.125,
+                "sat": 0.5187
+              }
+            }
+          },
+          {
+            "t_s": 15,
+            "pods": 2,
+            "rps": 265,
+            "p99_ms": 106.3,
+            "pod_cpu_pct": 99.9,
+            "pod_sat": 0.579,
+            "dep_sat": 0.045,
+            "sat": 0.553,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5785,
+                "dep_sat": 0.0283,
+                "sat": 0.5621
+              },
+              "pod2": {
+                "pod_sat": 0.5792,
+                "dep_sat": 0.0625,
+                "sat": 0.543
+              }
+            }
+          },
+          {
+            "t_s": 16,
+            "pods": 2,
+            "rps": 266,
+            "p99_ms": 103.1,
+            "pod_cpu_pct": 100.0,
+            "pod_sat": 0.585,
+            "dep_sat": 0.076,
+            "sat": 0.541,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5861,
+                "dep_sat": 0.0265,
+                "sat": 0.5706
+              },
+              "pod2": {
+                "pod_sat": 0.5841,
+                "dep_sat": 0.125,
+                "sat": 0.5111
+              }
+            }
+          },
+          {
+            "t_s": 17,
+            "pods": 2,
+            "rps": 265,
+            "p99_ms": 102.6,
+            "pod_cpu_pct": 100.0,
+            "pod_sat": 0.583,
+            "dep_sat": 0.044,
+            "sat": 0.557,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5824,
+                "dep_sat": 0.0258,
+                "sat": 0.5673
+              },
+              "pod2": {
+                "pod_sat": 0.584,
+                "dep_sat": 0.0625,
+                "sat": 0.5475
+              }
+            }
+          },
+          {
+            "t_s": 18,
+            "pods": 2,
+            "rps": 265,
+            "p99_ms": 100.1,
+            "pod_cpu_pct": 100.2,
+            "pod_sat": 0.584,
+            "dep_sat": 0.045,
+            "sat": 0.558,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5783,
+                "dep_sat": 0.0285,
+                "sat": 0.5618
+              },
+              "pod2": {
+                "pod_sat": 0.5904,
+                "dep_sat": 0.0625,
+                "sat": 0.5535
+              }
+            }
+          },
+          {
+            "t_s": 19,
+            "pods": 2,
+            "rps": 265,
+            "p99_ms": 102.5,
+            "pod_cpu_pct": 99.7,
+            "pod_sat": 0.582,
+            "dep_sat": 0.027,
+            "sat": 0.566,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5847,
+                "dep_sat": 0.0263,
+                "sat": 0.5693
+              },
+              "pod2": {
+                "pod_sat": 0.5783,
+                "dep_sat": 0.028,
+                "sat": 0.5621
+              }
+            }
+          },
+          {
+            "t_s": 20,
+            "pods": 2,
+            "rps": 269,
+            "p99_ms": 107.3,
+            "pod_cpu_pct": 100.5,
+            "pod_sat": 0.584,
+            "dep_sat": 0.045,
+            "sat": 0.558,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5801,
+                "dep_sat": 0.0625,
+                "sat": 0.5439
+              },
+              "pod2": {
+                "pod_sat": 0.5874,
+                "dep_sat": 0.0275,
+                "sat": 0.5713
+              }
+            }
+          },
+          {
+            "t_s": 21,
+            "pods": 2,
+            "rps": 261,
+            "p99_ms": 101.5,
+            "pod_cpu_pct": 99.5,
+            "pod_sat": 0.587,
+            "dep_sat": 0.062,
+            "sat": 0.55,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5787,
+                "dep_sat": 0.0625,
+                "sat": 0.5425
+              },
+              "pod2": {
+                "pod_sat": 0.5946,
+                "dep_sat": 0.0625,
+                "sat": 0.5574
+              }
+            }
+          },
+          {
+            "t_s": 22,
+            "pods": 2,
+            "rps": 260,
+            "p99_ms": 143.6,
+            "pod_cpu_pct": 99.9,
+            "pod_sat": 0.582,
+            "dep_sat": 0.044,
+            "sat": 0.556,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5878,
+                "dep_sat": 0.0625,
+                "sat": 0.551
+              },
+              "pod2": {
+                "pod_sat": 0.5753,
+                "dep_sat": 0.0265,
+                "sat": 0.56
+              }
+            }
+          },
+          {
+            "t_s": 23,
+            "pods": 2,
+            "rps": 268,
+            "p99_ms": 111.7,
+            "pod_cpu_pct": 100.1,
+            "pod_sat": 0.586,
+            "dep_sat": 0.043,
+            "sat": 0.561,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5882,
+                "dep_sat": 0.0233,
+                "sat": 0.5745
+              },
+              "pod2": {
+                "pod_sat": 0.5835,
+                "dep_sat": 0.0625,
+                "sat": 0.547
+              }
+            }
+          },
+          {
+            "t_s": 24,
+            "pods": 2,
+            "rps": 262,
+            "p99_ms": 100.6,
+            "pod_cpu_pct": 99.8,
+            "pod_sat": 0.584,
+            "dep_sat": 0.044,
+            "sat": 0.558,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5956,
+                "dep_sat": 0.0625,
+                "sat": 0.5583
+              },
+              "pod2": {
+                "pod_sat": 0.5726,
+                "dep_sat": 0.0259,
+                "sat": 0.5578
+              }
+            }
+          },
+          {
+            "t_s": 25,
+            "pods": 2,
+            "rps": 267,
+            "p99_ms": 103.3,
+            "pod_cpu_pct": 99.9,
+            "pod_sat": 0.584,
+            "dep_sat": 0.025,
+            "sat": 0.569,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5824,
+                "dep_sat": 0.0261,
+                "sat": 0.5672
+              },
+              "pod2": {
+                "pod_sat": 0.5849,
+                "dep_sat": 0.0246,
+                "sat": 0.5705
+              }
+            }
+          },
+          {
+            "t_s": 26,
+            "pods": 2,
+            "rps": 264,
+            "p99_ms": 100.0,
+            "pod_cpu_pct": 100.0,
+            "pod_sat": 0.583,
+            "dep_sat": 0.027,
+            "sat": 0.568,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5849,
+                "dep_sat": 0.0263,
+                "sat": 0.5695
+              },
+              "pod2": {
+                "pod_sat": 0.5819,
+                "dep_sat": 0.0276,
+                "sat": 0.5659
+              }
+            }
+          },
+          {
+            "t_s": 27,
+            "pods": 2,
+            "rps": 264,
+            "p99_ms": 99.0,
+            "pod_cpu_pct": 99.7,
+            "pod_sat": 0.581,
+            "dep_sat": 0.044,
+            "sat": 0.556,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5885,
+                "dep_sat": 0.0259,
+                "sat": 0.5733
+              },
+              "pod2": {
+                "pod_sat": 0.5739,
+                "dep_sat": 0.0625,
+                "sat": 0.538
+              }
+            }
+          },
+          {
+            "t_s": 28,
+            "pods": 2,
+            "rps": 264,
+            "p99_ms": 97.8,
+            "pod_cpu_pct": 100.2,
+            "pod_sat": 0.587,
+            "dep_sat": 0.025,
+            "sat": 0.572,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5861,
+                "dep_sat": 0.0264,
+                "sat": 0.5706
+              },
+              "pod2": {
+                "pod_sat": 0.5881,
+                "dep_sat": 0.0235,
+                "sat": 0.5743
+              }
+            }
+          },
+          {
+            "t_s": 29,
+            "pods": 2,
+            "rps": 266,
+            "p99_ms": 104.1,
+            "pod_cpu_pct": 99.7,
+            "pod_sat": 0.585,
+            "dep_sat": 0.026,
+            "sat": 0.569,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5843,
+                "dep_sat": 0.0271,
+                "sat": 0.5685
+              },
+              "pod2": {
+                "pod_sat": 0.5847,
+                "dep_sat": 0.0257,
+                "sat": 0.5697
+              }
+            }
+          },
+          {
+            "t_s": 30,
+            "pods": 2,
+            "rps": 258,
+            "p99_ms": 147.2,
+            "pod_cpu_pct": 100.0,
+            "pod_sat": 0.581,
+            "dep_sat": 0.026,
+            "sat": 0.566,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.5739,
+                "dep_sat": 0.0271,
+                "sat": 0.5583
+              },
+              "pod2": {
+                "pod_sat": 0.589,
+                "dep_sat": 0.0253,
+                "sat": 0.5741
+              }
+            }
           }
         ]
       },
       {
         "id": "slow-db",
-        "name": "Slow database, light pod",
-        "endpoint": "GET /db",
-        "work": "one query through a world view that adds pg_sleep(0.05)",
-        "steps": [
+        "path": "/db",
+        "light": 4,
+        "spike": 24,
+        "spikeAtS": 6,
+        "target": 0.7,
+        "events": [],
+        "reconnectRetries": 0,
+        "requests": 8404,
+        "errors": 0,
+        "series": [
           {
-            "concurrency": 0,
-            "reqPerS": 0.0,
-            "podCpuPct": 0.08,
-            "podSaturation": 0.004,
-            "dependencySaturation": 0.0,
-            "saturation": 0.004,
-            "saturationMean": 0.004,
-            "workerBusyRatio": 0.0,
-            "p50Ms": null,
-            "p99Ms": null,
-            "requests": 0,
+            "t_s": 0,
+            "pods": 1,
+            "rps": 76,
+            "p99_ms": 55.9,
+            "pod_cpu_pct": 0.7,
+            "pod_sat": 0.003,
+            "dep_sat": 0.25,
+            "sat": 0.002,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.003,
+                "dep_sat": 0.25,
+                "sat": 0.0022
+              }
+            }
           },
           {
-            "concurrency": 2,
-            "reqPerS": 39.2,
-            "podCpuPct": 0.33,
-            "podSaturation": 0.005,
-            "dependencySaturation": 0.125,
-            "saturation": 0.004,
-            "saturationMean": 0.004,
-            "workerBusyRatio": 0.123,
-            "p50Ms": 51.2,
-            "p99Ms": 51.8,
-            "requests": 196,
+            "t_s": 1,
+            "pods": 1,
+            "rps": 76,
+            "p99_ms": 52.7,
+            "pod_cpu_pct": 0.6,
+            "pod_sat": 0.009,
+            "dep_sat": 0.25,
+            "sat": 0.006,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.0085,
+                "dep_sat": 0.25,
+                "sat": 0.0064
+              }
+            }
           },
           {
-            "concurrency": 4,
-            "reqPerS": 77.6,
-            "podCpuPct": 0.5,
-            "podSaturation": 0.005,
-            "dependencySaturation": 0.25,
-            "saturation": 0.004,
-            "saturationMean": 0.004,
-            "workerBusyRatio": 0.247,
-            "p50Ms": 51.0,
-            "p99Ms": 51.9,
-            "requests": 388,
+            "t_s": 2,
+            "pods": 1,
+            "rps": 80,
+            "p99_ms": 51.8,
+            "pod_cpu_pct": 0.6,
+            "pod_sat": 0.005,
+            "dep_sat": 0.25,
+            "sat": 0.004,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.0052,
+                "dep_sat": 0.25,
+                "sat": 0.0039
+              }
+            }
           },
           {
-            "concurrency": 8,
-            "reqPerS": 155.6,
-            "podCpuPct": 0.95,
-            "podSaturation": 0.004,
-            "dependencySaturation": 0.5,
-            "saturation": 0.002,
-            "saturationMean": 0.002,
-            "workerBusyRatio": 0.494,
-            "p50Ms": 51.1,
-            "p99Ms": 55.6,
-            "requests": 778,
+            "t_s": 3,
+            "pods": 1,
+            "rps": 76,
+            "p99_ms": 52.5,
+            "pod_cpu_pct": 0.6,
+            "pod_sat": 0.009,
+            "dep_sat": 0.25,
+            "sat": 0.006,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.0086,
+                "dep_sat": 0.25,
+                "sat": 0.0065
+              }
+            }
           },
           {
-            "concurrency": 12,
-            "reqPerS": 234.8,
-            "podCpuPct": 1.1,
-            "podSaturation": 0.004,
-            "dependencySaturation": 0.75,
-            "saturation": 0.001,
-            "saturationMean": 0.001,
-            "workerBusyRatio": 0.742,
-            "p50Ms": 50.9,
-            "p99Ms": 52.1,
-            "requests": 1174,
+            "t_s": 4,
+            "pods": 1,
+            "rps": 80,
+            "p99_ms": 55.0,
+            "pod_cpu_pct": 0.6,
+            "pod_sat": 0.005,
+            "dep_sat": 0.25,
+            "sat": 0.004,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.0048,
+                "dep_sat": 0.25,
+                "sat": 0.0036
+              }
+            }
           },
           {
-            "concurrency": 16,
-            "reqPerS": 313.6,
-            "podCpuPct": 1.08,
-            "podSaturation": 0.005,
-            "dependencySaturation": 1.0,
-            "saturation": 0.0,
-            "saturationMean": 0.0,
-            "workerBusyRatio": 0.987,
-            "p50Ms": 50.9,
-            "p99Ms": 52.3,
-            "requests": 1568,
+            "t_s": 5,
+            "pods": 1,
+            "rps": 76,
+            "p99_ms": 52.5,
+            "pod_cpu_pct": 0.6,
+            "pod_sat": 0.004,
+            "dep_sat": 0.25,
+            "sat": 0.003,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.0043,
+                "dep_sat": 0.25,
+                "sat": 0.0033
+              }
+            }
           },
           {
-            "concurrency": 24,
-            "reqPerS": 316.8,
-            "podCpuPct": 1.26,
-            "podSaturation": 0.96,
-            "dependencySaturation": 1.0,
-            "saturation": 0.0,
-            "saturationMean": 0.0,
-            "workerBusyRatio": 0.999,
-            "p50Ms": 96.6,
-            "p99Ms": 101.8,
-            "requests": 1584,
+            "t_s": 6,
+            "pods": 1,
+            "rps": 308,
+            "p99_ms": 101.9,
+            "pod_cpu_pct": 1.4,
+            "pod_sat": 0.928,
+            "dep_sat": 1.0,
+            "sat": 0.0,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9276,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
           },
           {
-            "concurrency": 32,
-            "reqPerS": 316.8,
-            "podCpuPct": 1.16,
-            "podSaturation": 1.0,
-            "dependencySaturation": 1.0,
-            "saturation": 0.0,
-            "saturationMean": 0.0,
-            "workerBusyRatio": 1.0,
-            "p50Ms": 100.8,
-            "p99Ms": 103.8,
-            "requests": 1584,
+            "t_s": 7,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.3,
+            "pod_cpu_pct": 1.4,
+            "pod_sat": 0.966,
+            "dep_sat": 1.0,
+            "sat": 0.0,
             "errors": 0,
-            "samples": 10
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9659,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 8,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.4,
+            "pod_cpu_pct": 1.5,
+            "pod_sat": 0.968,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9676,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 9,
+            "pods": 1,
+            "rps": 316,
+            "p99_ms": 101.4,
+            "pod_cpu_pct": 1.7,
+            "pod_sat": 0.972,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9721,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 10,
+            "pods": 1,
+            "rps": 308,
+            "p99_ms": 101.5,
+            "pod_cpu_pct": 1.5,
+            "pod_sat": 0.963,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9627,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 11,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.2,
+            "pod_cpu_pct": 1.5,
+            "pod_sat": 0.97,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9696,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 12,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.2,
+            "pod_cpu_pct": 1.4,
+            "pod_sat": 0.969,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9685,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 13,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.3,
+            "pod_cpu_pct": 1.6,
+            "pod_sat": 0.969,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9687,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 14,
+            "pods": 1,
+            "rps": 316,
+            "p99_ms": 101.1,
+            "pod_cpu_pct": 1.4,
+            "pod_sat": 0.974,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9741,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 15,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.4,
+            "pod_cpu_pct": 1.6,
+            "pod_sat": 0.968,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9678,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 16,
+            "pods": 1,
+            "rps": 308,
+            "p99_ms": 101.8,
+            "pod_cpu_pct": 1.5,
+            "pod_sat": 0.962,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9624,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 17,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 98.3,
+            "pod_cpu_pct": 1.6,
+            "pod_sat": 0.972,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9724,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 18,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 98.5,
+            "pod_cpu_pct": 1.6,
+            "pod_sat": 0.973,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9726,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 19,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.0,
+            "pod_cpu_pct": 1.6,
+            "pod_sat": 0.966,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9659,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 20,
+            "pods": 1,
+            "rps": 316,
+            "p99_ms": 101.3,
+            "pod_cpu_pct": 1.5,
+            "pod_sat": 0.971,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9712,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 21,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.0,
+            "pod_cpu_pct": 1.5,
+            "pod_sat": 0.969,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9688,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 22,
+            "pods": 1,
+            "rps": 308,
+            "p99_ms": 101.4,
+            "pod_cpu_pct": 1.4,
+            "pod_sat": 0.966,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9657,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 23,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.5,
+            "pod_cpu_pct": 1.5,
+            "pod_sat": 0.967,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9668,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 24,
+            "pods": 1,
+            "rps": 319,
+            "p99_ms": 101.3,
+            "pod_cpu_pct": 1.7,
+            "pod_sat": 0.97,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9701,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 25,
+            "pods": 1,
+            "rps": 317,
+            "p99_ms": 101.1,
+            "pod_cpu_pct": 1.8,
+            "pod_sat": 0.97,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9702,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 26,
+            "pods": 1,
+            "rps": 320,
+            "p99_ms": 101.7,
+            "pod_cpu_pct": 2.0,
+            "pod_sat": 0.972,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9719,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 27,
+            "pods": 1,
+            "rps": 316,
+            "p99_ms": 101.2,
+            "pod_cpu_pct": 1.6,
+            "pod_sat": 0.986,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.986,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 28,
+            "pods": 1,
+            "rps": 312,
+            "p99_ms": 83.8,
+            "pod_cpu_pct": 1.6,
+            "pod_sat": 0.98,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9796,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 29,
+            "pods": 1,
+            "rps": 318,
+            "p99_ms": 98.2,
+            "pod_cpu_pct": 3.6,
+            "pod_sat": 0.98,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9796,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
+          },
+          {
+            "t_s": 30,
+            "pods": 1,
+            "rps": 314,
+            "p99_ms": 93.2,
+            "pod_cpu_pct": 2.0,
+            "pod_sat": 0.987,
+            "dep_sat": 1.0,
+            "sat": 0.0,
+            "errors": 0,
+            "perPod": {
+              "pod1": {
+                "pod_sat": 0.9868,
+                "dep_sat": 1.0,
+                "sat": 0.0
+              }
+            }
           }
         ]
       }
