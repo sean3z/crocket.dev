@@ -57,7 +57,7 @@ static constexpr unsigned char ai_js[] = {
 #embed "../web/ai/exchange.js"
 };
 static constexpr unsigned char llms_txt[] = {
-#embed "../web/llms.txt"
+#embed "../src/hashed/llms.txt"
 };
 static constexpr unsigned char llms_full_txt[] = {
 #embed "../web/llms-full.txt"

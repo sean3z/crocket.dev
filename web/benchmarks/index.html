@@ -28,7 +28,7 @@
         <a href="/guide/">Guide</a>
         <a href="/ai/">AI</a>
         <a href="/benchmarks/" aria-current="page">Benchmarks</a>
-        <a href="https://github.com/sean3z/crocket/releases/tag/0.5.2">0.5.2</a>
+        <a href="https://github.com/sean3z/crocket/releases/tag/@release@">@release@</a>
         <a href="https://todo.crocket.dev">Demo</a>
         <a href="https://github.com/sean3z/crocket">GitHub</a>
         <button type="button" id="theme" aria-pressed="false">Dark mode</button>
@@ -193,7 +193,7 @@
 <tr><th scope="row">Drogon</th><td class="num">0 of 48</td><td class="num">48</td><td class="num">0.07 s</td><td class="verdict is-reset">Exited at once, cut all 48 in flight</td></tr>
 <tr><th scope="row">hyper-express</th><td class="num">0 of 48</td><td class="num">48</td><td class="num">15.11 s</td><td class="verdict is-reset">Cut all 48, killed at 15 s (auto_close default)</td></tr>
 </tbody></table></div>
-<p class="test-note">Rocket, crocket, Spring Boot, and FastAPI finished every in-flight request and exited cleanly within a second. Axum and Fastify also answered all 16, but only because they ignored SIGTERM entirely, so the container sat there until it was SIGKILLed at 15 seconds. Drogon exited in about 70 ms and cut all 16. hyper-express at its default, auto_close on, force-closed every socket on SIGTERM, cutting all 16, and then didn&#x27;t exit, so it was SIGKILLed at 15 seconds as well. With auto_close off and a call to shutdown() it drained all 48 in about 0.4 s, but every framework here is tested at its shutdown default. Crocket&#x27;s row is a re-run on main, which is queued for 0.5.3, after a shutdown fix</p>
+<p class="test-note">Rocket, crocket, Spring Boot, and FastAPI finished every in-flight request and exited cleanly within a second. Axum and Fastify also answered all 16, but only because they ignored SIGTERM entirely, so the container sat there until it was SIGKILLed at 15 seconds. Drogon exited in about 70 ms and cut all 16. hyper-express at its default, auto_close on, force-closed every socket on SIGTERM, cutting all 16, and then didn&#x27;t exit, so it was SIGKILLed at 15 seconds as well. With auto_close off and a call to shutdown() it drained all 48 in about 0.4 s, but every framework here is tested at its shutdown default. Crocket&#x27;s row is a re-run after a shutdown fix</p>
 </article>
 <article class="prod-block" id="prod-slow">
 <h3 class="has-anchor">Slow clients<a class="heading-anchor" href="#prod-slow" aria-label="Link to Slow clients"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
@@ -227,7 +227,7 @@
 <tr><th scope="row">Spring Boot</th><td class="verdict is-accepted">200</td><td class="num">55.6 ms</td><td class="verdict is-accepted">200</td><td class="num">334.8 ms</td></tr>
 <tr><th scope="row">FastAPI</th><td class="verdict is-accepted">200</td><td class="num">81.7 ms</td><td class="verdict is-accepted">200</td><td class="num">639.6 ms</td></tr>
 </tbody></table></div>
-<p class="test-note">Crocket, Rocket, Drogon, and hyper-express sent a clean 413 for both sizes. Axum and Fastify enforced their 1 MB cap by cutting the connection, so the client never saw a status. Spring Boot and FastAPI accepted both bodies with a 200, since neither app set a cap. Crocket&#x27;s row is a local re-run on main, queued for 0.5.3, which now reads past the rest of the body before answering instead of cutting the connection. That run was over loopback, so its times aren&#x27;t comparable to the droplet rows</p>
+<p class="test-note">Crocket, Rocket, Drogon, and hyper-express sent a clean 413 for both sizes. Axum and Fastify enforced their 1 MB cap by cutting the connection, so the client never saw a status. Spring Boot and FastAPI accepted both bodies with a 200, since neither app set a cap. Crocket reads past the rest of the body before answering instead of cutting the connection. That run was over loopback, so its times aren&#x27;t comparable to the droplet rows</p>
 </article>
 <article class="prod-block" id="prod-churn">
 <h3 class="has-anchor">Connection churn<a class="heading-anchor" href="#prod-churn" aria-label="Link to Connection churn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
@@ -576,7 +576,7 @@
 </tbody></table></div>
 </div>
 </div>
-<p class="test-note">In Phase 1 one pod served about 123 req/s at 2 in-flight requests with a p99 around 19 ms. When the spike hit 20 in flight, crocket_saturation jumped to 0.96 and p99 to about 230 ms. The controller saw two scrapes in a row over 0.7, started Pod #2, and nginx was sending it traffic at t = 8.3 s, about a third of a second after the decision. From there req/s doubled to about 264, p99 fell 53% to about 109 ms, and average saturation settled at 0.56, under the target, so it stopped at two. In Phase 2 the same controller watched the same gauge. The spike to 24 in flight filled the 16-connection pool, crocket_dependency_saturation went to 1.00, p99 doubled from about 53 to 100 ms, and crocket_saturation sat at 0.00 for all 25 seconds, so Pod #2 never started. crocket_pod_saturation read about 0.97 that whole time, from requests queueing for workers stuck on the database, exactly the pressure a queue-based autoscaler would have scaled on, while CPU stayed under 2%. No errors in either phase. This ran locally in Docker on crocket&#x27;s main branch, queued for 0.5.3: two pods at 2 vCPUs each on their own cores, 16 workers and a 16-connection pool per pod, nginx in front with least_conn, and a small controller scraping each pod&#x27;s /metrics every second. Phase 1 uses a test-only route that burns about 15 ms of CPU before a fast query. None of the other seven frameworks ship a built-in saturation gauge, so they aren&#x27;t in this one</p>
+<p class="test-note">In Phase 1 one pod served about 123 req/s at 2 in-flight requests with a p99 around 19 ms. When the spike hit 20 in flight, crocket_saturation jumped to 0.96 and p99 to about 230 ms. The controller saw two scrapes in a row over 0.7, started Pod #2, and nginx was sending it traffic at t = 8.3 s, about a third of a second after the decision. From there req/s doubled to about 264, p99 fell 53% to about 109 ms, and average saturation settled at 0.56, under the target, so it stopped at two. In Phase 2 the same controller watched the same gauge. The spike to 24 in flight filled the 16-connection pool, crocket_dependency_saturation went to 1.00, p99 doubled from about 53 to 100 ms, and crocket_saturation sat at 0.00 for all 25 seconds, so Pod #2 never started. crocket_pod_saturation read about 0.97 that whole time, from requests queueing for workers stuck on the database, exactly the pressure a queue-based autoscaler would have scaled on, while CPU stayed under 2%. No errors in either phase. This ran locally in Docker: two pods at 2 vCPUs each on their own cores, 16 workers and a 16-connection pool per pod, nginx in front with least_conn, and a small controller scraping each pod&#x27;s /metrics every second. Phase 1 uses a test-only route that burns about 15 ms of CPU before a fast query. None of the other seven frameworks ship a built-in saturation gauge, so they aren&#x27;t in this one</p>
 </article>
 </div></section>
 
@@ -630,7 +630,7 @@
     <section class="section" id="methodology">
       <div class="wrap">
         <h2 class="has-anchor">How this was measured<a class="heading-anchor" href="#methodology" aria-label="Link to How this was measured"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h2>
-        <p class="intro">Every framework ran on the same DigitalOcean c-4 size. The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn&#x27;t available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker. Crocket&#x27;s drain and oversized-body rows were re-run locally on main, which is queued for 0.5.3, while every throughput number is still 0.5.2</p>
+        <p class="intro">Every framework ran on the same DigitalOcean c-4 size. The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn&#x27;t available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker. The throughput numbers are from crocket 0.5.2</p>
         <ul class="method-facts">
           <li><strong>Three droplets.</strong> The app, Postgres 16, and wrk2 each got their own 4 vCPU box. DigitalOcean assigns either an Intel Xeon Platinum 8280 or 8358 to that size, and these boxes were 8280s in both regions</li>
           <li><strong>Load.</strong> wrk2 ran <code>-t4 -c128</code>, HTTP/1.1 keep-alive. Every measured throughput run followed a 60 second warmup at 20,000 req/s</li>
@@ -657,7 +657,7 @@
 
   <footer class="site-footer">
     <div class="wrap">
-      <p>Served by crocket. <a href="/llms.txt">llms.txt</a> for assistants. <a href="https://github.com/sean3z/crocket/blob/0.5.2/LICENSE">MIT</a> · Built with ❤️ and a little AI help</p>
+      <p>Served by crocket. <a href="/llms.txt">llms.txt</a> for assistants. <a href="https://github.com/sean3z/crocket/blob/@release@/LICENSE">MIT</a> · Built with ❤️ and a little AI help</p>
     </div>
   </footer>
   <script src="/benchmarks/render.js"></script>

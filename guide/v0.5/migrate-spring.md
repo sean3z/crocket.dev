@@ -4,7 +4,7 @@ A `@RestController` method and a crocket handler are doing the same job. The met
 
 The Spring examples here are Spring Boot 3.
 
-The crocket column is written against the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
+The crocket column is written against the [@release@](https://github.com/sean3z/crocket/releases/tag/@release@) release. The [Express](/guide/v0.5/migrate-express/) page uses the same program. `POST /users` with `{"email":"ada@example.com","name":"Ada"}` answers 201, `Location: /users/1`, and `{"id":1,"email":"ada@example.com","name":"Ada"}` on both sides.
 
 ## Project and build
 
@@ -67,7 +67,7 @@ project(users CXX)
 include(FetchContent)
 FetchContent_Declare(crocket
   GIT_REPOSITORY https://github.com/sean3z/crocket.git
-  GIT_TAG 0.5.2)
+  GIT_TAG @release@)
 FetchContent_MakeAvailable(crocket)
 
 add_executable(users users.cpp)

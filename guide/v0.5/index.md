@@ -2,7 +2,7 @@
 
 crocket is a C++ web framework in the same spirit as [Rocket](https://rocket.rs). It's not a port. Handlers are functions. Path captures and extractors are arguments. The return value is the response. You declare a route with a C++26 annotation, and `reflect_routes` discovers it. The wire layer is [h2o](https://github.com/h2o/h2o): HTTP/1.1, HTTP/2, and TLS.
 
-This guide describes that model. The code samples match the [0.5.2](https://github.com/sean3z/crocket/releases/tag/0.5.2) release, which is the tree this site was checked against.
+This guide describes that model. The code samples match the [@release@](https://github.com/sean3z/crocket/releases/tag/@release@) release, which is the tree this site was checked against.
 
 ## What you write
 
