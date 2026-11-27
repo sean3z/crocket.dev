@@ -26,7 +26,7 @@
   },
   "repo": {
     "url": "https://github.com/sean3z/crocket-bench",
-    "public": false
+    "public": true
   },
   "coming": [],
   "frameworks": [
