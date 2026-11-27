@@ -303,3 +303,36 @@
   function boot() { document.querySelectorAll("[data-soak-chart]").forEach(init); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();
+
+/* When to scale chart: nearest-step hover/tap tooltip. */
+(function () {
+  function init(fig) {
+    var svg = fig.querySelector(".scale-svg");
+    var tip = fig.querySelector(".soak-tip");
+    var cursor = svg.querySelector(".soak-cursor");
+    var steps = Array.prototype.slice.call(svg.querySelectorAll(".scale-hit")).map(function (g) {
+      return { x: +g.getAttribute("data-x"), tip: g.getAttribute("data-tip") };
+    });
+    if (!steps.length) return;
+    function show(evt) {
+      var box = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+      var ev = evt.touches ? evt.touches[0] : evt;
+      var x = ((ev.clientX - box.left) / box.width) * vb.width;
+      var best = steps[0];
+      steps.forEach(function (s) { if (Math.abs(s.x - x) < Math.abs(best.x - x)) best = s; });
+      cursor.setAttribute("x1", best.x); cursor.setAttribute("x2", best.x); cursor.classList.add("is-on");
+      tip.hidden = false; tip.textContent = best.tip;
+      var fr = fig.getBoundingClientRect();
+      var left = box.left - fr.left + (best.x / vb.width) * box.width;
+      tip.style.left = Math.max(0, Math.min(left + 12, fig.clientWidth - tip.offsetWidth)) + "px";
+      tip.style.top = Math.max(0, box.top - fr.top + 8) + "px";
+    }
+    function hide() { tip.hidden = true; cursor.classList.remove("is-on"); }
+    svg.addEventListener("mousemove", show);
+    svg.addEventListener("touchstart", show, { passive: true });
+    svg.addEventListener("touchmove", show, { passive: true });
+    svg.addEventListener("mouseleave", hide);
+  }
+  function boot() { document.querySelectorAll("[data-scale-chart]").forEach(init); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
