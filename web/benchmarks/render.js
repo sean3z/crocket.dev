@@ -96,8 +96,7 @@
     var sorted = rows.slice().sort(function (a, b) { return b.maxRps - a.maxRps; });
     var rate = test.commonRate ? fmtInt(test.commonRate) + " req/s" : "the common rate";
     var html = '<div class="table-wrap"><table class="results" data-test="' + esc(test.id) + '">' +
-      "<caption>Latency is at " + rate + ". If a framework couldn't hold that rate, the table says so " +
-      "instead of showing a queueing delay as latency. Max req/s is the median of three 30-second runs after warmup</caption>" +
+      "<caption>Latency is at " + rate + "</caption>" +
       "<thead><tr>" +
       '<th data-sort="name" data-type="text">Framework</th>' +
       '<th class="num" data-sort="maxRps" data-type="num" aria-sort="descending">Max req/s<span class="sort-ind" aria-hidden="true">↓</span></th>' +
@@ -133,17 +132,10 @@
     });
     html += "</tbody></table></div>";
     var fa = sorted.filter(function (r) { return r.framework === "fastapi" && missedRate(r); });
-    if (fa.length && data.notes && data.notes.fastapiHeld) {
-      var note = data.notes.fastapiHeld;
-      var cr = sorted.filter(function (r) { return r.framework === "crocket" && r.heldP99Ms != null; })[0];
-      if (cr) {
-        note += ". I also ran crocket at those same rates, and its p99 stayed around " +
-          fmtDec(cr.heldP99Ms, 2) + " milliseconds";
-      }
-      html += '<p class="table-note">' + esc(note) + "</p>";
-    }
-    if (data.notes && data.notes.coldStart) {
-      html += '<p class="table-note">' + esc(data.notes.coldStart) + "</p>";
+    var cr = sorted.filter(function (r) { return r.framework === "crocket" && r.heldP99Ms != null; })[0];
+    if (fa.length && cr) {
+      html += '<p class="table-note">At FastAPI\'s held rate for this test, crocket\'s p99 was around ' +
+        fmtDec(cr.heldP99Ms, 2) + " milliseconds</p>";
     }
     return html;
   }

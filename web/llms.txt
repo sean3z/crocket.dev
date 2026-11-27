@@ -31,7 +31,7 @@ The current release is 0.5.2. You need GCC 16.2 or later with `-freflection`. Th
 
 ## Optional
 
-- [Benchmarks](https://crocket.dev/benchmarks/): A production-track comparison of crocket against Rocket, Axum, Drogon, Fastify, Spring Boot, and FastAPI.
+- [Benchmarks](https://crocket.dev/benchmarks/): A production-track comparison of crocket against Rocket, Axum, Drogon, Fastify, hyper-express, Spring Boot, and FastAPI.
 
 - [AI and assistants](https://crocket.dev/ai/): Why a crocket service stays reviewable when an assistant writes the first draft.
 - [Blog](https://rambling.hashnode.dev/): Sean's writing.
