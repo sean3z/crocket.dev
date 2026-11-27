@@ -336,3 +336,12 @@
   function boot() { document.querySelectorAll("[data-scale-chart]").forEach(init); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();
+
+/* Heading anchors: jump as usual, and copy the section link when the clipboard is available. */
+(function () {
+  document.addEventListener("click", function (evt) {
+    var a = evt.target.closest && evt.target.closest(".heading-anchor");
+    if (!a || !navigator.clipboard) return;
+    navigator.clipboard.writeText(location.href.split("#")[0] + a.getAttribute("href")).catch(function () {});
+  });
+})();

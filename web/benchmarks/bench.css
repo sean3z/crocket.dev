@@ -573,3 +573,13 @@ thead th[aria-sort="descending"] .sort-ind { color: var(--accent); }
 .signal-table .signal-detail { color: var(--muted); }
 .signal-table .signal-badge { display: inline-flex; align-items: center; gap: 0.4rem; }
 .signal-table .signal-badge .pm-icon, .signal-table .signal-badge .pm-dash { display: inline-block; margin: 0; flex: none; }
+
+/* Heading anchors */
+.has-anchor { position: relative; }
+.heading-anchor { display: inline-flex; align-items: center; margin-left: 0.4rem; color: var(--muted); opacity: 0; text-decoration: none; vertical-align: middle; transition: opacity .12s, color .12s; }
+.heading-anchor svg { width: 0.8em; height: 0.8em; }
+.has-anchor:hover .heading-anchor, .heading-anchor:focus-visible { opacity: 1; }
+.heading-anchor:hover, .heading-anchor:focus-visible { color: var(--accent); }
+.heading-anchor:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+@media (hover: none) { .heading-anchor { opacity: 0.45; } }
+[id] { scroll-margin-top: 1rem; }

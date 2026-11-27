@@ -50,7 +50,7 @@
 
     <section class="section" id="results">
       <div class="wrap wrap-wide">
-        <h2>Results</h2>
+        <h2 class="has-anchor">Results<a class="heading-anchor" href="#results" aria-label="Link to Results"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h2>
         <p class="intro">Max req/s is the headline, but it isn't the whole story. CPU per request, latency at a shared rate, and memory are in the table below</p>
         <div class="tabs">
           <input class="tab-input" type="radio" name="bench-test" id="test-json" checked><input class="tab-input" type="radio" name="bench-test" id="test-db"><input class="tab-input" type="radio" name="bench-test" id="test-plaintext">
@@ -176,10 +176,10 @@
 
     <section class="section" id="prod">
 <div class="wrap wrap-wide">
-<h2>Production behavior</h2>
+<h2 class="has-anchor">Production behavior<a class="heading-anchor" href="#prod" aria-label="Link to Production behavior"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h2>
 <p class="intro">Throughput is one thing. These are the tests I care about when a deploy lands, a client misbehaves, or a body is bigger than you meant to allow</p>
 <article class="prod-block" id="prod-drain">
-<h3>Graceful drain</h3>
+<h3 class="has-anchor">Graceful drain<a class="heading-anchor" href="#prod-drain" aria-label="Link to Graceful drain"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
 <p class="test-blurb">Sixteen GET /db requests, each spending 500 ms waiting on Postgres, then SIGTERM 150 ms later and no new traffic after that, the way a load balancer pulls a pod. Three runs each. This is whether a deploy drops the requests already in progress</p>
 <div class="table-wrap"><table class="results prod-table">
 <caption>In-flight is how many of the open requests still got a 200 after SIGTERM, across all runs. Exit is SIGTERM to the process gone, median of the runs</caption>
@@ -196,7 +196,7 @@
 <p class="test-note">Rocket, crocket, Spring Boot, and FastAPI finished every in-flight request and exited cleanly within a second. Axum and Fastify also answered all 16, but only because they ignored SIGTERM entirely, so the container sat there until it was SIGKILLed at 15 seconds. Drogon exited in about 70 ms and cut all 16. hyper-express at its default, auto_close on, force-closed every socket on SIGTERM, cutting all 16, and then didn&#x27;t exit, so it was SIGKILLed at 15 seconds as well. With auto_close off and a call to shutdown() it drained all 48 in about 0.4 s, but every framework here is tested at its shutdown default. Crocket&#x27;s row is a re-run on main, which is queued for 0.5.3, after a shutdown fix</p>
 </article>
 <article class="prod-block" id="prod-slow">
-<h3>Slow clients</h3>
+<h3 class="has-anchor">Slow clients<a class="heading-anchor" href="#prod-slow" aria-label="Link to Slow clients"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
 <p class="test-blurb">Sixteen clients trickled incomplete headers for about 25 seconds, while healthy GET /json traffic kept going. I wanted to see if a slow connection can tie the server up</p>
 <div class="table-wrap"><table class="results prod-table">
 <caption>Median close is how long the slow connections stayed open. Healthy traffic is GET /json while they were hanging</caption>
@@ -213,7 +213,7 @@
 <p class="test-note">Crocket and hyper-express are the only two that cut the trickling clients off, and the gap between them is just configuration. hyper-express gets uWebSockets.js&#x27;s built-in idle timeout, which fired at about 8 seconds, and crocket&#x27;s CROCKET_REQUEST_TIMEOUT is set to 10 seconds here. Both dropped the slow clients cleanly at their timeout, while the other six kept all 16 open for the full 25 seconds. Healthy traffic stayed clean on all eight</p>
 </article>
 <article class="prod-block" id="prod-oversize">
-<h3>Oversized bodies</h3>
+<h3 class="has-anchor">Oversized bodies<a class="heading-anchor" href="#prod-oversize" aria-label="Link to Oversized bodies"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
 <p class="test-blurb">A 10 MB and a 100 MB POST to /echo. Without a cap, a body like that can run a process out of memory</p>
 <div class="table-wrap"><table class="results prod-table">
 <caption>A 413 is a clean rejection. A reset means the connection dropped instead</caption>
@@ -230,7 +230,7 @@
 <p class="test-note">Crocket, Rocket, Drogon, and hyper-express sent a clean 413 for both sizes. Axum and Fastify enforced their 1 MB cap by cutting the connection, so the client never saw a status. Spring Boot and FastAPI accepted both bodies with a 200, since neither app set a cap. Crocket&#x27;s row is a local re-run on main, queued for 0.5.3, which now reads past the rest of the body before answering instead of cutting the connection. That run was over loopback, so its times aren&#x27;t comparable to the droplet rows</p>
 </article>
 <article class="prod-block" id="prod-churn">
-<h3>Connection churn</h3>
+<h3 class="has-anchor">Connection churn<a class="heading-anchor" href="#prod-churn" aria-label="Link to Connection churn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
 <p class="test-blurb">Same JSON test, but every request opens a new connection. That&#x27;s closer to a client that doesn&#x27;t keep-alive, or a proxy that churns</p>
 <div class="table-wrap"><table class="results prod-table">
 <caption>Three 20 second runs with Connection: close. Peak RSS is the highest of the three, and errors are non-2xx responses plus socket errors across all three</caption>
@@ -247,7 +247,7 @@
 <p class="test-note">Throughput isn&#x27;t listed here. With Connection: close from a single client, every request leaves a socket in TIME_WAIT for 60 seconds, and Linux&#x27;s 28,232 ephemeral ports cap that at about 470 new connections a second, which throttled the fastest frameworks on the later runs. So this table is about memory and errors under churn instead. hyper-express&#x27;s socket errors are a wrk2 mismatch: it closes the socket after the response but doesn&#x27;t send Connection: close, so wrk2 kept trying to reuse each closed connection and timed out</p>
 </article>
 <article class="prod-block" id="prod-soak">
-<h3>Memory soak</h3>
+<h3 class="has-anchor">Memory soak<a class="heading-anchor" href="#prod-soak" aria-label="Link to Memory soak"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
 <p class="test-blurb">Ten minutes at 3,500 req/s, with RSS sampled every 5 seconds. I wanted to see if memory sits still or keeps climbing</p>
 <figure class="soak-chart" data-soak-chart>
 <div class="visually-hidden">RSS over a 10 minute soak at 3,500 req/s, in megabytes, log scale</div>
@@ -317,7 +317,7 @@
 <p class="test-note">All eight held 3,500 req/s for the full ten minutes with no errors. Crocket, Drogon, Rocket, Fastify, Spring Boot, and FastAPI stayed within a few megabytes. Axum climbed steadily, about 38 MB over the run, and hadn&#x27;t leveled off, so it sorts last. hyper-express jumped from about 94 MB to 232 MB in the first minute, then stayed within 2 MB, which looks like warm-up rather than a leak</p>
 </article>
 <article class="prod-block" id="prod-contract">
-<h3>Contract, on POST /echo</h3>
+<h3 class="has-anchor">Contract, on POST /echo<a class="heading-anchor" href="#prod-contract" aria-label="Link to Contract, on POST /echo"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
 <p class="test-blurb">POST /echo with a name and a quantity, then a wrong type, a missing field, an extra field, and broken JSON. This is what a client actually gets back, using each framework&#x27;s default</p>
 <div class="table-wrap"><table class="results prod-table">
 <caption>Each column is one POST body. Rejected means a 4xx. Accepted means the handler took it</caption>
@@ -388,7 +388,7 @@
 <p class="test-note">Crocket, Rocket, Axum, and FastAPI rejected a wrong type and a missing field with a 422, and ignored the extra field, which is the usual serde and Pydantic default. Fastify returned 400s, and its Ajv setup strips unknown fields instead of rejecting them. hyper-express has no schema support, so the hand-written check rejects all four. Spring Boot caught the wrong type but accepted a missing field, and Drogon accepted anything that parsed as JSON</p>
 </article>
 <article class="prod-block" id="scaling">
-<h3>When to scale</h3>
+<h3 class="has-anchor">When to scale<a class="heading-anchor" href="#scaling" aria-label="Link to When to scale"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h3>
 <p class="test-blurb">Kubernetes usually decides when to add more pods by watching CPU. When a web service is stuck waiting on a slow database instead of crunching numbers, CPU looks almost idle, about 1% here, even while requests pile up and latency doubles, so Kubernetes never scales out. Crocket is the only framework in this benchmark that ships a built-in “how full am I?” gauge, crocket_saturation, out of the box</p>
 <div class="table-wrap"><table class="results prod-table signal-table">
 <caption>Built-in scaling signal: what each app's /metrics can tell an autoscaler without extra code</caption>
@@ -497,7 +497,7 @@
 
     <section class="section" id="parity">
       <div class="wrap">
-        <h2>The production bits people miss</h2>
+        <h2 class="has-anchor">The production bits people miss<a class="heading-anchor" href="#parity" aria-label="Link to The production bits people miss"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h2>
         <p class="intro">These are the boring ones, and they're the reason this isn't a stripped-down "hello world" comparison. Here's why each one matters, then what was already built in and what I had to add. The wiring notes underneath have the exact packages and settings</p>
         <ol class="checklist">
 <li><p class="check-name">Structured JSON logging</p><p class="check-why">When something breaks at 2 a.m., you want one line per request you can grep, not a pile of unstructured text</p></li>
@@ -544,7 +544,7 @@
 
     <section class="section" id="methodology">
       <div class="wrap">
-        <h2>How this was measured</h2>
+        <h2 class="has-anchor">How this was measured<a class="heading-anchor" href="#methodology" aria-label="Link to How this was measured"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h2>
         <p class="intro">Every framework ran on the same DigitalOcean c-4 size. The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn&#x27;t available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker. Crocket&#x27;s drain and oversized-body rows were re-run locally on main, which is queued for 0.5.3, while every throughput number is still 0.5.2</p>
         <ul class="method-facts">
           <li><strong>Three droplets.</strong> The app, Postgres 16, and wrk2 each got their own 4 vCPU box. DigitalOcean assigns either an Intel Xeon Platinum 8280 or 8358 to that size, and these boxes were 8280s in both regions</li>
@@ -564,7 +564,7 @@
 
     <section class="section" id="source">
       <div class="wrap">
-        <h2>Source</h2>
+        <h2 class="has-anchor">Source<a class="heading-anchor" href="#source" aria-label="Link to Source"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.6 9.4a2.8 2.8 0 0 0 4 0l2.2-2.2a2.8 2.8 0 0 0-4-4l-.9.9M9.4 6.6a2.8 2.8 0 0 0-4 0L3.2 8.8a2.8 2.8 0 0 0 4 4l.9-.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></h2>
         <p class="repo-note">Every app, the harness scripts, and the raw results are at <a href="https://github.com/sean3z/crocket-bench">github.com/sean3z/crocket-bench</a>, so you can rerun any of this yourself</p>
       </div>
     </section>
