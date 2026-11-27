@@ -82,7 +82,7 @@
       "language": "Node.js 24",
       "highlight": false,
       "had": "uWebSockets.js underneath gives a body size cap and an idle-connection timeout",
-      "added": "pino for the JSON access log, prom-client for the histogram, a request-id hook, health and ready routes, a hand-written check on POST /echo, a 10 second timeout around the query, and a SIGTERM drain"
+      "added": "pino for the JSON access log, prom-client for the histogram, a request-id hook, health and ready routes, a hand-written check on POST /echo, a 10 second timeout around the query, and a SIGTERM drain with auto_close off"
     },
     {
       "id": "spring",
@@ -701,7 +701,7 @@
   "caveats": [
     {
       "id": "loadgen",
-      "text": "The load generator was a 4 vCPU droplet, same size as the app. At crocket's max it was only around half busy (JSON about 50%, plaintext about 55%), so I wouldn't call those numbers client-pegged, though a larger generator could still move them"
+      "text": "wrk2 had a 4 vCPU droplet, same size as the app. At crocket's max it was only around half busy (JSON about 50%, plaintext about 55%), so I wouldn't call those numbers client-pegged, though a larger generator could still move them"
     },
     {
       "id": "drogon-db",
@@ -712,12 +712,16 @@
       "text": "FastAPI tops out around 6,000 req/s on these 4 vCPUs, so at the shared 10,000 (or 4,000 for the query test) requests just queue up. Those wouldn't be fair p50 or p99 figures, which is why the table flags them. The latency you see there is from a rate it can hold, about 60% of its max: 3,500 req/s for JSON, 3,600 for plaintext, and 2,400 for the single query. It ran four uvicorn workers, one per core"
     },
     {
-      "id": "fastify-single-process",
-      "text": "Fastify and hyper-express each run as a single Node process, by design, so they top out around one core. CPU per request is the fairer comparison there. hyper-express also grew to about 480 to 780 MB of RSS at max load, though it settled around 232 MB at 3,500 req/s"
+      "id": "single-process",
+      "text": "Fastify and hyper-express each run as a single Node.js process by default, so they top out around one core. CPU per request is the fairer comparison there"
+    },
+    {
+      "id": "hyperexpress-rss",
+      "text": "hyper-express grew to about 480 to 780 MB of RSS at max load, though it settled around 232 MB at 3,500 req/s in the soak"
     },
     {
       "id": "spring-histogram",
-      "text": "Spring Boot needs a one-line property to expose histogram buckets at /metrics. That setting is on for these numbers"
+      "text": "Spring Boot needs a one-line property to expose histogram buckets at /metrics, and it's on for every number here"
     }
   ],
   "notes": {
@@ -727,6 +731,91 @@
   "prod": {
     "contract": [
       {
+        "framework": "hyperexpress",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 29.51742400000512,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 3.0709589991602115,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 1.4610730004278594,
+            "error": null
+          },
+          "extra": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 2.3556249998364365,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 1.4465859994743369,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 0,
+          "medianCloseS": 8.07,
+          "healthyOk": 481,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.75,
+          "healthyP99Ms": 2.02,
+          "closeS": [
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 46.9,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 326.0,
+            "error": null,
+            "bytes": 104857591
+          }
+        }
+      },
+      {
         "framework": "crocket",
         "contract": {
           "ok": {
@@ -982,91 +1071,6 @@
         }
       },
       {
-        "framework": "drogon",
-        "contract": {
-          "ok": {
-            "verdict": "ok",
-            "label": "200",
-            "status": 200,
-            "ms": 40.500073000202974,
-            "error": null
-          },
-          "wrong_type": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 1.0859079998226662,
-            "error": null
-          },
-          "missing": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 0.8896290000848239,
-            "error": null
-          },
-          "extra": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 0.9543699998175725,
-            "error": null
-          },
-          "malformed": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 0.9815339999477146,
-            "error": null
-          }
-        },
-        "slow": {
-          "opened": 16,
-          "stillOpen": 16,
-          "medianCloseS": 25.05,
-          "healthyOk": 483,
-          "healthyErr": 0,
-          "healthyP50Ms": 1.57,
-          "healthyP99Ms": 1.9,
-          "closeS": [
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05
-          ]
-        },
-        "oversize": {
-          "10mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 35.1,
-            "error": null,
-            "bytes": 10485751
-          },
-          "100mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 315.9,
-            "error": null,
-            "bytes": 104857591
-          }
-        }
-      },
-      {
         "framework": "fastify",
         "contract": {
           "ok": {
@@ -1152,85 +1156,85 @@
         }
       },
       {
-        "framework": "hyperexpress",
+        "framework": "fastapi",
         "contract": {
           "ok": {
             "verdict": "ok",
             "label": "200",
             "status": 200,
-            "ms": 29.51742400000512,
+            "ms": 30.693269999574113,
             "error": null
           },
           "wrong_type": {
             "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 3.0709589991602115,
+            "label": "422",
+            "status": 422,
+            "ms": 1.6449069998998311,
             "error": null
           },
           "missing": {
             "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 1.4610730004278594,
+            "label": "422",
+            "status": 422,
+            "ms": 1.396509000187507,
             "error": null
           },
           "extra": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 2.3556249998364365,
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 1.285008999730053,
             "error": null
           },
           "malformed": {
             "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 1.4465859994743369,
+            "label": "422",
+            "status": 422,
+            "ms": 1.331428999947093,
             "error": null
           }
         },
         "slow": {
           "opened": 16,
-          "stillOpen": 0,
-          "medianCloseS": 8.07,
-          "healthyOk": 481,
+          "stillOpen": 16,
+          "medianCloseS": 25.05,
+          "healthyOk": 477,
           "healthyErr": 0,
-          "healthyP50Ms": 1.75,
-          "healthyP99Ms": 2.02,
+          "healthyP50Ms": 2.18,
+          "healthyP99Ms": 2.68,
           "closeS": [
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07
+            25.06,
+            25.06,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05
           ]
         },
         "oversize": {
           "10mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 46.9,
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 81.7,
             "error": null,
             "bytes": 10485751
           },
           "100mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 326.0,
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 639.6,
             "error": null,
             "bytes": 104857591
           }
@@ -1322,41 +1326,41 @@
         }
       },
       {
-        "framework": "fastapi",
+        "framework": "drogon",
         "contract": {
           "ok": {
             "verdict": "ok",
             "label": "200",
             "status": 200,
-            "ms": 30.693269999574113,
+            "ms": 40.500073000202974,
             "error": null
           },
           "wrong_type": {
-            "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 1.6449069998998311,
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 1.0859079998226662,
             "error": null
           },
           "missing": {
-            "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 1.396509000187507,
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.8896290000848239,
             "error": null
           },
           "extra": {
             "verdict": "accepted",
             "label": "200",
             "status": 200,
-            "ms": 1.285008999730053,
+            "ms": 0.9543699998175725,
             "error": null
           },
           "malformed": {
             "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 1.331428999947093,
+            "label": "400",
+            "status": 400,
+            "ms": 0.9815339999477146,
             "error": null
           }
         },
@@ -1364,13 +1368,13 @@
           "opened": 16,
           "stillOpen": 16,
           "medianCloseS": 25.05,
-          "healthyOk": 477,
+          "healthyOk": 483,
           "healthyErr": 0,
-          "healthyP50Ms": 2.18,
-          "healthyP99Ms": 2.68,
+          "healthyP50Ms": 1.57,
+          "healthyP99Ms": 1.9,
           "closeS": [
-            25.06,
-            25.06,
+            25.05,
+            25.05,
             25.05,
             25.05,
             25.05,
@@ -1389,18 +1393,18 @@
         },
         "oversize": {
           "10mb": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 81.7,
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 35.1,
             "error": null,
             "bytes": 10485751
           },
           "100mb": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 639.6,
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 315.9,
             "error": null,
             "bytes": 104857591
           }
@@ -1409,6 +1413,91 @@
     ],
     "slow": [
       {
+        "framework": "hyperexpress",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 29.51742400000512,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 3.0709589991602115,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 1.4610730004278594,
+            "error": null
+          },
+          "extra": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 2.3556249998364365,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 1.4465859994743369,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 0,
+          "medianCloseS": 8.07,
+          "healthyOk": 481,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.75,
+          "healthyP99Ms": 2.02,
+          "closeS": [
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 46.9,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 326.0,
+            "error": null,
+            "bytes": 104857591
+          }
+        }
+      },
+      {
         "framework": "crocket",
         "contract": {
           "ok": {
@@ -1579,6 +1668,91 @@
         }
       },
       {
+        "framework": "fastify",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 31.187658999442647,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 2.569657000094594,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 1.704354000139574,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 1.6015510000215727,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 1.814057000046887,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 16,
+          "medianCloseS": 25.03,
+          "healthyOk": 479,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.93,
+          "healthyP99Ms": 2.3,
+          "closeS": [
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03,
+            25.03
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "reset",
+            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "status": null,
+            "ms": 2.9,
+            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "reset",
+            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "status": null,
+            "ms": 2.2,
+            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "bytes": 104857591
+          }
+        }
+      },
+      {
         "framework": "axum",
         "contract": {
           "ok": {
@@ -1743,261 +1917,6 @@
             "label": "413",
             "status": 413,
             "ms": 315.9,
-            "error": null,
-            "bytes": 104857591
-          }
-        }
-      },
-      {
-        "framework": "fastify",
-        "contract": {
-          "ok": {
-            "verdict": "ok",
-            "label": "200",
-            "status": 200,
-            "ms": 31.187658999442647,
-            "error": null
-          },
-          "wrong_type": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 2.569657000094594,
-            "error": null
-          },
-          "missing": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 1.704354000139574,
-            "error": null
-          },
-          "extra": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 1.6015510000215727,
-            "error": null
-          },
-          "malformed": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 1.814057000046887,
-            "error": null
-          }
-        },
-        "slow": {
-          "opened": 16,
-          "stillOpen": 16,
-          "medianCloseS": 25.03,
-          "healthyOk": 479,
-          "healthyErr": 0,
-          "healthyP50Ms": 1.93,
-          "healthyP99Ms": 2.3,
-          "closeS": [
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03,
-            25.03
-          ]
-        },
-        "oversize": {
-          "10mb": {
-            "verdict": "reset",
-            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "status": null,
-            "ms": 2.9,
-            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "bytes": 10485751
-          },
-          "100mb": {
-            "verdict": "reset",
-            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "status": null,
-            "ms": 2.2,
-            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "bytes": 104857591
-          }
-        }
-      },
-      {
-        "framework": "hyperexpress",
-        "contract": {
-          "ok": {
-            "verdict": "ok",
-            "label": "200",
-            "status": 200,
-            "ms": 29.51742400000512,
-            "error": null
-          },
-          "wrong_type": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 3.0709589991602115,
-            "error": null
-          },
-          "missing": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 1.4610730004278594,
-            "error": null
-          },
-          "extra": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 2.3556249998364365,
-            "error": null
-          },
-          "malformed": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 1.4465859994743369,
-            "error": null
-          }
-        },
-        "slow": {
-          "opened": 16,
-          "stillOpen": 0,
-          "medianCloseS": 8.07,
-          "healthyOk": 481,
-          "healthyErr": 0,
-          "healthyP50Ms": 1.75,
-          "healthyP99Ms": 2.02,
-          "closeS": [
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07
-          ]
-        },
-        "oversize": {
-          "10mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 46.9,
-            "error": null,
-            "bytes": 10485751
-          },
-          "100mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 326.0,
-            "error": null,
-            "bytes": 104857591
-          }
-        }
-      },
-      {
-        "framework": "spring",
-        "contract": {
-          "ok": {
-            "verdict": "ok",
-            "label": "200",
-            "status": 200,
-            "ms": 70.76402900020184,
-            "error": null
-          },
-          "wrong_type": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 24.928842000008444,
-            "error": null
-          },
-          "missing": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 4.652275999887934,
-            "error": null
-          },
-          "extra": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 3.7610909998875286,
-            "error": null
-          },
-          "malformed": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 5.911664999985078,
-            "error": null
-          }
-        },
-        "slow": {
-          "opened": 16,
-          "stillOpen": 16,
-          "medianCloseS": 25.05,
-          "healthyOk": 462,
-          "healthyErr": 0,
-          "healthyP50Ms": 3.74,
-          "healthyP99Ms": 5.21,
-          "closeS": [
-            25.06,
-            25.06,
-            25.06,
-            25.06,
-            25.06,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05
-          ]
-        },
-        "oversize": {
-          "10mb": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 55.6,
-            "error": null,
-            "bytes": 10485751
-          },
-          "100mb": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 334.8,
             "error": null,
             "bytes": 104857591
           }
@@ -2087,73 +2006,158 @@
             "bytes": 104857591
           }
         }
-      }
-    ],
-    "oversize": [
+      },
       {
-        "framework": "crocket",
+        "framework": "spring",
         "contract": {
           "ok": {
             "verdict": "ok",
             "label": "200",
             "status": 200,
-            "ms": 28.677120999873296,
+            "ms": 70.76402900020184,
             "error": null
           },
           "wrong_type": {
             "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 0.8694040000136738,
+            "label": "400",
+            "status": 400,
+            "ms": 24.928842000008444,
             "error": null
           },
           "missing": {
-            "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 0.7193110000116576,
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 4.652275999887934,
             "error": null
           },
           "extra": {
             "verdict": "accepted",
             "label": "200",
             "status": 200,
-            "ms": 0.7604340000852972,
+            "ms": 3.7610909998875286,
             "error": null
           },
           "malformed": {
             "verdict": "rejected",
-            "label": "422",
-            "status": 422,
-            "ms": 0.8090040000752197,
+            "label": "400",
+            "status": 400,
+            "ms": 5.911664999985078,
             "error": null
           }
         },
         "slow": {
           "opened": 16,
-          "stillOpen": 0,
-          "medianCloseS": 10.02,
-          "healthyOk": 485,
+          "stillOpen": 16,
+          "medianCloseS": 25.05,
+          "healthyOk": 462,
           "healthyErr": 0,
-          "healthyP50Ms": 1.36,
-          "healthyP99Ms": 1.8,
+          "healthyP50Ms": 3.74,
+          "healthyP99Ms": 5.21,
           "closeS": [
-            10.03,
-            10.03,
-            10.03,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02,
-            10.02
+            25.06,
+            25.06,
+            25.06,
+            25.06,
+            25.06,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 55.6,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 334.8,
+            "error": null,
+            "bytes": 104857591
+          }
+        }
+      }
+    ],
+    "oversize": [
+      {
+        "framework": "drogon",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 40.500073000202974,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 1.0859079998226662,
+            "error": null
+          },
+          "missing": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.8896290000848239,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.9543699998175725,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 0.9815339999477146,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 16,
+          "medianCloseS": 25.05,
+          "healthyOk": 483,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.57,
+          "healthyP99Ms": 1.9,
+          "closeS": [
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05,
+            25.05
           ]
         },
         "oversize": {
@@ -2161,16 +2165,16 @@
             "verdict": "rejected",
             "label": "413",
             "status": 413,
-            "ms": 33.5,
+            "ms": 35.1,
             "error": null,
             "bytes": 10485751
           },
           "100mb": {
-            "verdict": "reset",
-            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "status": null,
-            "ms": 36.2,
-            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 315.9,
+            "error": null,
             "bytes": 104857591
           }
         }
@@ -2261,6 +2265,176 @@
         }
       },
       {
+        "framework": "hyperexpress",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 29.51742400000512,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 3.0709589991602115,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 1.4610730004278594,
+            "error": null
+          },
+          "extra": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 2.3556249998364365,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "400",
+            "status": 400,
+            "ms": 1.4465859994743369,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 0,
+          "medianCloseS": 8.07,
+          "healthyOk": 481,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.75,
+          "healthyP99Ms": 2.02,
+          "closeS": [
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.08,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07,
+            8.07
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 46.9,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 326.0,
+            "error": null,
+            "bytes": 104857591
+          }
+        }
+      },
+      {
+        "framework": "crocket",
+        "contract": {
+          "ok": {
+            "verdict": "ok",
+            "label": "200",
+            "status": 200,
+            "ms": 28.677120999873296,
+            "error": null
+          },
+          "wrong_type": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8694040000136738,
+            "error": null
+          },
+          "missing": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.7193110000116576,
+            "error": null
+          },
+          "extra": {
+            "verdict": "accepted",
+            "label": "200",
+            "status": 200,
+            "ms": 0.7604340000852972,
+            "error": null
+          },
+          "malformed": {
+            "verdict": "rejected",
+            "label": "422",
+            "status": 422,
+            "ms": 0.8090040000752197,
+            "error": null
+          }
+        },
+        "slow": {
+          "opened": 16,
+          "stillOpen": 0,
+          "medianCloseS": 10.02,
+          "healthyOk": 485,
+          "healthyErr": 0,
+          "healthyP50Ms": 1.36,
+          "healthyP99Ms": 1.8,
+          "closeS": [
+            10.03,
+            10.03,
+            10.03,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02,
+            10.02
+          ]
+        },
+        "oversize": {
+          "10mb": {
+            "verdict": "rejected",
+            "label": "413",
+            "status": 413,
+            "ms": 33.5,
+            "error": null,
+            "bytes": 10485751
+          },
+          "100mb": {
+            "verdict": "reset",
+            "label": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "status": null,
+            "ms": 36.2,
+            "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
+            "bytes": 104857591
+          }
+        }
+      },
+      {
         "framework": "axum",
         "contract": {
           "ok": {
@@ -2346,91 +2520,6 @@
         }
       },
       {
-        "framework": "drogon",
-        "contract": {
-          "ok": {
-            "verdict": "ok",
-            "label": "200",
-            "status": 200,
-            "ms": 40.500073000202974,
-            "error": null
-          },
-          "wrong_type": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 1.0859079998226662,
-            "error": null
-          },
-          "missing": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 0.8896290000848239,
-            "error": null
-          },
-          "extra": {
-            "verdict": "accepted",
-            "label": "200",
-            "status": 200,
-            "ms": 0.9543699998175725,
-            "error": null
-          },
-          "malformed": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 0.9815339999477146,
-            "error": null
-          }
-        },
-        "slow": {
-          "opened": 16,
-          "stillOpen": 16,
-          "medianCloseS": 25.05,
-          "healthyOk": 483,
-          "healthyErr": 0,
-          "healthyP50Ms": 1.57,
-          "healthyP99Ms": 1.9,
-          "closeS": [
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05,
-            25.05
-          ]
-        },
-        "oversize": {
-          "10mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 35.1,
-            "error": null,
-            "bytes": 10485751
-          },
-          "100mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 315.9,
-            "error": null,
-            "bytes": 104857591
-          }
-        }
-      },
-      {
         "framework": "fastify",
         "contract": {
           "ok": {
@@ -2511,91 +2600,6 @@
             "status": null,
             "ms": 2.2,
             "error": "URLError: <urlopen error [Errno 32] Broken pipe>",
-            "bytes": 104857591
-          }
-        }
-      },
-      {
-        "framework": "hyperexpress",
-        "contract": {
-          "ok": {
-            "verdict": "ok",
-            "label": "200",
-            "status": 200,
-            "ms": 29.51742400000512,
-            "error": null
-          },
-          "wrong_type": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 3.0709589991602115,
-            "error": null
-          },
-          "missing": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 1.4610730004278594,
-            "error": null
-          },
-          "extra": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 2.3556249998364365,
-            "error": null
-          },
-          "malformed": {
-            "verdict": "rejected",
-            "label": "400",
-            "status": 400,
-            "ms": 1.4465859994743369,
-            "error": null
-          }
-        },
-        "slow": {
-          "opened": 16,
-          "stillOpen": 0,
-          "medianCloseS": 8.07,
-          "healthyOk": 481,
-          "healthyErr": 0,
-          "healthyP50Ms": 1.75,
-          "healthyP99Ms": 2.02,
-          "closeS": [
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.08,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07,
-            8.07
-          ]
-        },
-        "oversize": {
-          "10mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 46.9,
-            "error": null,
-            "bytes": 10485751
-          },
-          "100mb": {
-            "verdict": "rejected",
-            "label": "413",
-            "status": 413,
-            "ms": 326.0,
-            "error": null,
             "bytes": 104857591
           }
         }
@@ -2773,108 +2777,124 @@
     ],
     "drain": [
       {
-        "framework": "crocket",
-        "ok": 41940,
-        "err": 3387,
-        "seconds": 40.0,
-        "by": {
-          "200": 41940,
-          "ConnectionResetError": 1,
-          "URLError": 3386
-        },
-        "stopS": 1,
-        "restartS": 4
-      },
-      {
         "framework": "rocket",
-        "ok": 38781,
-        "err": 3631,
-        "seconds": 40.0,
-        "by": {
-          "200": 38781,
-          "ConnectionResetError": 1,
-          "URLError": 3630
-        },
-        "stopS": 1,
-        "restartS": 4
-      },
-      {
-        "framework": "axum",
-        "ok": 45947,
-        "err": 393,
-        "seconds": 40.0,
-        "by": {
-          "200": 45947,
-          "ConnectionResetError": 1,
-          "URLError": 392
-        },
-        "stopS": 32,
-        "restartS": 4
-      },
-      {
-        "framework": "drogon",
-        "ok": 70267,
-        "err": 2458,
-        "seconds": 40.0,
-        "by": {
-          "200": 70267,
-          "ConnectionResetError": 1,
-          "URLError": 2457
-        },
-        "stopS": 0,
-        "restartS": 3
-      },
-      {
-        "framework": "fastify",
-        "ok": 44160,
-        "err": 388,
-        "seconds": 40.0,
-        "by": {
-          "200": 44160,
-          "ConnectionResetError": 1,
-          "URLError": 387
-        },
-        "stopS": 32,
-        "restartS": 5
+        "runs": 3,
+        "perRun": 16,
+        "ok": 48,
+        "total": 48,
+        "dropped": 0,
+        "cleanRuns": 3,
+        "exitS": 0.4,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "0"
+        ]
       },
       {
         "framework": "hyperexpress",
-        "ok": 40435,
-        "err": 4148,
-        "seconds": 40.0,
-        "by": {
-          "200": 40435,
-          "ConnectionResetError": 1,
-          "URLError": 4147
-        },
-        "stopS": 2,
-        "restartS": 4
+        "runs": 3,
+        "perRun": 16,
+        "ok": 48,
+        "total": 48,
+        "dropped": 0,
+        "cleanRuns": 3,
+        "exitS": 0.4,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "0"
+        ]
       },
       {
         "framework": "spring",
-        "ok": 27822,
-        "err": 7933,
-        "seconds": 40.0,
-        "by": {
-          "200": 27822,
-          "ConnectionResetError": 2,
-          "URLError": 7931
-        },
-        "stopS": 1,
-        "restartS": 9
+        "runs": 3,
+        "perRun": 16,
+        "ok": 48,
+        "total": 48,
+        "dropped": 0,
+        "cleanRuns": 3,
+        "exitS": 0.76,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "143"
+        ]
       },
       {
         "framework": "fastapi",
-        "ok": 30911,
-        "err": 14738,
-        "seconds": 40.0,
-        "by": {
-          "200": 30911,
-          "ConnectionResetError": 2,
-          "URLError": 14736
-        },
-        "stopS": 2,
-        "restartS": 5
+        "runs": 3,
+        "perRun": 16,
+        "ok": 48,
+        "total": 48,
+        "dropped": 0,
+        "cleanRuns": 3,
+        "exitS": 0.94,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "0"
+        ]
+      },
+      {
+        "framework": "crocket",
+        "runs": 3,
+        "perRun": 16,
+        "ok": 48,
+        "total": 48,
+        "dropped": 0,
+        "cleanRuns": 3,
+        "exitS": 0.49,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "139"
+        ]
+      },
+      {
+        "framework": "fastify",
+        "runs": 3,
+        "perRun": 16,
+        "ok": 48,
+        "total": 48,
+        "dropped": 0,
+        "cleanRuns": 0,
+        "exitS": 15.09,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "137"
+        ]
+      },
+      {
+        "framework": "axum",
+        "runs": 3,
+        "perRun": 16,
+        "ok": 48,
+        "total": 48,
+        "dropped": 0,
+        "cleanRuns": 0,
+        "exitS": 15.18,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "137"
+        ]
+      },
+      {
+        "framework": "drogon",
+        "runs": 3,
+        "perRun": 16,
+        "ok": 0,
+        "total": 48,
+        "dropped": 48,
+        "cleanRuns": 3,
+        "exitS": 0.07,
+        "graceS": 15.0,
+        "termAfterMs": 150,
+        "exitCodes": [
+          "0"
+        ]
       }
     ],
     "soak": [
@@ -3372,7 +3392,8 @@
         "p50Ms": 0.95,
         "non2xx": 0,
         "socketErrors": 0,
-        "requests": 2099789
+        "requests": 2099789,
+        "driftMb": 0.0
       },
       {
         "framework": "rocket",
@@ -3868,503 +3889,8 @@
         "p50Ms": 1.12,
         "non2xx": 0,
         "socketErrors": 0,
-        "requests": 2099551
-      },
-      {
-        "framework": "axum",
-        "series": [
-          {
-            "t": 0,
-            "mb": 15.5
-          },
-          {
-            "t": 5,
-            "mb": 17.9
-          },
-          {
-            "t": 10,
-            "mb": 18.4
-          },
-          {
-            "t": 15,
-            "mb": 18.5
-          },
-          {
-            "t": 20,
-            "mb": 18.7
-          },
-          {
-            "t": 25,
-            "mb": 18.8
-          },
-          {
-            "t": 30,
-            "mb": 19.5
-          },
-          {
-            "t": 35,
-            "mb": 19.7
-          },
-          {
-            "t": 40,
-            "mb": 20.2
-          },
-          {
-            "t": 45,
-            "mb": 20.8
-          },
-          {
-            "t": 51,
-            "mb": 21.0
-          },
-          {
-            "t": 56,
-            "mb": 21.1
-          },
-          {
-            "t": 61,
-            "mb": 21.5
-          },
-          {
-            "t": 66,
-            "mb": 21.9
-          },
-          {
-            "t": 71,
-            "mb": 22.0
-          },
-          {
-            "t": 76,
-            "mb": 22.5
-          },
-          {
-            "t": 81,
-            "mb": 22.7
-          },
-          {
-            "t": 86,
-            "mb": 23.1
-          },
-          {
-            "t": 91,
-            "mb": 23.5
-          },
-          {
-            "t": 96,
-            "mb": 23.5
-          },
-          {
-            "t": 101,
-            "mb": 23.8
-          },
-          {
-            "t": 106,
-            "mb": 24.0
-          },
-          {
-            "t": 111,
-            "mb": 24.2
-          },
-          {
-            "t": 116,
-            "mb": 24.7
-          },
-          {
-            "t": 121,
-            "mb": 25.0
-          },
-          {
-            "t": 126,
-            "mb": 25.3
-          },
-          {
-            "t": 131,
-            "mb": 25.7
-          },
-          {
-            "t": 136,
-            "mb": 26.2
-          },
-          {
-            "t": 141,
-            "mb": 26.5
-          },
-          {
-            "t": 146,
-            "mb": 26.8
-          },
-          {
-            "t": 151,
-            "mb": 26.9
-          },
-          {
-            "t": 156,
-            "mb": 27.3
-          },
-          {
-            "t": 161,
-            "mb": 27.4
-          },
-          {
-            "t": 166,
-            "mb": 28.1
-          },
-          {
-            "t": 171,
-            "mb": 28.3
-          },
-          {
-            "t": 176,
-            "mb": 28.8
-          },
-          {
-            "t": 181,
-            "mb": 28.9
-          },
-          {
-            "t": 186,
-            "mb": 29.3
-          },
-          {
-            "t": 191,
-            "mb": 29.5
-          },
-          {
-            "t": 196,
-            "mb": 29.6
-          },
-          {
-            "t": 201,
-            "mb": 29.9
-          },
-          {
-            "t": 206,
-            "mb": 30.1
-          },
-          {
-            "t": 211,
-            "mb": 30.4
-          },
-          {
-            "t": 216,
-            "mb": 30.7
-          },
-          {
-            "t": 221,
-            "mb": 30.8
-          },
-          {
-            "t": 226,
-            "mb": 31.3
-          },
-          {
-            "t": 231,
-            "mb": 31.6
-          },
-          {
-            "t": 236,
-            "mb": 31.9
-          },
-          {
-            "t": 241,
-            "mb": 32.4
-          },
-          {
-            "t": 246,
-            "mb": 32.5
-          },
-          {
-            "t": 251,
-            "mb": 32.8
-          },
-          {
-            "t": 256,
-            "mb": 33.2
-          },
-          {
-            "t": 261,
-            "mb": 33.7
-          },
-          {
-            "t": 266,
-            "mb": 33.9
-          },
-          {
-            "t": 271,
-            "mb": 34.1
-          },
-          {
-            "t": 276,
-            "mb": 34.4
-          },
-          {
-            "t": 281,
-            "mb": 34.8
-          },
-          {
-            "t": 286,
-            "mb": 35.0
-          },
-          {
-            "t": 291,
-            "mb": 35.2
-          },
-          {
-            "t": 296,
-            "mb": 35.5
-          },
-          {
-            "t": 301,
-            "mb": 35.8
-          },
-          {
-            "t": 306,
-            "mb": 36.1
-          },
-          {
-            "t": 311,
-            "mb": 36.7
-          },
-          {
-            "t": 316,
-            "mb": 37.0
-          },
-          {
-            "t": 322,
-            "mb": 37.2
-          },
-          {
-            "t": 327,
-            "mb": 37.5
-          },
-          {
-            "t": 332,
-            "mb": 37.8
-          },
-          {
-            "t": 337,
-            "mb": 38.0
-          },
-          {
-            "t": 342,
-            "mb": 38.4
-          },
-          {
-            "t": 347,
-            "mb": 38.8
-          },
-          {
-            "t": 352,
-            "mb": 39.0
-          },
-          {
-            "t": 357,
-            "mb": 39.4
-          },
-          {
-            "t": 362,
-            "mb": 39.7
-          },
-          {
-            "t": 367,
-            "mb": 40.1
-          },
-          {
-            "t": 372,
-            "mb": 40.5
-          },
-          {
-            "t": 377,
-            "mb": 41.0
-          },
-          {
-            "t": 382,
-            "mb": 41.2
-          },
-          {
-            "t": 387,
-            "mb": 41.5
-          },
-          {
-            "t": 392,
-            "mb": 41.6
-          },
-          {
-            "t": 397,
-            "mb": 42.0
-          },
-          {
-            "t": 402,
-            "mb": 42.3
-          },
-          {
-            "t": 407,
-            "mb": 42.3
-          },
-          {
-            "t": 412,
-            "mb": 42.7
-          },
-          {
-            "t": 417,
-            "mb": 43.2
-          },
-          {
-            "t": 422,
-            "mb": 43.6
-          },
-          {
-            "t": 427,
-            "mb": 43.7
-          },
-          {
-            "t": 432,
-            "mb": 44.0
-          },
-          {
-            "t": 437,
-            "mb": 44.3
-          },
-          {
-            "t": 442,
-            "mb": 44.5
-          },
-          {
-            "t": 447,
-            "mb": 44.8
-          },
-          {
-            "t": 452,
-            "mb": 45.2
-          },
-          {
-            "t": 457,
-            "mb": 45.4
-          },
-          {
-            "t": 462,
-            "mb": 45.6
-          },
-          {
-            "t": 467,
-            "mb": 45.9
-          },
-          {
-            "t": 472,
-            "mb": 46.5
-          },
-          {
-            "t": 477,
-            "mb": 46.9
-          },
-          {
-            "t": 482,
-            "mb": 47.2
-          },
-          {
-            "t": 487,
-            "mb": 47.3
-          },
-          {
-            "t": 492,
-            "mb": 47.7
-          },
-          {
-            "t": 497,
-            "mb": 47.8
-          },
-          {
-            "t": 502,
-            "mb": 48.1
-          },
-          {
-            "t": 507,
-            "mb": 48.5
-          },
-          {
-            "t": 512,
-            "mb": 48.7
-          },
-          {
-            "t": 517,
-            "mb": 49.2
-          },
-          {
-            "t": 522,
-            "mb": 49.5
-          },
-          {
-            "t": 527,
-            "mb": 49.9
-          },
-          {
-            "t": 532,
-            "mb": 50.3
-          },
-          {
-            "t": 537,
-            "mb": 50.5
-          },
-          {
-            "t": 542,
-            "mb": 50.7
-          },
-          {
-            "t": 547,
-            "mb": 50.9
-          },
-          {
-            "t": 552,
-            "mb": 51.2
-          },
-          {
-            "t": 557,
-            "mb": 51.4
-          },
-          {
-            "t": 562,
-            "mb": 51.8
-          },
-          {
-            "t": 567,
-            "mb": 52.2
-          },
-          {
-            "t": 572,
-            "mb": 52.4
-          },
-          {
-            "t": 577,
-            "mb": 52.8
-          },
-          {
-            "t": 582,
-            "mb": 53.0
-          },
-          {
-            "t": 587,
-            "mb": 53.3
-          },
-          {
-            "t": 593,
-            "mb": 53.6
-          },
-          {
-            "t": 598,
-            "mb": 53.8
-          }
-        ],
-        "startMb": 15.5,
-        "endMb": 53.8,
-        "peakMb": 53.8,
-        "deltaMb": 38.3,
-        "samples": 120,
-        "reqS": 3497.93,
-        "p99Ms": 2.07,
-        "p50Ms": 1.08,
-        "non2xx": 0,
-        "socketErrors": 0,
-        "requests": 2098769
+        "requests": 2099551,
+        "driftMb": 0.0
       },
       {
         "framework": "drogon",
@@ -4860,7 +4386,501 @@
         "p50Ms": 0.96,
         "non2xx": 0,
         "socketErrors": 0,
-        "requests": 2099788
+        "requests": 2099788,
+        "driftMb": 0.1
+      },
+      {
+        "framework": "fastapi",
+        "series": [
+          {
+            "t": 0,
+            "mb": 268.2
+          },
+          {
+            "t": 5,
+            "mb": 268.2
+          },
+          {
+            "t": 10,
+            "mb": 268.2
+          },
+          {
+            "t": 15,
+            "mb": 268.2
+          },
+          {
+            "t": 20,
+            "mb": 268.2
+          },
+          {
+            "t": 25,
+            "mb": 268.2
+          },
+          {
+            "t": 30,
+            "mb": 268.2
+          },
+          {
+            "t": 35,
+            "mb": 268.2
+          },
+          {
+            "t": 40,
+            "mb": 268.2
+          },
+          {
+            "t": 45,
+            "mb": 268.2
+          },
+          {
+            "t": 50,
+            "mb": 268.2
+          },
+          {
+            "t": 55,
+            "mb": 268.2
+          },
+          {
+            "t": 60,
+            "mb": 268.2
+          },
+          {
+            "t": 65,
+            "mb": 268.2
+          },
+          {
+            "t": 70,
+            "mb": 268.2
+          },
+          {
+            "t": 75,
+            "mb": 268.2
+          },
+          {
+            "t": 80,
+            "mb": 268.2
+          },
+          {
+            "t": 85,
+            "mb": 268.2
+          },
+          {
+            "t": 90,
+            "mb": 268.2
+          },
+          {
+            "t": 96,
+            "mb": 268.2
+          },
+          {
+            "t": 101,
+            "mb": 268.3
+          },
+          {
+            "t": 106,
+            "mb": 268.3
+          },
+          {
+            "t": 111,
+            "mb": 268.3
+          },
+          {
+            "t": 116,
+            "mb": 268.3
+          },
+          {
+            "t": 121,
+            "mb": 268.3
+          },
+          {
+            "t": 126,
+            "mb": 268.3
+          },
+          {
+            "t": 131,
+            "mb": 268.3
+          },
+          {
+            "t": 136,
+            "mb": 268.3
+          },
+          {
+            "t": 141,
+            "mb": 268.3
+          },
+          {
+            "t": 146,
+            "mb": 268.3
+          },
+          {
+            "t": 151,
+            "mb": 268.3
+          },
+          {
+            "t": 156,
+            "mb": 268.3
+          },
+          {
+            "t": 161,
+            "mb": 268.3
+          },
+          {
+            "t": 166,
+            "mb": 268.3
+          },
+          {
+            "t": 171,
+            "mb": 268.3
+          },
+          {
+            "t": 176,
+            "mb": 268.3
+          },
+          {
+            "t": 182,
+            "mb": 268.3
+          },
+          {
+            "t": 187,
+            "mb": 268.3
+          },
+          {
+            "t": 192,
+            "mb": 268.3
+          },
+          {
+            "t": 197,
+            "mb": 268.3
+          },
+          {
+            "t": 202,
+            "mb": 268.3
+          },
+          {
+            "t": 207,
+            "mb": 268.3
+          },
+          {
+            "t": 212,
+            "mb": 268.3
+          },
+          {
+            "t": 217,
+            "mb": 268.3
+          },
+          {
+            "t": 222,
+            "mb": 268.3
+          },
+          {
+            "t": 227,
+            "mb": 268.3
+          },
+          {
+            "t": 232,
+            "mb": 268.3
+          },
+          {
+            "t": 237,
+            "mb": 268.3
+          },
+          {
+            "t": 242,
+            "mb": 268.3
+          },
+          {
+            "t": 247,
+            "mb": 268.3
+          },
+          {
+            "t": 252,
+            "mb": 268.3
+          },
+          {
+            "t": 257,
+            "mb": 268.3
+          },
+          {
+            "t": 262,
+            "mb": 268.3
+          },
+          {
+            "t": 267,
+            "mb": 268.3
+          },
+          {
+            "t": 272,
+            "mb": 268.3
+          },
+          {
+            "t": 277,
+            "mb": 268.3
+          },
+          {
+            "t": 283,
+            "mb": 268.3
+          },
+          {
+            "t": 288,
+            "mb": 268.3
+          },
+          {
+            "t": 293,
+            "mb": 268.3
+          },
+          {
+            "t": 298,
+            "mb": 268.3
+          },
+          {
+            "t": 303,
+            "mb": 268.3
+          },
+          {
+            "t": 308,
+            "mb": 268.3
+          },
+          {
+            "t": 313,
+            "mb": 268.3
+          },
+          {
+            "t": 318,
+            "mb": 268.3
+          },
+          {
+            "t": 323,
+            "mb": 268.3
+          },
+          {
+            "t": 328,
+            "mb": 268.3
+          },
+          {
+            "t": 333,
+            "mb": 268.3
+          },
+          {
+            "t": 338,
+            "mb": 268.3
+          },
+          {
+            "t": 343,
+            "mb": 268.3
+          },
+          {
+            "t": 348,
+            "mb": 268.3
+          },
+          {
+            "t": 353,
+            "mb": 268.3
+          },
+          {
+            "t": 358,
+            "mb": 268.3
+          },
+          {
+            "t": 363,
+            "mb": 268.3
+          },
+          {
+            "t": 368,
+            "mb": 268.3
+          },
+          {
+            "t": 373,
+            "mb": 268.3
+          },
+          {
+            "t": 379,
+            "mb": 268.3
+          },
+          {
+            "t": 384,
+            "mb": 268.3
+          },
+          {
+            "t": 389,
+            "mb": 268.3
+          },
+          {
+            "t": 394,
+            "mb": 268.3
+          },
+          {
+            "t": 399,
+            "mb": 268.3
+          },
+          {
+            "t": 404,
+            "mb": 268.3
+          },
+          {
+            "t": 409,
+            "mb": 268.3
+          },
+          {
+            "t": 414,
+            "mb": 268.3
+          },
+          {
+            "t": 419,
+            "mb": 268.3
+          },
+          {
+            "t": 424,
+            "mb": 268.3
+          },
+          {
+            "t": 429,
+            "mb": 268.3
+          },
+          {
+            "t": 434,
+            "mb": 268.3
+          },
+          {
+            "t": 439,
+            "mb": 268.3
+          },
+          {
+            "t": 444,
+            "mb": 268.3
+          },
+          {
+            "t": 449,
+            "mb": 268.3
+          },
+          {
+            "t": 454,
+            "mb": 268.3
+          },
+          {
+            "t": 459,
+            "mb": 268.3
+          },
+          {
+            "t": 464,
+            "mb": 268.3
+          },
+          {
+            "t": 469,
+            "mb": 268.3
+          },
+          {
+            "t": 475,
+            "mb": 268.3
+          },
+          {
+            "t": 480,
+            "mb": 268.3
+          },
+          {
+            "t": 485,
+            "mb": 268.3
+          },
+          {
+            "t": 490,
+            "mb": 268.3
+          },
+          {
+            "t": 495,
+            "mb": 268.3
+          },
+          {
+            "t": 500,
+            "mb": 268.3
+          },
+          {
+            "t": 505,
+            "mb": 268.3
+          },
+          {
+            "t": 510,
+            "mb": 268.3
+          },
+          {
+            "t": 515,
+            "mb": 268.3
+          },
+          {
+            "t": 520,
+            "mb": 268.3
+          },
+          {
+            "t": 525,
+            "mb": 268.3
+          },
+          {
+            "t": 530,
+            "mb": 268.3
+          },
+          {
+            "t": 535,
+            "mb": 268.3
+          },
+          {
+            "t": 540,
+            "mb": 268.3
+          },
+          {
+            "t": 545,
+            "mb": 268.3
+          },
+          {
+            "t": 550,
+            "mb": 268.3
+          },
+          {
+            "t": 555,
+            "mb": 268.3
+          },
+          {
+            "t": 560,
+            "mb": 268.3
+          },
+          {
+            "t": 565,
+            "mb": 268.3
+          },
+          {
+            "t": 571,
+            "mb": 268.3
+          },
+          {
+            "t": 576,
+            "mb": 268.3
+          },
+          {
+            "t": 581,
+            "mb": 268.3
+          },
+          {
+            "t": 586,
+            "mb": 268.3
+          },
+          {
+            "t": 591,
+            "mb": 268.3
+          },
+          {
+            "t": 596,
+            "mb": 268.3
+          }
+        ],
+        "startMb": 268.2,
+        "endMb": 268.3,
+        "peakMb": 268.3,
+        "deltaMb": 0.1,
+        "samples": 119,
+        "reqS": 3499.64,
+        "p99Ms": 3.38,
+        "p50Ms": 1.55,
+        "non2xx": 0,
+        "socketErrors": 0,
+        "requests": 2099787,
+        "driftMb": 0.1
       },
       {
         "framework": "fastify",
@@ -5356,503 +5376,8 @@
         "p50Ms": 1.13,
         "non2xx": 0,
         "socketErrors": 0,
-        "requests": 2099582
-      },
-      {
-        "framework": "hyperexpress",
-        "series": [
-          {
-            "t": 0,
-            "mb": 93.6
-          },
-          {
-            "t": 5,
-            "mb": 155.9
-          },
-          {
-            "t": 10,
-            "mb": 212.1
-          },
-          {
-            "t": 15,
-            "mb": 230.9
-          },
-          {
-            "t": 20,
-            "mb": 231.5
-          },
-          {
-            "t": 25,
-            "mb": 231.7
-          },
-          {
-            "t": 30,
-            "mb": 231.7
-          },
-          {
-            "t": 35,
-            "mb": 231.8
-          },
-          {
-            "t": 40,
-            "mb": 231.8
-          },
-          {
-            "t": 45,
-            "mb": 231.8
-          },
-          {
-            "t": 50,
-            "mb": 231.8
-          },
-          {
-            "t": 55,
-            "mb": 232.0
-          },
-          {
-            "t": 60,
-            "mb": 232.0
-          },
-          {
-            "t": 65,
-            "mb": 232.0
-          },
-          {
-            "t": 70,
-            "mb": 232.0
-          },
-          {
-            "t": 75,
-            "mb": 232.0
-          },
-          {
-            "t": 80,
-            "mb": 232.0
-          },
-          {
-            "t": 85,
-            "mb": 232.0
-          },
-          {
-            "t": 90,
-            "mb": 232.0
-          },
-          {
-            "t": 95,
-            "mb": 232.0
-          },
-          {
-            "t": 100,
-            "mb": 232.0
-          },
-          {
-            "t": 105,
-            "mb": 232.0
-          },
-          {
-            "t": 110,
-            "mb": 232.0
-          },
-          {
-            "t": 115,
-            "mb": 232.0
-          },
-          {
-            "t": 120,
-            "mb": 232.0
-          },
-          {
-            "t": 125,
-            "mb": 232.5
-          },
-          {
-            "t": 130,
-            "mb": 232.3
-          },
-          {
-            "t": 135,
-            "mb": 232.3
-          },
-          {
-            "t": 140,
-            "mb": 232.6
-          },
-          {
-            "t": 146,
-            "mb": 232.6
-          },
-          {
-            "t": 151,
-            "mb": 232.6
-          },
-          {
-            "t": 156,
-            "mb": 232.6
-          },
-          {
-            "t": 161,
-            "mb": 232.6
-          },
-          {
-            "t": 166,
-            "mb": 232.6
-          },
-          {
-            "t": 171,
-            "mb": 232.6
-          },
-          {
-            "t": 176,
-            "mb": 232.6
-          },
-          {
-            "t": 181,
-            "mb": 232.6
-          },
-          {
-            "t": 186,
-            "mb": 232.6
-          },
-          {
-            "t": 191,
-            "mb": 232.6
-          },
-          {
-            "t": 196,
-            "mb": 232.6
-          },
-          {
-            "t": 201,
-            "mb": 232.6
-          },
-          {
-            "t": 206,
-            "mb": 232.6
-          },
-          {
-            "t": 211,
-            "mb": 232.6
-          },
-          {
-            "t": 216,
-            "mb": 232.8
-          },
-          {
-            "t": 221,
-            "mb": 232.8
-          },
-          {
-            "t": 226,
-            "mb": 232.8
-          },
-          {
-            "t": 231,
-            "mb": 232.8
-          },
-          {
-            "t": 236,
-            "mb": 232.8
-          },
-          {
-            "t": 241,
-            "mb": 232.8
-          },
-          {
-            "t": 246,
-            "mb": 232.8
-          },
-          {
-            "t": 251,
-            "mb": 233.0
-          },
-          {
-            "t": 256,
-            "mb": 233.0
-          },
-          {
-            "t": 261,
-            "mb": 233.1
-          },
-          {
-            "t": 266,
-            "mb": 233.1
-          },
-          {
-            "t": 271,
-            "mb": 233.1
-          },
-          {
-            "t": 276,
-            "mb": 233.3
-          },
-          {
-            "t": 281,
-            "mb": 233.3
-          },
-          {
-            "t": 286,
-            "mb": 233.3
-          },
-          {
-            "t": 291,
-            "mb": 233.3
-          },
-          {
-            "t": 296,
-            "mb": 233.3
-          },
-          {
-            "t": 301,
-            "mb": 233.3
-          },
-          {
-            "t": 306,
-            "mb": 233.3
-          },
-          {
-            "t": 311,
-            "mb": 233.3
-          },
-          {
-            "t": 316,
-            "mb": 233.3
-          },
-          {
-            "t": 321,
-            "mb": 233.5
-          },
-          {
-            "t": 326,
-            "mb": 233.5
-          },
-          {
-            "t": 331,
-            "mb": 233.5
-          },
-          {
-            "t": 336,
-            "mb": 233.5
-          },
-          {
-            "t": 341,
-            "mb": 233.5
-          },
-          {
-            "t": 346,
-            "mb": 233.5
-          },
-          {
-            "t": 351,
-            "mb": 233.5
-          },
-          {
-            "t": 356,
-            "mb": 233.6
-          },
-          {
-            "t": 361,
-            "mb": 233.6
-          },
-          {
-            "t": 366,
-            "mb": 233.8
-          },
-          {
-            "t": 371,
-            "mb": 233.8
-          },
-          {
-            "t": 376,
-            "mb": 233.8
-          },
-          {
-            "t": 381,
-            "mb": 233.8
-          },
-          {
-            "t": 386,
-            "mb": 233.8
-          },
-          {
-            "t": 391,
-            "mb": 233.8
-          },
-          {
-            "t": 397,
-            "mb": 233.8
-          },
-          {
-            "t": 402,
-            "mb": 233.8
-          },
-          {
-            "t": 407,
-            "mb": 233.8
-          },
-          {
-            "t": 412,
-            "mb": 233.8
-          },
-          {
-            "t": 417,
-            "mb": 233.8
-          },
-          {
-            "t": 422,
-            "mb": 233.8
-          },
-          {
-            "t": 427,
-            "mb": 233.8
-          },
-          {
-            "t": 432,
-            "mb": 233.8
-          },
-          {
-            "t": 437,
-            "mb": 233.8
-          },
-          {
-            "t": 442,
-            "mb": 233.8
-          },
-          {
-            "t": 447,
-            "mb": 233.8
-          },
-          {
-            "t": 452,
-            "mb": 233.8
-          },
-          {
-            "t": 457,
-            "mb": 233.8
-          },
-          {
-            "t": 462,
-            "mb": 233.8
-          },
-          {
-            "t": 467,
-            "mb": 233.8
-          },
-          {
-            "t": 472,
-            "mb": 234.0
-          },
-          {
-            "t": 477,
-            "mb": 234.0
-          },
-          {
-            "t": 482,
-            "mb": 234.0
-          },
-          {
-            "t": 487,
-            "mb": 234.0
-          },
-          {
-            "t": 492,
-            "mb": 234.0
-          },
-          {
-            "t": 497,
-            "mb": 234.0
-          },
-          {
-            "t": 502,
-            "mb": 234.0
-          },
-          {
-            "t": 507,
-            "mb": 234.0
-          },
-          {
-            "t": 512,
-            "mb": 234.0
-          },
-          {
-            "t": 517,
-            "mb": 234.0
-          },
-          {
-            "t": 522,
-            "mb": 234.0
-          },
-          {
-            "t": 527,
-            "mb": 234.0
-          },
-          {
-            "t": 532,
-            "mb": 234.0
-          },
-          {
-            "t": 537,
-            "mb": 234.0
-          },
-          {
-            "t": 542,
-            "mb": 234.0
-          },
-          {
-            "t": 547,
-            "mb": 234.0
-          },
-          {
-            "t": 552,
-            "mb": 234.0
-          },
-          {
-            "t": 557,
-            "mb": 234.0
-          },
-          {
-            "t": 562,
-            "mb": 234.0
-          },
-          {
-            "t": 567,
-            "mb": 234.0
-          },
-          {
-            "t": 572,
-            "mb": 234.0
-          },
-          {
-            "t": 577,
-            "mb": 234.0
-          },
-          {
-            "t": 582,
-            "mb": 234.0
-          },
-          {
-            "t": 587,
-            "mb": 234.0
-          },
-          {
-            "t": 592,
-            "mb": 234.0
-          },
-          {
-            "t": 597,
-            "mb": 234.0
-          }
-        ],
-        "startMb": 93.6,
-        "endMb": 234.0,
-        "peakMb": 234.0,
-        "deltaMb": 140.4,
-        "samples": 120,
-        "reqS": 3499.64,
-        "p99Ms": 2.38,
-        "p50Ms": 1.14,
-        "non2xx": 0,
-        "socketErrors": 0,
-        "requests": 2099792
+        "requests": 2099582,
+        "driftMb": 0.6
       },
       {
         "framework": "spring",
@@ -6348,550 +5873,1005 @@
         "p50Ms": 1.34,
         "non2xx": 0,
         "socketErrors": 0,
-        "requests": 2098972
+        "requests": 2098972,
+        "driftMb": 1.9
       },
       {
-        "framework": "fastapi",
+        "framework": "hyperexpress",
         "series": [
           {
             "t": 0,
-            "mb": 268.2
+            "mb": 93.6
           },
           {
             "t": 5,
-            "mb": 268.2
+            "mb": 155.9
           },
           {
             "t": 10,
-            "mb": 268.2
+            "mb": 212.1
           },
           {
             "t": 15,
-            "mb": 268.2
+            "mb": 230.9
           },
           {
             "t": 20,
-            "mb": 268.2
+            "mb": 231.5
           },
           {
             "t": 25,
-            "mb": 268.2
+            "mb": 231.7
           },
           {
             "t": 30,
-            "mb": 268.2
+            "mb": 231.7
           },
           {
             "t": 35,
-            "mb": 268.2
+            "mb": 231.8
           },
           {
             "t": 40,
-            "mb": 268.2
+            "mb": 231.8
           },
           {
             "t": 45,
-            "mb": 268.2
+            "mb": 231.8
           },
           {
             "t": 50,
-            "mb": 268.2
+            "mb": 231.8
           },
           {
             "t": 55,
-            "mb": 268.2
+            "mb": 232.0
           },
           {
             "t": 60,
-            "mb": 268.2
+            "mb": 232.0
           },
           {
             "t": 65,
-            "mb": 268.2
+            "mb": 232.0
           },
           {
             "t": 70,
-            "mb": 268.2
+            "mb": 232.0
           },
           {
             "t": 75,
-            "mb": 268.2
+            "mb": 232.0
           },
           {
             "t": 80,
-            "mb": 268.2
+            "mb": 232.0
           },
           {
             "t": 85,
-            "mb": 268.2
+            "mb": 232.0
           },
           {
             "t": 90,
-            "mb": 268.2
+            "mb": 232.0
           },
           {
-            "t": 96,
-            "mb": 268.2
+            "t": 95,
+            "mb": 232.0
           },
           {
-            "t": 101,
-            "mb": 268.3
+            "t": 100,
+            "mb": 232.0
           },
           {
-            "t": 106,
-            "mb": 268.3
+            "t": 105,
+            "mb": 232.0
           },
           {
-            "t": 111,
-            "mb": 268.3
+            "t": 110,
+            "mb": 232.0
           },
           {
-            "t": 116,
-            "mb": 268.3
+            "t": 115,
+            "mb": 232.0
           },
           {
-            "t": 121,
-            "mb": 268.3
+            "t": 120,
+            "mb": 232.0
           },
           {
-            "t": 126,
-            "mb": 268.3
+            "t": 125,
+            "mb": 232.5
           },
           {
-            "t": 131,
-            "mb": 268.3
+            "t": 130,
+            "mb": 232.3
           },
           {
-            "t": 136,
-            "mb": 268.3
+            "t": 135,
+            "mb": 232.3
           },
           {
-            "t": 141,
-            "mb": 268.3
+            "t": 140,
+            "mb": 232.6
           },
           {
             "t": 146,
-            "mb": 268.3
+            "mb": 232.6
           },
           {
             "t": 151,
-            "mb": 268.3
+            "mb": 232.6
           },
           {
             "t": 156,
-            "mb": 268.3
+            "mb": 232.6
           },
           {
             "t": 161,
-            "mb": 268.3
+            "mb": 232.6
           },
           {
             "t": 166,
-            "mb": 268.3
+            "mb": 232.6
           },
           {
             "t": 171,
-            "mb": 268.3
+            "mb": 232.6
           },
           {
             "t": 176,
-            "mb": 268.3
+            "mb": 232.6
           },
           {
-            "t": 182,
-            "mb": 268.3
+            "t": 181,
+            "mb": 232.6
           },
           {
-            "t": 187,
-            "mb": 268.3
+            "t": 186,
+            "mb": 232.6
           },
           {
-            "t": 192,
-            "mb": 268.3
+            "t": 191,
+            "mb": 232.6
           },
           {
-            "t": 197,
-            "mb": 268.3
+            "t": 196,
+            "mb": 232.6
           },
           {
-            "t": 202,
-            "mb": 268.3
+            "t": 201,
+            "mb": 232.6
           },
           {
-            "t": 207,
-            "mb": 268.3
+            "t": 206,
+            "mb": 232.6
           },
           {
-            "t": 212,
-            "mb": 268.3
+            "t": 211,
+            "mb": 232.6
           },
           {
-            "t": 217,
-            "mb": 268.3
+            "t": 216,
+            "mb": 232.8
           },
           {
-            "t": 222,
-            "mb": 268.3
+            "t": 221,
+            "mb": 232.8
           },
           {
-            "t": 227,
-            "mb": 268.3
+            "t": 226,
+            "mb": 232.8
           },
           {
-            "t": 232,
-            "mb": 268.3
+            "t": 231,
+            "mb": 232.8
           },
           {
-            "t": 237,
-            "mb": 268.3
+            "t": 236,
+            "mb": 232.8
           },
           {
-            "t": 242,
-            "mb": 268.3
+            "t": 241,
+            "mb": 232.8
           },
           {
-            "t": 247,
-            "mb": 268.3
+            "t": 246,
+            "mb": 232.8
           },
           {
-            "t": 252,
-            "mb": 268.3
+            "t": 251,
+            "mb": 233.0
           },
           {
-            "t": 257,
-            "mb": 268.3
+            "t": 256,
+            "mb": 233.0
           },
           {
-            "t": 262,
-            "mb": 268.3
+            "t": 261,
+            "mb": 233.1
           },
           {
-            "t": 267,
-            "mb": 268.3
+            "t": 266,
+            "mb": 233.1
           },
           {
-            "t": 272,
-            "mb": 268.3
+            "t": 271,
+            "mb": 233.1
           },
           {
-            "t": 277,
-            "mb": 268.3
+            "t": 276,
+            "mb": 233.3
           },
           {
-            "t": 283,
-            "mb": 268.3
+            "t": 281,
+            "mb": 233.3
           },
           {
-            "t": 288,
-            "mb": 268.3
+            "t": 286,
+            "mb": 233.3
           },
           {
-            "t": 293,
-            "mb": 268.3
+            "t": 291,
+            "mb": 233.3
           },
           {
-            "t": 298,
-            "mb": 268.3
+            "t": 296,
+            "mb": 233.3
           },
           {
-            "t": 303,
-            "mb": 268.3
+            "t": 301,
+            "mb": 233.3
           },
           {
-            "t": 308,
-            "mb": 268.3
+            "t": 306,
+            "mb": 233.3
           },
           {
-            "t": 313,
-            "mb": 268.3
+            "t": 311,
+            "mb": 233.3
           },
           {
-            "t": 318,
-            "mb": 268.3
+            "t": 316,
+            "mb": 233.3
           },
           {
-            "t": 323,
-            "mb": 268.3
+            "t": 321,
+            "mb": 233.5
           },
           {
-            "t": 328,
-            "mb": 268.3
+            "t": 326,
+            "mb": 233.5
           },
           {
-            "t": 333,
-            "mb": 268.3
+            "t": 331,
+            "mb": 233.5
           },
           {
-            "t": 338,
-            "mb": 268.3
+            "t": 336,
+            "mb": 233.5
           },
           {
-            "t": 343,
-            "mb": 268.3
+            "t": 341,
+            "mb": 233.5
           },
           {
-            "t": 348,
-            "mb": 268.3
+            "t": 346,
+            "mb": 233.5
           },
           {
-            "t": 353,
-            "mb": 268.3
+            "t": 351,
+            "mb": 233.5
           },
           {
-            "t": 358,
-            "mb": 268.3
+            "t": 356,
+            "mb": 233.6
           },
           {
-            "t": 363,
-            "mb": 268.3
+            "t": 361,
+            "mb": 233.6
           },
           {
-            "t": 368,
-            "mb": 268.3
+            "t": 366,
+            "mb": 233.8
           },
           {
-            "t": 373,
-            "mb": 268.3
+            "t": 371,
+            "mb": 233.8
           },
           {
-            "t": 379,
-            "mb": 268.3
+            "t": 376,
+            "mb": 233.8
           },
           {
-            "t": 384,
-            "mb": 268.3
+            "t": 381,
+            "mb": 233.8
           },
           {
-            "t": 389,
-            "mb": 268.3
+            "t": 386,
+            "mb": 233.8
           },
           {
-            "t": 394,
-            "mb": 268.3
+            "t": 391,
+            "mb": 233.8
           },
           {
-            "t": 399,
-            "mb": 268.3
+            "t": 397,
+            "mb": 233.8
           },
           {
-            "t": 404,
-            "mb": 268.3
+            "t": 402,
+            "mb": 233.8
           },
           {
-            "t": 409,
-            "mb": 268.3
+            "t": 407,
+            "mb": 233.8
           },
           {
-            "t": 414,
-            "mb": 268.3
+            "t": 412,
+            "mb": 233.8
           },
           {
-            "t": 419,
-            "mb": 268.3
+            "t": 417,
+            "mb": 233.8
           },
           {
-            "t": 424,
-            "mb": 268.3
+            "t": 422,
+            "mb": 233.8
           },
           {
-            "t": 429,
-            "mb": 268.3
+            "t": 427,
+            "mb": 233.8
           },
           {
-            "t": 434,
-            "mb": 268.3
+            "t": 432,
+            "mb": 233.8
           },
           {
-            "t": 439,
-            "mb": 268.3
+            "t": 437,
+            "mb": 233.8
           },
           {
-            "t": 444,
-            "mb": 268.3
+            "t": 442,
+            "mb": 233.8
           },
           {
-            "t": 449,
-            "mb": 268.3
+            "t": 447,
+            "mb": 233.8
           },
           {
-            "t": 454,
-            "mb": 268.3
+            "t": 452,
+            "mb": 233.8
           },
           {
-            "t": 459,
-            "mb": 268.3
+            "t": 457,
+            "mb": 233.8
           },
           {
-            "t": 464,
-            "mb": 268.3
+            "t": 462,
+            "mb": 233.8
           },
           {
-            "t": 469,
-            "mb": 268.3
+            "t": 467,
+            "mb": 233.8
           },
           {
-            "t": 475,
-            "mb": 268.3
+            "t": 472,
+            "mb": 234.0
           },
           {
-            "t": 480,
-            "mb": 268.3
+            "t": 477,
+            "mb": 234.0
           },
           {
-            "t": 485,
-            "mb": 268.3
+            "t": 482,
+            "mb": 234.0
           },
           {
-            "t": 490,
-            "mb": 268.3
+            "t": 487,
+            "mb": 234.0
           },
           {
-            "t": 495,
-            "mb": 268.3
+            "t": 492,
+            "mb": 234.0
           },
           {
-            "t": 500,
-            "mb": 268.3
+            "t": 497,
+            "mb": 234.0
           },
           {
-            "t": 505,
-            "mb": 268.3
+            "t": 502,
+            "mb": 234.0
           },
           {
-            "t": 510,
-            "mb": 268.3
+            "t": 507,
+            "mb": 234.0
           },
           {
-            "t": 515,
-            "mb": 268.3
+            "t": 512,
+            "mb": 234.0
           },
           {
-            "t": 520,
-            "mb": 268.3
+            "t": 517,
+            "mb": 234.0
           },
           {
-            "t": 525,
-            "mb": 268.3
+            "t": 522,
+            "mb": 234.0
           },
           {
-            "t": 530,
-            "mb": 268.3
+            "t": 527,
+            "mb": 234.0
           },
           {
-            "t": 535,
-            "mb": 268.3
+            "t": 532,
+            "mb": 234.0
           },
           {
-            "t": 540,
-            "mb": 268.3
+            "t": 537,
+            "mb": 234.0
           },
           {
-            "t": 545,
-            "mb": 268.3
+            "t": 542,
+            "mb": 234.0
           },
           {
-            "t": 550,
-            "mb": 268.3
+            "t": 547,
+            "mb": 234.0
           },
           {
-            "t": 555,
-            "mb": 268.3
+            "t": 552,
+            "mb": 234.0
           },
           {
-            "t": 560,
-            "mb": 268.3
+            "t": 557,
+            "mb": 234.0
           },
           {
-            "t": 565,
-            "mb": 268.3
+            "t": 562,
+            "mb": 234.0
           },
           {
-            "t": 571,
-            "mb": 268.3
+            "t": 567,
+            "mb": 234.0
           },
           {
-            "t": 576,
-            "mb": 268.3
+            "t": 572,
+            "mb": 234.0
           },
           {
-            "t": 581,
-            "mb": 268.3
+            "t": 577,
+            "mb": 234.0
           },
           {
-            "t": 586,
-            "mb": 268.3
+            "t": 582,
+            "mb": 234.0
           },
           {
-            "t": 591,
-            "mb": 268.3
+            "t": 587,
+            "mb": 234.0
           },
           {
-            "t": 596,
-            "mb": 268.3
+            "t": 592,
+            "mb": 234.0
+          },
+          {
+            "t": 597,
+            "mb": 234.0
           }
         ],
-        "startMb": 268.2,
-        "endMb": 268.3,
-        "peakMb": 268.3,
-        "deltaMb": 0.1,
-        "samples": 119,
+        "startMb": 93.6,
+        "endMb": 234.0,
+        "peakMb": 234.0,
+        "deltaMb": 140.4,
+        "samples": 120,
         "reqS": 3499.64,
-        "p99Ms": 3.38,
-        "p50Ms": 1.55,
+        "p99Ms": 2.38,
+        "p50Ms": 1.14,
         "non2xx": 0,
         "socketErrors": 0,
-        "requests": 2099787
-      }
-    ],
-    "churn": [
-      {
-        "framework": "crocket",
-        "maxRps": 749,
-        "maxRpsRange": [
-          415,
-          10617
-        ],
-        "p99Ms": 19760.0,
-        "peakRssMb": 30,
-        "non2xx": 0,
-        "socketErrors": 0
-      },
-      {
-        "framework": "drogon",
-        "maxRps": 470,
-        "maxRpsRange": [
-          413,
-          6920
-        ],
-        "p99Ms": 19760.0,
-        "peakRssMb": 176,
-        "non2xx": 0,
-        "socketErrors": 0
+        "requests": 2099792,
+        "driftMb": 2.0
       },
       {
         "framework": "axum",
-        "maxRps": 515,
-        "maxRpsRange": [
-          400,
-          8525
+        "series": [
+          {
+            "t": 0,
+            "mb": 15.5
+          },
+          {
+            "t": 5,
+            "mb": 17.9
+          },
+          {
+            "t": 10,
+            "mb": 18.4
+          },
+          {
+            "t": 15,
+            "mb": 18.5
+          },
+          {
+            "t": 20,
+            "mb": 18.7
+          },
+          {
+            "t": 25,
+            "mb": 18.8
+          },
+          {
+            "t": 30,
+            "mb": 19.5
+          },
+          {
+            "t": 35,
+            "mb": 19.7
+          },
+          {
+            "t": 40,
+            "mb": 20.2
+          },
+          {
+            "t": 45,
+            "mb": 20.8
+          },
+          {
+            "t": 51,
+            "mb": 21.0
+          },
+          {
+            "t": 56,
+            "mb": 21.1
+          },
+          {
+            "t": 61,
+            "mb": 21.5
+          },
+          {
+            "t": 66,
+            "mb": 21.9
+          },
+          {
+            "t": 71,
+            "mb": 22.0
+          },
+          {
+            "t": 76,
+            "mb": 22.5
+          },
+          {
+            "t": 81,
+            "mb": 22.7
+          },
+          {
+            "t": 86,
+            "mb": 23.1
+          },
+          {
+            "t": 91,
+            "mb": 23.5
+          },
+          {
+            "t": 96,
+            "mb": 23.5
+          },
+          {
+            "t": 101,
+            "mb": 23.8
+          },
+          {
+            "t": 106,
+            "mb": 24.0
+          },
+          {
+            "t": 111,
+            "mb": 24.2
+          },
+          {
+            "t": 116,
+            "mb": 24.7
+          },
+          {
+            "t": 121,
+            "mb": 25.0
+          },
+          {
+            "t": 126,
+            "mb": 25.3
+          },
+          {
+            "t": 131,
+            "mb": 25.7
+          },
+          {
+            "t": 136,
+            "mb": 26.2
+          },
+          {
+            "t": 141,
+            "mb": 26.5
+          },
+          {
+            "t": 146,
+            "mb": 26.8
+          },
+          {
+            "t": 151,
+            "mb": 26.9
+          },
+          {
+            "t": 156,
+            "mb": 27.3
+          },
+          {
+            "t": 161,
+            "mb": 27.4
+          },
+          {
+            "t": 166,
+            "mb": 28.1
+          },
+          {
+            "t": 171,
+            "mb": 28.3
+          },
+          {
+            "t": 176,
+            "mb": 28.8
+          },
+          {
+            "t": 181,
+            "mb": 28.9
+          },
+          {
+            "t": 186,
+            "mb": 29.3
+          },
+          {
+            "t": 191,
+            "mb": 29.5
+          },
+          {
+            "t": 196,
+            "mb": 29.6
+          },
+          {
+            "t": 201,
+            "mb": 29.9
+          },
+          {
+            "t": 206,
+            "mb": 30.1
+          },
+          {
+            "t": 211,
+            "mb": 30.4
+          },
+          {
+            "t": 216,
+            "mb": 30.7
+          },
+          {
+            "t": 221,
+            "mb": 30.8
+          },
+          {
+            "t": 226,
+            "mb": 31.3
+          },
+          {
+            "t": 231,
+            "mb": 31.6
+          },
+          {
+            "t": 236,
+            "mb": 31.9
+          },
+          {
+            "t": 241,
+            "mb": 32.4
+          },
+          {
+            "t": 246,
+            "mb": 32.5
+          },
+          {
+            "t": 251,
+            "mb": 32.8
+          },
+          {
+            "t": 256,
+            "mb": 33.2
+          },
+          {
+            "t": 261,
+            "mb": 33.7
+          },
+          {
+            "t": 266,
+            "mb": 33.9
+          },
+          {
+            "t": 271,
+            "mb": 34.1
+          },
+          {
+            "t": 276,
+            "mb": 34.4
+          },
+          {
+            "t": 281,
+            "mb": 34.8
+          },
+          {
+            "t": 286,
+            "mb": 35.0
+          },
+          {
+            "t": 291,
+            "mb": 35.2
+          },
+          {
+            "t": 296,
+            "mb": 35.5
+          },
+          {
+            "t": 301,
+            "mb": 35.8
+          },
+          {
+            "t": 306,
+            "mb": 36.1
+          },
+          {
+            "t": 311,
+            "mb": 36.7
+          },
+          {
+            "t": 316,
+            "mb": 37.0
+          },
+          {
+            "t": 322,
+            "mb": 37.2
+          },
+          {
+            "t": 327,
+            "mb": 37.5
+          },
+          {
+            "t": 332,
+            "mb": 37.8
+          },
+          {
+            "t": 337,
+            "mb": 38.0
+          },
+          {
+            "t": 342,
+            "mb": 38.4
+          },
+          {
+            "t": 347,
+            "mb": 38.8
+          },
+          {
+            "t": 352,
+            "mb": 39.0
+          },
+          {
+            "t": 357,
+            "mb": 39.4
+          },
+          {
+            "t": 362,
+            "mb": 39.7
+          },
+          {
+            "t": 367,
+            "mb": 40.1
+          },
+          {
+            "t": 372,
+            "mb": 40.5
+          },
+          {
+            "t": 377,
+            "mb": 41.0
+          },
+          {
+            "t": 382,
+            "mb": 41.2
+          },
+          {
+            "t": 387,
+            "mb": 41.5
+          },
+          {
+            "t": 392,
+            "mb": 41.6
+          },
+          {
+            "t": 397,
+            "mb": 42.0
+          },
+          {
+            "t": 402,
+            "mb": 42.3
+          },
+          {
+            "t": 407,
+            "mb": 42.3
+          },
+          {
+            "t": 412,
+            "mb": 42.7
+          },
+          {
+            "t": 417,
+            "mb": 43.2
+          },
+          {
+            "t": 422,
+            "mb": 43.6
+          },
+          {
+            "t": 427,
+            "mb": 43.7
+          },
+          {
+            "t": 432,
+            "mb": 44.0
+          },
+          {
+            "t": 437,
+            "mb": 44.3
+          },
+          {
+            "t": 442,
+            "mb": 44.5
+          },
+          {
+            "t": 447,
+            "mb": 44.8
+          },
+          {
+            "t": 452,
+            "mb": 45.2
+          },
+          {
+            "t": 457,
+            "mb": 45.4
+          },
+          {
+            "t": 462,
+            "mb": 45.6
+          },
+          {
+            "t": 467,
+            "mb": 45.9
+          },
+          {
+            "t": 472,
+            "mb": 46.5
+          },
+          {
+            "t": 477,
+            "mb": 46.9
+          },
+          {
+            "t": 482,
+            "mb": 47.2
+          },
+          {
+            "t": 487,
+            "mb": 47.3
+          },
+          {
+            "t": 492,
+            "mb": 47.7
+          },
+          {
+            "t": 497,
+            "mb": 47.8
+          },
+          {
+            "t": 502,
+            "mb": 48.1
+          },
+          {
+            "t": 507,
+            "mb": 48.5
+          },
+          {
+            "t": 512,
+            "mb": 48.7
+          },
+          {
+            "t": 517,
+            "mb": 49.2
+          },
+          {
+            "t": 522,
+            "mb": 49.5
+          },
+          {
+            "t": 527,
+            "mb": 49.9
+          },
+          {
+            "t": 532,
+            "mb": 50.3
+          },
+          {
+            "t": 537,
+            "mb": 50.5
+          },
+          {
+            "t": 542,
+            "mb": 50.7
+          },
+          {
+            "t": 547,
+            "mb": 50.9
+          },
+          {
+            "t": 552,
+            "mb": 51.2
+          },
+          {
+            "t": 557,
+            "mb": 51.4
+          },
+          {
+            "t": 562,
+            "mb": 51.8
+          },
+          {
+            "t": 567,
+            "mb": 52.2
+          },
+          {
+            "t": 572,
+            "mb": 52.4
+          },
+          {
+            "t": 577,
+            "mb": 52.8
+          },
+          {
+            "t": 582,
+            "mb": 53.0
+          },
+          {
+            "t": 587,
+            "mb": 53.3
+          },
+          {
+            "t": 593,
+            "mb": 53.6
+          },
+          {
+            "t": 598,
+            "mb": 53.8
+          }
         ],
-        "p99Ms": 19760.0,
-        "peakRssMb": 16,
+        "startMb": 15.5,
+        "endMb": 53.8,
+        "peakMb": 53.8,
+        "deltaMb": 38.3,
+        "samples": 120,
+        "reqS": 3497.93,
+        "p99Ms": 2.07,
+        "p50Ms": 1.08,
         "non2xx": 0,
-        "socketErrors": 0
-      },
-      {
-        "framework": "rocket",
-        "maxRps": 519,
-        "maxRpsRange": [
-          403,
-          8745
-        ],
-        "p99Ms": 19790.0,
-        "peakRssMb": 24,
-        "non2xx": 0,
-        "socketErrors": 0
-      },
+        "socketErrors": 0,
+        "requests": 2098769,
+        "driftMb": 32.3
+      }
+    ],
+    "churn": [
       {
         "framework": "fastify",
         "maxRps": 2431,
@@ -6929,6 +6909,54 @@
         "socketErrors": 0
       },
       {
+        "framework": "crocket",
+        "maxRps": 749,
+        "maxRpsRange": [
+          415,
+          10617
+        ],
+        "p99Ms": 19760.0,
+        "peakRssMb": 30,
+        "non2xx": 0,
+        "socketErrors": 0
+      },
+      {
+        "framework": "rocket",
+        "maxRps": 519,
+        "maxRpsRange": [
+          403,
+          8745
+        ],
+        "p99Ms": 19790.0,
+        "peakRssMb": 24,
+        "non2xx": 0,
+        "socketErrors": 0
+      },
+      {
+        "framework": "axum",
+        "maxRps": 515,
+        "maxRpsRange": [
+          400,
+          8525
+        ],
+        "p99Ms": 19760.0,
+        "peakRssMb": 16,
+        "non2xx": 0,
+        "socketErrors": 0
+      },
+      {
+        "framework": "drogon",
+        "maxRps": 470,
+        "maxRpsRange": [
+          413,
+          6920
+        ],
+        "p99Ms": 19760.0,
+        "peakRssMb": 176,
+        "non2xx": 0,
+        "socketErrors": 0
+      },
+      {
         "framework": "hyperexpress",
         "maxRps": 6,
         "maxRpsRange": [
@@ -6943,5 +6971,5 @@
     ],
     "coming": []
   },
-  "hardwareNote": "The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn't available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1"
+  "hardwareNote": "The JSON, query, and plaintext numbers are from NYC1. The crocket and Drogon production tests ran on the same size in SFO2, because c-4 wasn't available in NYC1 that day. The other production tests, and everything for hyper-express, ran back in NYC1. The graceful drain test ran locally in Docker"
 }

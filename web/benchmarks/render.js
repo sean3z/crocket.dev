@@ -238,3 +238,68 @@
     .then(applyData)
     .catch(function () { /* keep the pre-rendered markup */ });
 })();
+
+/* Memory soak chart: nearest-line hover/tap tooltips, legend focus, highlight the active line. */
+(function () {
+  function fmtT(t) { var m = Math.floor(t / 60), s = Math.round(t % 60); return m + ":" + (s < 10 ? "0" : "") + s; }
+  function init(fig) {
+    var svg = fig.querySelector(".soak-svg");
+    var tip = fig.querySelector(".soak-tip");
+    var cursor = svg.querySelector(".soak-cursor");
+    var dot = svg.querySelector(".soak-dot");
+    var lines = Array.prototype.slice.call(svg.querySelectorAll(".soak-line"));
+    var series = lines.map(function (ln) {
+      var pts = ln.getAttribute("points").split(" ").map(function (p) { var a = p.split(","); return [+a[0], +a[1]]; });
+      var vals = ln.getAttribute("data-series").split(";").map(function (p) { var a = p.split(":"); return [+a[0], +a[1]]; });
+      return { el: ln, fw: ln.getAttribute("data-fw"), name: ln.getAttribute("data-name"), pts: pts, vals: vals };
+    });
+    function activate(fw) {
+      fig.classList.toggle("is-focus", !!fw);
+      lines.forEach(function (ln) { ln.classList.toggle("is-active", ln.getAttribute("data-fw") === fw); });
+      fig.querySelectorAll(".soak-key").forEach(function (b) { b.classList.toggle("is-active", b.getAttribute("data-fw") === fw); });
+    }
+    function show(s, i) {
+      var p = s.pts[i], v = s.vals[i];
+      cursor.setAttribute("x1", p[0]); cursor.setAttribute("x2", p[0]);
+      dot.setAttribute("cx", p[0]); dot.setAttribute("cy", p[1]);
+      dot.setAttribute("class", "soak-dot is-on " + (s.el.getAttribute("class").match(/series-\S+/) || [""])[0]);
+      cursor.classList.add("is-on");
+      tip.hidden = false;
+      tip.textContent = s.name + " · " + v[1].toFixed(1) + " MB · " + fmtT(v[0]);
+      var box = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+      var px = (p[0] / vb.width) * box.width, py = (p[1] / vb.height) * box.height;
+      var fr = fig.getBoundingClientRect();
+      var left = box.left - fr.left + px, top = box.top - fr.top + py;
+      tip.style.left = Math.max(0, Math.min(left + 12, fig.clientWidth - tip.offsetWidth)) + "px";
+      tip.style.top = Math.max(0, top - tip.offsetHeight - 10) + "px";
+      activate(s.fw);
+    }
+    function hide() { tip.hidden = true; cursor.classList.remove("is-on"); dot.classList.remove("is-on"); activate(null); }
+    function nearest(evt) {
+      var box = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+      var e = evt.touches ? evt.touches[0] : evt;
+      var x = ((e.clientX - box.left) / box.width) * vb.width, y = ((e.clientY - box.top) / box.height) * vb.height;
+      var best = null, bi = 0, bd = Infinity;
+      series.forEach(function (s) {
+        var i = 0, d = Infinity;
+        for (var k = 0; k < s.pts.length; k++) { var dx = Math.abs(s.pts[k][0] - x); if (dx < d) { d = dx; i = k; } }
+        var dy = Math.abs(s.pts[i][1] - y);
+        if (dy < bd) { bd = dy; best = s; bi = i; }
+      });
+      if (best) show(best, bi);
+    }
+    svg.addEventListener("mousemove", nearest);
+    svg.addEventListener("touchstart", nearest, { passive: true });
+    svg.addEventListener("touchmove", nearest, { passive: true });
+    svg.addEventListener("mouseleave", hide);
+    fig.querySelectorAll(".soak-key").forEach(function (b) {
+      var s = series.filter(function (x) { return x.fw === b.getAttribute("data-fw"); })[0];
+      if (!s) return;
+      var on = function () { show(s, s.pts.length - 1); };
+      b.addEventListener("mouseenter", on); b.addEventListener("focus", on); b.addEventListener("click", on);
+      b.addEventListener("mouseleave", hide); b.addEventListener("blur", hide);
+    });
+  }
+  function boot() { document.querySelectorAll("[data-soak-chart]").forEach(init); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
