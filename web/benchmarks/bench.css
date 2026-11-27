@@ -587,7 +587,8 @@ thead th[aria-sort="descending"] .sort-ind { color: var(--accent); }
 .scale-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem 1.6rem; margin: 0 0 1.1rem; }
 .scale-panel { min-width: 0; }
 .scale-panel .scale-chart { margin-bottom: 0.6rem; }
-.scale-panel-title { font-weight: 700; margin: 0 0 0.35rem; }
+.scale-panel-title { font-weight: 700; margin: 0 0 0.15rem; }
+.scale-panel-sub { color: var(--muted); font-size: 0.86rem; margin: 0 0 0.4rem; }
 .scale-panel .scale-table { font-size: 0.86rem; }
 .scale-panel .scale-table caption { font-size: 0.82rem; }
 .scale-sat-cell { font-weight: 700; color: var(--accent); }
