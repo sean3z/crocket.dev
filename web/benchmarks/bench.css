@@ -583,3 +583,17 @@ thead th[aria-sort="descending"] .sort-ind { color: var(--accent); }
 .heading-anchor:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 @media (hover: none) { .heading-anchor { opacity: 0.45; } }
 [id] { scroll-margin-top: 1rem; }
+/* When to scale: two phase panels, side by side on desktop, stacked on mobile. */
+.scale-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem 1.6rem; margin: 0 0 1.1rem; }
+.scale-panel { min-width: 0; }
+.scale-panel .scale-chart { margin-bottom: 0.6rem; }
+.scale-panel-title { font-weight: 700; margin: 0 0 0.35rem; }
+.scale-panel .scale-table { font-size: 0.86rem; }
+.scale-panel .scale-table caption { font-size: 0.82rem; }
+.scale-sat-cell { font-weight: 700; color: var(--accent); }
+.soak-line.scale-pod, .soak-line.scale-dep { stroke-width: 2; }
+.soak-line.scale-dep { stroke-dasharray: 5 3; }
+.soak-line.scale-cpu { stroke-dasharray: 2 4; }
+.scale-cap { margin: 0 0 0.9rem; }
+@media (max-width: 880px) { .scale-panels { grid-template-columns: 1fr; } }
+.scale-callout-lead { stroke: var(--accent); stroke-width: 1.5; }
