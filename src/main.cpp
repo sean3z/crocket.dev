@@ -15,15 +15,16 @@ using namespace crocket;
 namespace {
 
 // Replaces Shield's default (default-src 'none') on HTML. No inline script or
-// style, and no host but this one. Shield leaves a header the response already
-// has, which is why files.headers can set this for *.html.
+// style. script-src and connect-src also allow https://smite.sh for the
+// cookieless Umami tag. Shield leaves a header the response already has, which
+// is why files.headers can set this for *.html.
 constexpr char kCsp[] =
     "default-src 'self'; "
-    "script-src 'self'; "
+    "script-src 'self' https://smite.sh; "
     "style-src 'self'; "
     "img-src 'self'; "
     "font-src 'self'; "
-    "connect-src 'self'; "
+    "connect-src 'self' https://smite.sh; "
     "base-uri 'none'; "
     "form-action 'none'; "
     "object-src 'none'; "

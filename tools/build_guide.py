@@ -41,6 +41,17 @@ OG_PNG = ROOT / "web" / "og.png"
 OG_IMAGE_PATH = "/og.png"
 OG_IMAGE = SITE_ORIGIN + OG_IMAGE_PATH
 OG_IMAGE_ALT = "crocket: Handlers are functions. Reflection does the rest."
+# Cookieless Umami on smite.sh. One tag, inserted into every HTML head.
+UMAMI_SCRIPT = "https://smite.sh/stats/script.js"
+UMAMI_WEBSITE_ID = "557dcb84-ce37-466d-9ad3-e3b76625b66b"
+UMAMI_TAG = (
+    f'  <script defer src="{UMAMI_SCRIPT}" '
+    f'data-website-id="{UMAMI_WEBSITE_ID}"></script>'
+)
+UMAMI_TAG_RE = re.compile(
+    r'\n?\s*<script[^>]*src="https://smite\.sh/stats/script\.js"[^>]*>\s*</script>',
+    re.I,
+)
 # 404 has no canonical URL; the others do.
 HAND_PAGES = (
     (ROOT / "web" / "index.html", f"{SITE_ORIGIN}/"),
@@ -912,7 +923,12 @@ def inject_social(html_text, canonical):
             f'  <link rel="canonical" href="{esc(canonical)}">\n</head>',
             1,
         )
-    return html_text.replace("</head>", social_meta(title, description, canonical) + "\n</head>", 1)
+    html_text = UMAMI_TAG_RE.sub("", html_text)
+    return html_text.replace(
+        "</head>",
+        social_meta(title, description, canonical) + "\n" + UMAMI_TAG + "\n</head>",
+        1,
+    )
 
 
 def git_lastmod(path):
@@ -1018,6 +1034,11 @@ def check_social(paths):
             problems.append(f"{where}: og:url does not match canonical")
         if path.name == "404.html" and 'property="og:url"' in text:
             problems.append(f"{where}: 404 should not set og:url")
+        umami_count = len(re.findall(r'src="' + re.escape(UMAMI_SCRIPT) + r'"', text))
+        if umami_count != 1:
+            problems.append(f"{where}: umami script appears {umami_count} times")
+        elif UMAMI_TAG.strip() not in text:
+            problems.append(f"{where}: umami tag does not match UMAMI_TAG")
     return problems
 
 
@@ -1065,6 +1086,7 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical, descrip
   <link rel="stylesheet" href="/style.css">
   <link rel="alternate" type="text/plain" href="/llms.txt">
   <script src="/theme.js"></script>
+{UMAMI_TAG}
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>

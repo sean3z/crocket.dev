@@ -2,7 +2,7 @@
 
 The source for [crocket.dev](https://crocket.dev). It is the landing page, the guide, and the migration pages, served by [crocket](https://github.com/sean3z/crocket) itself.
 
-`GET /` is a route. It picks one rival for the benchmark block and sends `Cache-Control: no-cache`, so a refresh can show a different comparison. CSS and script URLs carry a content hash. HTML stays `no-cache`. The content security policy is `default-src 'self'`: no inline script, no inline style, no third-party host. `GET /healthz` is crocket's built-in liveness route.
+`GET /` is a route. It picks one rival for the benchmark block and sends `Cache-Control: no-cache`, so a refresh can show a different comparison. CSS and script URLs carry a content hash. HTML stays `no-cache`. The content security policy is `default-src 'self'`: no inline script, no inline style. `script-src` and `connect-src` also allow `https://smite.sh` for a cookieless analytics tag. `GET /healthz` is crocket's built-in liveness route.
 
 crocket is pinned to the release in [`VERSION`](VERSION). That one line is the FetchContent tag, and `tools/build_guide.py` stamps it onto the guide, the badges, and the snippets. Guide URLs stay `/guide/v0.5/`. The pin includes static file serving.
 
