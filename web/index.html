@@ -274,7 +274,7 @@ crocket::build()
           <li><strong>Binary.</strong> Link with <code>-Wl,--gc-sections</code> and the parts of h2o a program never calls drop out, about 300 KB. h2o is linked statically. OpenSSL stays dynamic.</li>
           <li><strong>Idle workers.</strong> They sleep. Each extra thread costs about 8 MB of virtual stack, not resident memory. A 16-connection pool on 4 cores used to cap the Heroes API at about 11k req/s, against 31k once workers followed the pool.</li>
         </ul>
-        <p class="caption">Sources: the routing section and the benchmarks section of the README, <code>docs/ENGINE.md</code>, the building section, and the 0.4.0 changelog. You need GCC 16.2 or later. Ubuntu 26.04's packaged <code>g++-16</code> is a pre-release snapshot whose reflection bugs break a translation unit that mounts routes.</p>
+        <p class="caption">Sources: the routing section and the benchmarks section of the README, <code>docs/ENGINE.md</code>, the building section, and the 0.4.0 changelog. See <a href="/guide/v0.5/getting-started/#compiler-support">compiler support</a>. Ubuntu 26.04's packaged <code>g++-16</code> is a pre-release snapshot whose reflection bugs break a translation unit that mounts routes.</p>
       </div>
     </section>
 
@@ -330,6 +330,7 @@ crocket::build()
         <div>
           <h2>Guide, release, demo</h2>
           <p class="intro">The guide lives on this site. Coming from <a href="/guide/v0.5/migrate-express/">Express</a> or <a href="/guide/v0.5/migrate-spring/">Spring Boot</a>? If an assistant is writing the service, read <a href="/ai/">why the shape stays reviewable</a>.</p>
+          <p class="intro">GCC 16.2 is fully supported. See <a href="/guide/v0.5/getting-started/#compiler-support">compiler support</a> for Clang.</p>
           <div class="actions">
             <a class="btn btn-primary" href="/guide/v0.5/quickstart/">Get started</a>
             <a class="btn" href="https://todo.crocket.dev">Live demo</a>
@@ -341,6 +342,7 @@ crocket::build()
           <li><a href="/benchmarks/">Benchmarks</a></li>
           <li><a href="/guide/v0.5/#goals">Design and principles</a></li>
           <li><a href="/guide/v0.5/deploying/#the-wire-engine">The wire engine</a></li>
+          <li><a href="/guide/v0.5/getting-started/#compiler-support">Compiler support</a></li>
           <li><a href="/guide/v0.5/deploying/#versions">Versions</a></li>
           <li><a href="https://godbolt.org/z/Gdes8Kbdq">Annotations on Compiler Explorer</a></li>
           <li><a href="https://github.com/sean3z/crocket">github.com/sean3z/crocket</a></li>

@@ -4,12 +4,24 @@ The quickstart assumes the compiler is already installed. This page is the part 
 
 ## What you need
 
-- GCC 16.2 or later, with `-freflection`. Clang is not tested.
+- A compiler with C++26 reflection. GCC 16.2 is fully supported. [Compiler support](#compiler-support) covers Clang.
 - CMake 3.28 or later, and Ninja or Make.
 - OpenSSL and zlib development headers (`libssl-dev`, `zlib1g-dev`), and `perl`, which h2o's build runs.
 - Network access on the first configure, to fetch h2o. Set `FETCHCONTENT_SOURCE_DIR_H2O` to a local checkout to build offline.
 
 There are no `install()` rules yet, so `find_package(crocket)` does not work. Use FetchContent, as the [quickstart](/guide/v0.5/quickstart/) does.
+
+## Compiler support
+
+crocket needs a compiler with C++26 reflection. The counts are from the crocket test suite.
+
+| Compiler | Version | Status | Tests | Notes |
+|---|---|---|---|---|
+| GCC | 16.2 | Full | 46/46 | `-std=c++26 -freflection` |
+| Clang, Bloomberg [p2996 fork](https://github.com/bloomberg/clang-p2996) | [562409c](https://github.com/bloomberg/clang-p2996/commit/562409c7942690d59ea470762515f88f24b16e23) (2026-11-03) | Partial | 31/46 | Fork libc++. Built with `-freflection -fexpansion-statements -fannotation-attributes -fparameter-reflection`. Not yet: OpenAPI, the fuzz targets, some consteval diagnostics, and namespaces in `display_string_of`. Routing, JSON, async, files, TLS, gRPC, auth, the client, and logging pass. |
+| Clang, upstream | — | Not yet | — | No P2996 |
+
+The Bloomberg fork row needs the portability changes in [PR #65](https://github.com/sean3z/crocket/pull/65), which are not in @release@.
 
 ## GCC 16.2
 

@@ -2,14 +2,14 @@
 
 > C++26 web framework using reflection for routes, gRPC and OpenAPI, production first with built-in metrics, logging and shields.
 
-The current release is @release@. You need GCC 16.2 or later with `-freflection`. The license is MIT. The repository is https://github.com/sean3z/crocket.
+The current release is @release@. GCC 16.2 is fully supported. See [compiler support](https://crocket.dev/guide/v0.5/getting-started/#compiler-support) for Clang. The license is MIT. The repository is https://github.com/sean3z/crocket.
 
 ## Docs
 
 - [Full guide](https://crocket.dev/llms-full.txt): Every v0.5 chapter, in order, as markdown.
 - [Introduction](https://crocket.dev/guide/v0.5/): Handlers are functions, routes are annotations, and h2o is the wire.
 - [Quickstart](https://crocket.dev/guide/v0.5/quickstart/): Build a hello route against the @release@ tag.
-- [Getting started](https://crocket.dev/guide/v0.5/getting-started/): GCC 16.2 with `-freflection`, Docker, and the hello image.
+- [Getting started](https://crocket.dev/guide/v0.5/getting-started/): Compiler support, GCC 16.2 with `-freflection`, Docker, and the hello image.
 - [Overview](https://crocket.dev/guide/v0.5/overview/): How a request becomes a response.
 - [Requests](https://crocket.dev/guide/v0.5/requests/): Path captures, query strings, JSON bodies, headers, and auth.
 - [Responses](https://crocket.dev/guide/v0.5/responses/): Status wrappers, JSON, static files, and cache headers.
