@@ -35,7 +35,7 @@ Most C++ web frameworks bind routes with a runtime registration call, a macro, o
 - Reflection runs only in the compiler. Each route becomes a function pointer. A request does not pay for a string lookup, RTTI, or type erasure per argument.
 - The same signatures and structs produce the JSON mapping, the OpenAPI document, and, for gRPC, the `.proto`.
 
-The trade-off is the toolchain. You need a compiler with C++26 reflection. crocket is developed on GCC 16.2 with `-freflection`. See [Getting started](/guide/v0.5/getting-started/).
+The trade-off is the toolchain. You need a compiler with C++26 reflection. crocket is developed on GCC 16.2 with `-freflection`. See [compiler support](/guide/v0.5/getting-started/#compiler-support).
 
 ## Goals
 
