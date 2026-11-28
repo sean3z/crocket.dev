@@ -42,9 +42,13 @@ set(HASHED_HTML
   "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/teapot.html"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/ai/index.html"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/hashed/benchmarks/index.html")
+set(SITE_META
+  "${CMAKE_CURRENT_SOURCE_DIR}/web/robots.txt"
+  "${CMAKE_CURRENT_SOURCE_DIR}/web/sitemap.xml")
+set(OG_PNG "${CMAKE_CURRENT_SOURCE_DIR}/web/og.png")
 add_custom_command(
-    OUTPUT "${GUIDE_CPP}" "${LLMS_FULL}" "${HASHED_LLMS}" ${HASHED_HTML}
-    COMMAND bash -c "python3 tools/build_guide.py || { test -s web/llms-full.txt && test -s src/guide_assets.cpp && test -s src/hashed/llms.txt && test -s src/hashed/index.html && test -s src/hashed/404.html && test -s src/hashed/teapot.html && test -s src/hashed/ai/index.html && test -s src/hashed/benchmarks/index.html; }"
+    OUTPUT "${GUIDE_CPP}" "${LLMS_FULL}" "${HASHED_LLMS}" ${HASHED_HTML} ${SITE_META}
+    COMMAND bash -c "python3 tools/build_guide.py || { test -s web/llms-full.txt && test -s src/guide_assets.cpp && test -s src/hashed/llms.txt && test -s src/hashed/index.html && test -s src/hashed/404.html && test -s src/hashed/teapot.html && test -s src/hashed/ai/index.html && test -s src/hashed/benchmarks/index.html && test -s web/robots.txt && test -s web/sitemap.xml; }"
     DEPENDS
       "${CMAKE_CURRENT_SOURCE_DIR}/VERSION"
       "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_guide.py"
@@ -60,6 +64,7 @@ add_custom_command(
       "${CMAKE_CURRENT_SOURCE_DIR}/web/benchmarks/bench.css"
       "${CMAKE_CURRENT_SOURCE_DIR}/web/benchmarks/render.js"
       "${CMAKE_CURRENT_SOURCE_DIR}/web/benchmarks/data.json"
+      "${OG_PNG}"
       "${CMAKE_CURRENT_SOURCE_DIR}/data/parity-sizes.json"
       "${CMAKE_CURRENT_SOURCE_DIR}/data/benchmarks.json"
       ${GUIDE_MD}
@@ -68,7 +73,7 @@ add_custom_command(
     VERBATIM)
 
 add_executable(crocket-site src/main.cpp "${GUIDE_CPP}")
-set_source_files_properties(src/main.cpp PROPERTIES OBJECT_DEPENDS "${LLMS_FULL};${HASHED_LLMS};${HASHED_HTML}")
+set_source_files_properties(src/main.cpp PROPERTIES OBJECT_DEPENDS "${LLMS_FULL};${HASHED_LLMS};${HASHED_HTML};${SITE_META};${OG_PNG}")
 target_link_libraries(crocket-site PRIVATE crocket::crocket)
 target_compile_options(crocket-site PRIVATE -Wall -Wextra -ffunction-sections -fdata-sections)
 target_link_options(crocket-site PRIVATE
