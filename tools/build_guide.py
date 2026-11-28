@@ -9,6 +9,7 @@ import html
 import json
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -34,6 +35,20 @@ EDIT_BASE = "https://github.com/sean3z/crocket.dev/edit/main"
 VERSION_FILE = ROOT / "VERSION"
 # Hand-written pages and guide prose use this token. The value lives only in VERSION.
 RELEASE_TOKEN = "@release@"
+
+SITE_ORIGIN = "https://crocket.dev"
+OG_PNG = ROOT / "web" / "og.png"
+OG_IMAGE_PATH = "/og.png"
+OG_IMAGE = SITE_ORIGIN + OG_IMAGE_PATH
+OG_IMAGE_ALT = "crocket: Handlers are functions. Reflection does the rest."
+# 404 has no canonical URL; the others do.
+HAND_PAGES = (
+    (ROOT / "web" / "index.html", f"{SITE_ORIGIN}/"),
+    (ROOT / "web" / "ai" / "index.html", f"{SITE_ORIGIN}/ai/"),
+    (ROOT / "web" / "benchmarks" / "index.html", f"{SITE_ORIGIN}/benchmarks/"),
+    (ROOT / "web" / "teapot.html", f"{SITE_ORIGIN}/teapot"),
+    (ROOT / "web" / "404.html", None),
+)
 
 
 def load_release():
@@ -805,7 +820,216 @@ def chapter_href(slug):
     return f"/guide/v0.5/{slug}/"
 
 
-def render_page(title, body, toc, chapters, index, edit_path, canonical):
+
+def png_size(path):
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        sys.exit(f"{path} is not a PNG")
+    width = int.from_bytes(data[16:20], "big")
+    height = int.from_bytes(data[20:24], "big")
+    return width, height
+
+
+def social_meta(title, description, canonical=None):
+    """Open Graph and Twitter tags. Titles and descriptions come from the page."""
+    lines = [
+        f'  <meta property="og:title" content="{esc(title)}">',
+        f'  <meta property="og:description" content="{esc(description)}">',
+    ]
+    if canonical:
+        lines.append(f'  <meta property="og:url" content="{esc(canonical)}">')
+    width, height = png_size(OG_PNG)
+    lines += [
+        '  <meta property="og:type" content="website">',
+        f'  <meta property="og:image" content="{esc(OG_IMAGE)}">',
+        f'  <meta property="og:image:width" content="{width}">',
+        f'  <meta property="og:image:height" content="{height}">',
+        f'  <meta property="og:image:alt" content="{esc(OG_IMAGE_ALT)}">',
+        '  <meta name="twitter:card" content="summary_large_image">',
+        f'  <meta name="twitter:title" content="{esc(title)}">',
+        f'  <meta name="twitter:description" content="{esc(description)}">',
+        f'  <meta name="twitter:image" content="{esc(OG_IMAGE)}">',
+    ]
+    return "\n".join(lines)
+
+
+def html_plain(fragment):
+    text = html.unescape(re.sub(r"<[^>]+>", "", fragment or ""))
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def first_plain_paragraph(body_html):
+    match = re.search(r"<p>(.*?)</p>", body_html, re.S)
+    return html_plain(match.group(1)) if match else ""
+
+
+def existing_attr(html_text, pattern):
+    match = re.search(pattern, html_text, re.I | re.S)
+    return html.unescape(match.group(1)) if match else ""
+
+
+def visible_lede(html_text):
+    for cls in ("lede", "tagline"):
+        match = re.search(rf'<p class="{cls}">(.*?)</p>', html_text, re.S)
+        if match:
+            text = html_plain(match.group(1))
+            if text:
+                return text
+    match = re.search(r"<h1[^>]*>.*?</h1>\s*<p[^>]*>(.*?)</p>", html_text, re.S)
+    return html_plain(match.group(1)) if match else ""
+
+
+SOCIAL_TAG_RE = re.compile(
+    r'\n?\s*<meta\s+(?:property="og:[^"]+"|name="twitter:[^"]+")\s+content="[^"]*"\s*/?>',
+    re.I,
+)
+
+
+def inject_social(html_text, canonical):
+    """Add share tags to a hand-written page from its existing title and lede."""
+    html_text = SOCIAL_TAG_RE.sub("", html_text)
+    title = existing_attr(html_text, r"<title>(.*?)</title>")
+    if not title:
+        sys.exit("a hand-written page is missing a title")
+    description = existing_attr(
+        html_text, r'<meta\s+name="description"\s+content="([^"]*)"'
+    )
+    if not description:
+        description = visible_lede(html_text)
+    if not description:
+        sys.exit(f"could not derive a description for {title!r}")
+    if not existing_attr(html_text, r'<meta\s+name="description"\s+content="([^"]*)"'):
+        html_text = re.sub(
+            r"(<title>.*?</title>)",
+            rf'\1\n  <meta name="description" content="{esc(description)}">',
+            html_text,
+            count=1,
+            flags=re.S,
+        )
+    if canonical and not re.search(r'<link\s+rel="canonical"', html_text, re.I):
+        html_text = html_text.replace(
+            "</head>",
+            f'  <link rel="canonical" href="{esc(canonical)}">\n</head>',
+            1,
+        )
+    return html_text.replace("</head>", social_meta(title, description, canonical) + "\n</head>", 1)
+
+
+def git_lastmod(path):
+    try:
+        rel = path.resolve().relative_to(ROOT.resolve())
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%cs", "--", str(rel)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        date = result.stdout.strip()
+        if result.returncode == 0 and re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+            return date
+    except OSError:
+        pass
+    return None
+
+
+def read_existing_lastmods():
+    path = ROOT / "web" / "sitemap.xml"
+    if not path.is_file():
+        return {}
+    return dict(
+        re.findall(
+            r"<loc>([^<]+)</loc>\s*<lastmod>([^<]+)</lastmod>",
+            path.read_text(encoding="utf-8"),
+        )
+    )
+
+
+def public_pages():
+    """Canonical URLs that belong in the sitemap, with their source files."""
+    pages = [
+        (f"{SITE_ORIGIN}/", ROOT / "web" / "index.html"),
+        (f"{SITE_ORIGIN}/ai/", ROOT / "web" / "ai" / "index.html"),
+        (f"{SITE_ORIGIN}/benchmarks/", ROOT / "web" / "benchmarks" / "index.html"),
+    ]
+    for slug, _nav, filename in CHAPTERS:
+        pages.append((SITE_ORIGIN + chapter_href(slug), GUIDE / filename))
+    return pages
+
+
+def write_robots():
+    (ROOT / "web" / "robots.txt").write_text(
+        "User-agent: *\n"
+        "Allow: /\n"
+        "\n"
+        f"Sitemap: {SITE_ORIGIN}/sitemap.xml\n",
+        encoding="utf-8",
+    )
+
+
+def write_sitemap():
+    previous = read_existing_lastmods()
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for url, source in public_pages():
+        last = git_lastmod(source) or previous.get(url)
+        lines.append("  <url>")
+        lines.append(f"    <loc>{esc(url)}</loc>")
+        if last:
+            lines.append(f"    <lastmod>{esc(last)}</lastmod>")
+        lines.append("  </url>")
+    lines.append("</urlset>")
+    lines.append("")
+    (ROOT / "web" / "sitemap.xml").write_text("\n".join(lines), encoding="utf-8")
+
+
+def check_social(paths):
+    """Every HTML page that ships should carry the share tags from social_meta."""
+    problems = []
+    required = (
+        'property="og:title"',
+        'property="og:description"',
+        'property="og:type"',
+        'property="og:image"',
+        'property="og:image:width"',
+        'property="og:image:height"',
+        'property="og:image:alt"',
+        'name="twitter:card"',
+        'name="twitter:title"',
+        'name="twitter:description"',
+        'name="twitter:image"',
+    )
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        where = path.relative_to(ROOT)
+        for needle in required:
+            if needle not in text:
+                problems.append(f"{where}: missing {needle}")
+        if f'content="{OG_IMAGE}"' not in text:
+            problems.append(f"{where}: og:image is not {OG_IMAGE}")
+        if 'content="summary_large_image"' not in text:
+            problems.append(f"{where}: twitter:card is not summary_large_image")
+        if path.name != "404.html" and 'rel="canonical"' not in text:
+            problems.append(f"{where}: missing canonical")
+        canonical = existing_attr(text, r'<link\s+rel="canonical"\s+href="([^"]*)"')
+        if canonical and f'property="og:url" content="{esc(canonical)}"' not in text:
+            problems.append(f"{where}: og:url does not match canonical")
+        if path.name == "404.html" and 'property="og:url"' in text:
+            problems.append(f"{where}: 404 should not set og:url")
+    return problems
+
+
+def require_og_image():
+    if not OG_PNG.is_file():
+        sys.exit("missing web/og.png; run tools/gen_og.py")
+    width, height = png_size(OG_PNG)
+    if (width, height) != (1200, 630):
+        sys.exit(f"{OG_PNG} is {width}x{height}, expected 1200x630")
+
+
+def render_page(title, body, toc, chapters, index, edit_path, canonical, description):
     side_links = []
     for i, (slug, nav, _fn) in enumerate(chapters):
         current = " aria-current=\"page\"" if i == index else ""
@@ -833,10 +1057,11 @@ def render_page(title, body, toc, chapters, index, edit_path, canonical):
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{esc(title)}, crocket guide</title>
-  <meta name="description" content="{esc(title)} in the crocket v0.5 guide.">
+  <meta name="description" content="{esc(description)}">
   <meta name="theme-color" content="#f4f0e6">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="canonical" href="{esc(canonical)}">
+{social_meta(f"{title}, crocket guide", description, canonical)}
   <link rel="stylesheet" href="/style.css">
   <link rel="alternate" type="text/plain" href="/llms.txt">
   <script src="/theme.js"></script>
@@ -1074,6 +1299,7 @@ def check_llms_links():
 
 
 def main():
+    require_og_image()
     missing = [name for _s, _n, name in CHAPTERS if not (GUIDE / name).exists()]
     if missing:
         sys.exit("missing guide markdown: " + ", ".join(missing))
@@ -1088,10 +1314,13 @@ def main():
         if not title:
             sys.exit(f"{filename} needs an h1")
         href = chapter_href(slug)
-        canonical = "https://crocket.dev" + href
+        canonical = SITE_ORIGIN + href
         edit = f"guide/v0.5/{filename}"
+        description = first_plain_paragraph(body)
+        if not description:
+            sys.exit(f"{filename} needs a lead paragraph for the page description")
         page = bust_assets(
-            render_page(title, body, toc, CHAPTERS, index, edit, canonical),
+            render_page(title, body, toc, CHAPTERS, index, edit, canonical, description),
             asset_versions(),
         )
         rel = "v0.5/index.html" if slug == "index" else f"v0.5/{slug}/index.html"
@@ -1121,9 +1350,11 @@ def main():
         ROOT / "web" / "ai" / "index.html": HASHED / "ai" / "index.html",
         ROOT / "web" / "benchmarks" / "index.html": HASHED / "benchmarks" / "index.html",
     }
+    hand_canonical = {src.resolve(): canon for src, canon in HAND_PAGES}
     for src, dest in hashed_pages.items():
         dest.parent.mkdir(parents=True, exist_ok=True)
         filled = apply_release(bust_assets(src.read_text(encoding="utf-8"), versions))
+        filled = inject_social(filled, hand_canonical[src.resolve()])
         dest.write_text(filled, encoding="utf-8")
     llms_out = HASHED / "llms.txt"
     llms_out.write_text(
@@ -1148,7 +1379,13 @@ def main():
         for attrs in scripts:
             if "src=" not in attrs:
                 sys.exit(f"{path} has an inline script")
+    write_robots()
+    write_sitemap()
     write_preview()
+    social_paths = list(pages.keys()) + [dest for _src, dest in hashed_pages.items()]
+    social_problems = check_social(social_paths)
+    if social_problems:
+        sys.exit("share tags missing:\n" + "\n".join(social_problems))
     audit_release()
     print(f"rendered {len(CHAPTERS)} chapters, {len(assets)} html files, release {RELEASE}")
 
@@ -1168,6 +1405,12 @@ def write_preview():
         text = path.read_text(encoding="utf-8")
         if RELEASE_TOKEN in text:
             path.write_text(apply_release(text), encoding="utf-8")
+    for src, canon in HAND_PAGES:
+        dest = PREVIEW / src.relative_to(ROOT / "web")
+        dest.write_text(
+            inject_social(dest.read_text(encoding="utf-8"), canon),
+            encoding="utf-8",
+        )
 
 
 def audit_release():

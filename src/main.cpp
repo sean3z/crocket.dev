@@ -50,6 +50,15 @@ static constexpr unsigned char theme_js[] = {
 static constexpr unsigned char favicon_svg[] = {
 #embed "../web/favicon.svg"
 };
+static constexpr unsigned char og_png[] = {
+#embed "../web/og.png"
+};
+static constexpr unsigned char robots_txt[] = {
+#embed "../web/robots.txt"
+};
+static constexpr unsigned char sitemap_xml[] = {
+#embed "../web/sitemap.xml"
+};
 static constexpr unsigned char ai_html[] = {
 #embed "../src/hashed/ai/index.html"
 };
@@ -181,6 +190,9 @@ files site_files() {
       asset("style.css", style_css),
       asset("theme.js", theme_js),
       asset("favicon.svg", favicon_svg),
+      asset("og.png", og_png),
+      asset("robots.txt", robots_txt),
+      asset("sitemap.xml", sitemap_xml),
       asset("ai/index.html", ai_html),
       asset("ai/exchange.js", ai_js),
       asset("llms.txt", llms_txt),
@@ -204,6 +216,7 @@ files site_files() {
       {"*.css", "public, max-age=3600"},
       {"*.js", "public, max-age=3600"},
       {"*.svg", "public, max-age=86400"},
+      {"*.png", "public, max-age=86400"},
   };
   web.headers = {
       {"*.html", {{"content-security-policy", kCsp}}},
